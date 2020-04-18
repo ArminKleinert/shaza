@@ -1,5 +1,6 @@
-# shaza
-Shaza is a statically typed lisp intended for use as an intermediate representation for compilers.
+# Shaza
+
+Shaza is a statically typed lisp intended for use as an intermediate representation for compilers. This is a hobby project and not intended for serious work.
 
 ## Basic commands
 
@@ -67,7 +68,7 @@ An important thing to note is that the lispy-version returns the last checked va
 
 ## Types
 
-The available types are:
+The available types are:  
 ``:int8 :int16 :int32 :int64 :int128 :bigint`` Integer types.  
 ``:uint8 :uint16 :uint32 :uint64 :uint128 :biguint`` Unsigned integer types.  
 ``:float16 :float32 :float64 :float128 :bigfloat`` Floating point types.  
@@ -80,10 +81,12 @@ The available types are:
 
 ```
 (et-define :sequential map
-  (Function f Sequential c)
+  (:function f :sequential c)
   (if (empty? c)
     c
-    (loop [curr (first c) rest-c (rest c) res (list)]
+    (loop [curr (first c)
+           rest-c (rest c)
+           res (convert (typeof c) (list))]
       (if (nil? curr)
         res
         (recur [(first rest-c)
