@@ -26,7 +26,12 @@ Shaza is a statically typed lisp intended for use as an intermediate representat
 ``(alloc <byte-size>)`` Allocate space in the heap.  
 ``(free <adress>)`` Free a variable from the heap.  
 ``(create <struct-type>)`` Essentially allocates space for a struct.  
+``(loop <bindings> &<body>)`` Creates a loop which runs until it exits with encountering a call to ``recur``.  
+``(recur <bindings>)`` Makes a loop run from the beginning with new bindings.
 
+``(quote <expr>)``  
+``(pseudo-quote <expr>)``  
+``(unquote <expr>)``  
 
 ## Operators
 
@@ -63,10 +68,25 @@ An important thing to note is that the lispy-version returns the last checked va
 ## Types
 
 The available types are:
-``Int8 Int16 Int32 Int64 Int128 BigInt`` Integer types.  
-``UInt8 UInt16 UInt32 UInt64 UInt128 BigUInt`` Unsigned integer types.  
-``Float16 Float32 Float64 Float128 BigFloat`` Floating point types.  
-``Boolean`` Literals #t and #f.  
-``String Keyword`` Text types.  
-``Map List Vector Set Array Expression Sequential`` Collection types  
-``Number Reference Any``  Other types. Number is the generic type for integers, unsigned ints and floats.  
+``:int8 :int16 :int32 :int64 :int128 :bigint`` Integer types.  
+``:uint8 :uint16 :uint32 :uint64 :uint128 :biguint`` Unsigned integer types.  
+``:float16 :float32 :float64 :float128 :bigfloat`` Floating point types.  
+``:boolean`` Literals #t and #f.  
+``:string :keyword`` Text types.  
+``:map :list :vector :set :array :expression :sequential`` Collection types  
+``:number :reference :function :any``  Other types. Number is the generic type for integers, unsigned ints and floats.  
+
+## Example
+
+```
+(et-define :sequential map
+  (Function f Sequential c)
+  (if (empty? c)
+    c
+    (loop [curr (first c) rest-c (rest c) res (list)]
+      (if (nil? curr)
+        res
+        (recur [(first rest-c)
+                (rest rest-c)
+                (append res (f curr))])))))
+```
