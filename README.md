@@ -69,18 +69,18 @@ An important thing to note is that the lispy-version returns the last checked va
 ## Types
 
 The available types are:  
-``:int8 :int16 :int32 :int64 :int128 :bigint`` Integer types.  
-``:uint8 :uint16 :uint32 :uint64 :uint128 :biguint`` Unsigned integer types.  
-``:float16 :float32 :float64 :float128 :bigfloat`` Floating point types.  
-``:boolean`` Literals #t and #f.  
-``:string :keyword`` Text types.  
-``:map :list :vector :set :array :expression :sequential`` Collection types  
-``:number :reference :function :any``  Other types. Number is the generic type for integers, unsigned ints and floats.  
+``::int8 ::int16 ::int32 ::int64 ::int128 ::bigint`` Integer types.  
+``::uint8 ::uint16 ::uint32 :uint64 ::uint128 ::biguint`` Unsigned integer types.  
+``::float16 ::float32 ::float64 ::float128 ::bigfloat`` Floating point types.  
+``::boolean`` Literals #t and #f.  
+``::string ::keyword`` Text types.  
+``::map ::list ::vector ::set ::array ::expression ::sequential`` Collection types  
+``::number ::reference ::function ::any``  Other types. Number is the generic type for integers, unsigned ints and floats.  
 
 ## Example
 
 ```
-(et-define :sequential map
+(et-define ::sequential map
   (:function f :sequential c)
   (if (empty? c)
     c
