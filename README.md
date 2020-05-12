@@ -81,7 +81,7 @@ The available types are:
 
 ```
 (et-define ::sequential map
-  (:function f :sequential c)
+  [::function f ::sequential c]
   (if (empty? c)
     c
     (loop [curr (first c)
