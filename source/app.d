@@ -18,7 +18,7 @@ struct Token {
     int charIdx;
     TknType type;
     string text;
-    
+
     this(int lineIdx, int charIdx, TknType type, string text) {
         this.lineIdx = lineIdx;
         this.charIdx = charIdx;
@@ -30,7 +30,7 @@ struct Token {
 class AstNode {
     Token tkn;
     AstNode[] children;
-    
+
     this(Token tkn, AstNode[] children) {
         this.tkn = tkn;
         this.children = children;
@@ -56,10 +56,8 @@ TknType tknTypeByText(string text) {
 
 Context closeToken(Context ctx) {
     if (ctx.currTknText.length > 0) {
-        auto type = tknTypeByText(ctx.currTknText);
-        auto tkn = Token(
-            ctx.currTknStartLine, ctx.currTknStartChar,
-            type, ctx.currTknText);
+        auto type = tknTypeByText( ctx.currTknText);
+        auto tkn = Token( ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
         ctx.tokens ~= tkn;
     }
     ctx.currTknText = "";
@@ -75,7 +73,7 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
     if (ctx.nextEscaped) {
         ctx.nextEscaped = false;
     } else if (c == '"' && !ctx.nextEscaped) {
-        ctx = closeToken(ctx);
+        ctx = closeToken( ctx);
     } else if (!ctx.nextEscaped && c == '\\') {
         ctx.nextEscaped = true;
     }
@@ -84,13 +82,13 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
 
 Context tokenizeSubNextChar(Context ctx, char c) {
     if (c == '"') {
-        ctx = closeToken(ctx);
+        ctx = closeToken( ctx);
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
     } else if (c == ' ' || c == '\t') {
-        ctx = closeToken(ctx);
+        ctx = closeToken( ctx);
     } else if (c == '\n') {
-        ctx = closeToken(ctx);
+        ctx = closeToken( ctx);
     } else {
         ctx.currTknText = ctx.currTknText ~ c;
     }
@@ -105,26 +103,26 @@ Context tokenize(Context ctx, string source) {
             ctx.currTknChar = 0;
         }
         if (ctx.isInString) {
-            ctx = tokenizeSubNextCharInString(ctx, c);
+            ctx = tokenizeSubNextCharInString( ctx, c);
         } else {
-            ctx = tokenizeSubNextChar(ctx, c);
+            ctx = tokenizeSubNextChar( ctx, c);
         }
     }
-    ctx = closeToken(ctx);
-    
+    ctx = closeToken( ctx);
+
     return ctx;
 }
 
 void main()
 {
     auto ctx = new Context();
-    ctx = tokenize(ctx, "fncall customns/fncall var" ~
-    "\"string\" \"string\nwith\nlinebreak\""~
-    ":keyword" ~ 
+    ctx = tokenize( ctx, "fncall customns/fncall var" ~
+    "\"string\" \"string\nwith\nlinebreak\"" ~
+    ":keyword" ~
     "::typeliteral" ~
     "15 15u 0xF 0b1111 0xFu 0b1111u" ~
     "15.0 15f 15.f" ~
     "#t #f nil" ~
     "() [] Lst[] (+ 1 1)");
-    writeln(ctx.tokens);
+    writeln( ctx.tokens);
 }
