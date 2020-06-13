@@ -1,6 +1,7 @@
 # Shaza
 
 Shaza is a statically typed lisp intended for use as an intermediate representation for compilers. This is a hobby project and not intended for serious work.
+Similarly to many modern languages, typing is implicit but static. The type of functions and variables can be optionally specified as shown below.
 
 ## Basic commands
 
@@ -19,7 +20,7 @@ Shaza is a statically typed lisp intended for use as an intermediate representat
 ``(convert <type> <val>)`` Converts a value to a specific type.  
 ``(car <list>)`` Get the car of a list or expression.  
 ``(cdr <list>)`` Get the cdr of a list or expression.  
-``(coll <type> &<vals>)`` Create a collection of elements. Valid values for type are :map, :vector, :list and :set.  
+``(coll <type> &<vals>)`` Create a collection of elements. Valid values for type are ::map, ::vector, ::list and ::set.  
 ``(import-sz <path>)`` Import a shaza file.  
 ``(rt-import-sz <path>)`` Import and parse a shaza file at runtime.  
 ``(rt-import-dll <path>)`` Import a dll file at runtime.  
@@ -27,7 +28,7 @@ Shaza is a statically typed lisp intended for use as an intermediate representat
 ``(alloc <byte-size>)`` Allocate space in the heap.  
 ``(free <adress>)`` Free a variable from the heap.  
 ``(create <struct-type>)`` Essentially allocates space for a struct.  
-``(loop <bindings> &<body>)`` Creates a loop which runs until it exits with encountering a call to ``recur``.  
+``(loop <bindings> &<body>)`` Creates a loop which runs until it exits or encounters a call to ``recur``. Shaza does not support tail-recursion (yet).  
 ``(recur <bindings>)`` Makes a loop run from the beginning with new bindings.
 
 ``(quote <expr>)``  
@@ -76,6 +77,7 @@ The available types are:
 ``::string ::keyword`` Text types.  
 ``::map ::list ::vector ::set ::array ::expression ::sequential`` Collection types  
 ``::number ::reference ::function ::any``  Other types. Number is the generic type for integers, unsigned ints and floats.  
+Of cause there are the user-defined types (created via ``def-struct``). Names with the ``::`` are automatically generated for them.
 
 ## Example
 
@@ -87,7 +89,7 @@ The available types are:
     (loop [curr (first c)
            rest-c (rest c)
            res (convert (typeof c) (list))]
-      (if (nil? curr)
+      (if (empty? rest-c)
         res
         (recur [(first rest-c)
                 (rest rest-c)

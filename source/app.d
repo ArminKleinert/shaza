@@ -1,61 +1,89 @@
 import std.stdio;
+import std.conv;
+import std.typecons;
+import std.string;
+import std.algorithm;
 
-enum TknType : byte {
-    unknown,
-    litValue,
-    symbol,
-    buildinFnCall,
-    buildinMacroCall,
-    scopeOpen,
-    scopeClose,
-    lstOpen,
-    lstTaggedOpen,
-    lstClose,
+import buildins;
+import compiler_types;
+import ast;
+
+bool isStringLiteral(string text) {
+    return text.size >= 2 && text[0] == '"' && text[$-1] == '"' && text[$-2] != 92;
 }
 
-struct Token {
-    int lineIdx;
-    int charIdx;
-    TknType type;
-    string text;
-
-    this(int lineIdx, int charIdx, TknType type, string text) {
-        this.lineIdx = lineIdx;
-        this.charIdx = charIdx;
-        this.type = type;
-        this.text = text;
+bool isValidSymbolText(string text) {
+    // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#
+    foreach (char c; "\";()[]{}#:") {
+        if (text.canFind(c)) return false;
     }
+    return true;
 }
 
-class AstNode {
-    Token tkn;
-    AstNode[] children;
-
-    this(Token tkn, AstNode[] children) {
-        this.tkn = tkn;
-        this.children = children;
-    }
+bool isTypeLiteral(string text) {
+    return text.size > 2 && text[0] == ':' && text[1] == ':'
+      && isValidSymbolText(text[2..$]);
 }
 
-class Context {
-    Token[] tokens = [];
-    AstNode ast = null;
+bool isKeywordLiteral(string text) {
+    return text.size > 1 && text[0] == ':' && isValidSymbolText(text[1..$]);
+}
 
-    int currTknLine = 0;
-    int currTknChar = 0;
-    int currTknStartLine = 0;
-    int currTknStartChar = 0;
-    bool nextEscaped = false;
-    string currTknText = "";
-    bool isInString = false;
+bool isBoolLiteral(string text) {
+    return text == "#t" || text == "#f";
 }
 
 TknType tknTypeByText(string text) {
+    if (!toIntOrNull(text).isNull()) {
+        return TknType.litInt;
+    }
+    if (!toUIntOrNull(text).isNull()) {
+        return TknType.litUInt;
+    }
+    if (!toUIntOrNull(text).isNull()) {
+        return TknType.litUInt;
+    }
+    if (!toFloatOrNull(text).isNull()) {
+        return TknType.litFlt;
+    }
+    if (isBoolLiteral(text)) {
+        return TknType.litBool;
+    }
+    if (isKeywordLiteral(text)) {
+        return TknType.litKeyword;
+    }
+    if (isTypeLiteral(text)) {
+        return TknType.litType;
+    }
+    if (isValidSymbolText(text)) {
+        return TknType.symbol;
+    }
+    if (isStringLiteral(text)) {
+        return TknType.litString;
+    }
+    if (text == "Set[" || text == "Map[" || text == "Lst[") {
+        return TknType.lstTaggedOpen;
+    }
+    if (text == "[") {
+        return TknType.lstOpen;
+    }
+    if (text == "]") {
+        return TknType.lstClose;
+    }
+    if (text == "(") {
+        return TknType.scopeOpen;
+    }
+    if (text == ")") {
+        return TknType.scopeClose;
+    }
+    if (text == ";") {
+        return TknType.lnComment;
+    }
     return TknType.unknown;
 }
 
 Context closeToken(Context ctx) {
-    if (ctx.currTknText.length > 0) {
+    if (ctx.currTknText.size > 0) {
         auto type = tknTypeByText( ctx.currTknText);
         auto tkn = Token( ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
         ctx.tokens ~= tkn;
@@ -85,10 +113,19 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         ctx = closeToken( ctx);
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
-    } else if (c == ' ' || c == '\t') {
+    } else if (c == ' ' || c == '\t' || c == '\n') {
         ctx = closeToken( ctx);
-    } else if (c == '\n') {
+    } else if (c == '(' || c == ')' || c == ']') {
         ctx = closeToken( ctx);
+        ctx.currTknText = ctx.currTknText ~ c;
+        ctx = closeToken( ctx);
+    } else if (c == '[') {
+        auto txt = ctx.currTknText;
+        if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
+            ctx.currTknText = ctx.currTknText ~ c;
+            ctx = closeToken(ctx);
+        }
+        ctx = closeToken(ctx);
     } else {
         ctx.currTknText = ctx.currTknText ~ c;
     }
@@ -113,16 +150,17 @@ Context tokenize(Context ctx, string source) {
     return ctx;
 }
 
-void main()
-{
+void main() {
     auto ctx = new Context();
-    ctx = tokenize( ctx, "fncall customns/fncall var" ~
-    "\"string\" \"string\nwith\nlinebreak\"" ~
-    ":keyword" ~
-    "::typeliteral" ~
-    "15 15u 0xF 0b1111 0xFu 0b1111u" ~
-    "15.0 15f 15.f" ~
-    "#t #f nil" ~
-    "() [] Lst[] (+ 1 1)");
+    ctx = tokenize( ctx, "fncall customns/fncall var " ~
+    "\"string\" \"string\nwith\nlinebreak\" " ~
+    ":keyword " ~
+    "::typeliteral " ~
+    "15 15u 0xF 0b1111 0xFu 0b1111u " ~
+    "15.0 15f 15.f " ~
+    "#t #f nil " ~
+    "() [] Lst[] (+ 1 1) ");
     writeln( ctx.tokens);
+    writeln(tokenize(new Context(), ":keyword").tokens);
+    writeln(tokenize(new Context(), "::typelit").tokens);
 }
