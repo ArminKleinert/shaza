@@ -1,6 +1,5 @@
 .dub/build
 /sclasses
-shaza
 
 # Object files
 *.o
