@@ -1,5 +1,9 @@
 module compiler_types;
 
+import std.array;
+import std.conv;
+import buildins;
+
 enum TknType : byte {
     unknown,
     litInt,
@@ -51,6 +55,17 @@ class AstNode {
 
     this(Token tkn) {
         this(tkn, []);
+    }
+
+    public override string toString() {
+        string[] res = [];
+        auto result = appender(&res);
+        result.put(["\nAstNode { token=", to!string(tkn), "\nchildren=["]);
+        foreach (AstNode child; children) {
+            result.put(child.toString());
+        }
+        result.put("] }");
+        return result[].join();
     }
 }
 

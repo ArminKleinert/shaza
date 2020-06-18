@@ -124,8 +124,10 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
             ctx = closeToken(ctx);
+        } else {
+            ctx.currTknText = ctx.currTknText ~ c;
+            ctx = closeToken( ctx);
         }
-        ctx = closeToken(ctx);
     } else {
         ctx.currTknText = ctx.currTknText ~ c;
     }
@@ -161,6 +163,7 @@ void main() {
     "#t #f nil " ~
     "() [] Lst[] (+ 1 1) ");
     writeln( ctx.tokens);
-    writeln(tokenize(new Context(), ":keyword").tokens);
-    writeln(tokenize(new Context(), "::typelit").tokens);
+    writeln();
+    ctx = buildBasicAst(ctx);
+    writeln(ctx.ast);
 }
