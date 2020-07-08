@@ -1,6 +1,8 @@
 module shaza.shaza.std;
 
 import std.variant;
+import std.conv;
+import std.typecons;
 
 alias SzInt = Algebraic!(byte, short, int, long);
 alias SzUInt = Algebraic!(ubyte, ushort, uint, ulong);
@@ -22,7 +24,10 @@ class Namespace {
 class Boxed(T) {
     T _v;
     alias _v this;
-    this(in T v) {_v = v;}
+
+    this(in T v) {
+        _v = v;
+    }
 }
 
 struct Keyword {
@@ -31,6 +36,10 @@ struct Keyword {
     this(string text) {
         this.text = text;
     }
+
+    string toString() {
+        return ":" ~ text;
+    }
 }
 
 struct ClassKeyword {
@@ -38,6 +47,10 @@ struct ClassKeyword {
 
     this(string text) {
         this.text = text;
+    }
+
+    string toString() {
+        return "::" ~ text;
     }
 }
 
@@ -57,6 +70,17 @@ class SzVector {
     this(Variable[] val) {
         this.val = val;
     }
+
+    public override string toString() {
+        string res = "[";
+        foreach (v; val) {
+            res ~= to!string(v);
+            res ~= ", ";
+        }
+        res = res[0 .. $-2];
+        res ~= "]";
+        return to!string( val);
+    }
 }
 
 class SzMap {
@@ -64,6 +88,19 @@ class SzMap {
 
     this(Variable[Variable] val) {
         this.val = val;
+    }
+
+    public override string toString() {
+        string res = "{";
+        foreach (k, v; val) {
+            res ~= to!string(k);
+            res ~= " ";
+            res ~= to!string(v);
+            res ~= ", ";
+        }
+        res = res[0 .. $-2];
+        res ~= "}";
+        return to!string( val);
     }
 }
 
@@ -82,6 +119,10 @@ class SzFunction {
         this.val = val;
         this.numParams = numParams;
     }
+
+    public override string toString() {
+        return "<Function " ~ to!string(val) ~ "(" ~ to!string(numParams) ~ ")>";
+    }
 }
 
 class SzList {
@@ -92,36 +133,53 @@ class SzList {
         this.val = val;
         this.next = next;
     }
+
+    public override string toString() {
+        string res = "(";
+        SzList n = this;
+        while (n.next is null) {
+            res ~= n.val.toString();
+            res ~= ", ";
+        }
+        res = res[0 .. $-2];
+        res ~= ")";
+        return to!string( val);
+    }
 }
 
 class Variable {
-    TypeInfo_Class type;
+    ClassKeyword type;
     Object val;
 
     this(T)(T val) {
-        this.type = val.classinfo;
+        this.type = getKeywordForTypeOf( val);
+        this.val = val;
+    }
+
+    this(T)(T val, ClassKeyword type) {
+        this.type = type;
         this.val = val;
     }
 }
 
 void shazaInit() {
     globalTypeMap = [
-    ClassKeyword("any") : Variable.classinfo,
-    ClassKeyword("number"): Boxed!SzNum.classinfo,
-    ClassKeyword("int"): Boxed!SzInt.classinfo,
-    ClassKeyword("int8"): Boxed!byte.classinfo,
-    ClassKeyword("int16"): Boxed!short.classinfo,
-    ClassKeyword("int32"): Boxed!int.classinfo,
-    ClassKeyword("int64"): Boxed!long.classinfo,
-    ClassKeyword("float"): Boxed!SzFloat.classinfo,
-    ClassKeyword("float32"): Boxed!float.classinfo,
-    ClassKeyword("float64"): Boxed!double.classinfo,
-    ClassKeyword("string"): Boxed!string.classinfo,
-    ClassKeyword("vector"): SzVector.classinfo,
-    ClassKeyword("list"): SzList.classinfo,
-    ClassKeyword("Map"): SzMap.classinfo,
-    ClassKeyword("boolean"): Boxed!bool.classinfo,
-    ClassKeyword("function"): SzFunction.classinfo,
+    ClassKeyword( "any") : Variable.classinfo,
+    ClassKeyword( "number"): Boxed!SzNum.classinfo,
+    ClassKeyword( "int"): Boxed!SzInt.classinfo,
+    ClassKeyword( "int8"): Boxed!byte.classinfo,
+    ClassKeyword( "int16"): Boxed!short.classinfo,
+    ClassKeyword( "int32"): Boxed!int.classinfo,
+    ClassKeyword( "int64"): Boxed!long.classinfo,
+    ClassKeyword( "float"): Boxed!SzFloat.classinfo,
+    ClassKeyword( "float32"): Boxed!float.classinfo,
+    ClassKeyword( "float64"): Boxed!double.classinfo,
+    ClassKeyword( "string"): Boxed!string.classinfo,
+    ClassKeyword( "vector"): SzVector.classinfo,
+    ClassKeyword( "list"): SzList.classinfo,
+    ClassKeyword( "Map"): SzMap.classinfo,
+    ClassKeyword( "boolean"): Boxed!bool.classinfo,
+    ClassKeyword( "function"): SzFunction.classinfo,
     ];
 }
 
@@ -134,12 +192,12 @@ Keyword getKeywordForTypeOf(T)(T value) {
 }
 
 Namespace define_ns(string name) {
-    return new Namespace(name);
+    return new Namespace( name);
 }
 
 T* shaza_define(T)(string name, T* value) {
     Namespace ns = get_current_ns();
-    ns.variables ~= new Variable(value, T);
+    ns.variables ~= new Variable( value, T);
     return value;
 }
 

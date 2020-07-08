@@ -15,18 +15,18 @@ bool isStringLiteral(string text) {
 bool isValidSymbolText(string text) {
     // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#
     foreach (char c; "\";()[]{}#:") {
-        if (text.canFind(c)) return false;
+        if (text.canFind( c)) return false;
     }
     return true;
 }
 
 bool isTypeLiteral(string text) {
     return text.size > 2 && text[0] == ':' && text[1] == ':'
-      && isValidSymbolText(text[2..$]);
+    && isValidSymbolText( text[2..$]);
 }
 
 bool isKeywordLiteral(string text) {
-    return text.size > 1 && text[0] == ':' && isValidSymbolText(text[1..$]);
+    return text.size > 1 && text[0] == ':' && isValidSymbolText( text[1..$]);
 }
 
 bool isBoolLiteral(string text) {
@@ -34,31 +34,31 @@ bool isBoolLiteral(string text) {
 }
 
 TknType tknTypeByText(string text) {
-    if (!toIntOrNull(text).isNull()) {
+    if (!toIntOrNull( text).isNull()) {
         return TknType.litInt;
     }
-    if (!toUIntOrNull(text).isNull()) {
+    if (!toUIntOrNull( text).isNull()) {
         return TknType.litUInt;
     }
-    if (!toUIntOrNull(text).isNull()) {
+    if (!toUIntOrNull( text).isNull()) {
         return TknType.litUInt;
     }
-    if (!toFloatOrNull(text).isNull()) {
+    if (!toFloatOrNull( text).isNull()) {
         return TknType.litFlt;
     }
-    if (isBoolLiteral(text)) {
+    if (isBoolLiteral( text)) {
         return TknType.litBool;
     }
-    if (isKeywordLiteral(text)) {
+    if (isKeywordLiteral( text)) {
         return TknType.litKeyword;
     }
-    if (isTypeLiteral(text)) {
+    if (isTypeLiteral( text)) {
         return TknType.litType;
     }
-    if (isValidSymbolText(text)) {
+    if (isValidSymbolText( text)) {
         return TknType.symbol;
     }
-    if (isStringLiteral(text)) {
+    if (isStringLiteral( text)) {
         return TknType.litString;
     }
     if (text == "Set[" || text == "Map[" || text == "Lst[") {
@@ -123,7 +123,7 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         auto txt = ctx.currTknText;
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
-            ctx = closeToken(ctx);
+            ctx = closeToken( ctx);
         } else {
             ctx.currTknText = ctx.currTknText ~ c;
             ctx = closeToken( ctx);
@@ -152,6 +152,7 @@ Context tokenize(Context ctx, string source) {
     return ctx;
 }
 
+/*
 void main() {
     auto ctx = new Context();
     ctx = tokenize( ctx, "fncall customns/fncall var " ~
@@ -164,6 +165,7 @@ void main() {
     "() [] Lst[] (+ 1 1) ");
     writeln( ctx.tokens);
     writeln();
-    ctx = buildBasicAst(ctx);
-    writeln(ctx.ast);
+    ctx = buildBasicAst( ctx);
+    writeln( ctx.ast);
 }
+*/

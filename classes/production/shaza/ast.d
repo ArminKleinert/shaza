@@ -5,12 +5,6 @@ import std.stdio;
 import compiler_types;
 import buildins;
 
-class CompilerError : Error {
-    public this(string msg, string file = __FILE__, size_t line = __LINE__) {
-        super(msg, file, line);
-    }
-}
-
 AstNode[] mergeTopElements(AstNode[] stack) {
     auto last = stack[$-1];
     stack[$-2].children ~= stack[$-1];

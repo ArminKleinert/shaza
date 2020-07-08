@@ -4,6 +4,12 @@ import std.array;
 import std.conv;
 import buildins;
 
+class CompilerError : Error {
+    public this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
+
 enum TknType : byte {
     unknown,
     litInt,
@@ -54,17 +60,17 @@ class AstNode {
     }
 
     this(Token tkn) {
-        this(tkn, []);
+        this( tkn, []);
     }
 
     public override string toString() {
         string[] res = [];
-        auto result = appender(&res);
-        result.put(["\nAstNode { token=", to!string(tkn), "\nchildren=["]);
+        auto result = appender( &res);
+        result.put(["\nAstNode { token=", to!string( tkn), "\nchildren=["]);
         foreach (AstNode child; children) {
-            result.put(child.toString());
+            result.put( child.toString());
         }
-        result.put("] }");
+        result.put( "] }");
         return result[].join();
     }
 }
@@ -83,7 +89,7 @@ class Context {
 }
 
 bool isLiteral(Token tkn) {
-    switch(tkn.type) {
+    switch (tkn.type) {
         case TknType.litInt:
         case TknType.litUInt:
         case TknType.litFlt:
@@ -100,7 +106,7 @@ bool isLiteral(Token tkn) {
 }
 
 bool isOpener(Token tkn) {
-    switch(tkn.type) {
+    switch (tkn.type) {
         case TknType.scopeOpen:
         case TknType.lstOpen:
         case TknType.lstTaggedOpen:
@@ -111,7 +117,7 @@ bool isOpener(Token tkn) {
 }
 
 bool isCloser(Token tkn) {
-    switch(tkn.type) {
+    switch (tkn.type) {
         case TknType.scopeClose:
         case TknType.lstClose:
         return true;
@@ -121,7 +127,7 @@ bool isCloser(Token tkn) {
 }
 
 bool isSimpleLiteral(Token tkn) {
-    switch(tkn.type) {
+    switch (tkn.type) {
         case TknType.litInt:
         case TknType.litUInt:
         case TknType.litFlt:
