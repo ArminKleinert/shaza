@@ -12,7 +12,7 @@ alias SzNum = Algebraic!(byte, short, int, long, ubyte, ushort, uint, ulong, flo
 TypeInfo_Class[ClassKeyword] globalTypeMap;
 
 class Namespace {
-    __gshared static Namespace globalNs = new Namespace( "user");
+    __gshared static Namespace globalNs = new Namespace("user");
 
     const string name;
     Scope nsScope;
@@ -20,18 +20,22 @@ class Namespace {
     static this() {
     }
 
-    this (string name) {
+    this(string name) {
         this.name = name;
-        nsScope = new Scope( null);
+        nsScope = new Scope(null);
     }
 
     void put(string sym, Variable var) {
-        nsScope.putGlobal( sym, var);
+        nsScope.putGlobal(sym, var);
     }
 
-    Variable find(string sym) { return nsScope.find(sym); }
+    Variable find(string sym) {
+        return nsScope.find(sym);
+    }
 
-    SzFunction findFn(string sym) { return nsScope.find(sym); }
+    SzFunction findFn(string sym) {
+        return nsScope.find(sym);
+    }
 }
 
 class Scope {
@@ -43,17 +47,17 @@ class Scope {
     }
 
     Variable find(string sym) {
-        Variable NOTFOUND = variable( 0);
+        Variable NOTFOUND = variable(0);
         Variable res;
         Scope current = this;
         while (current !is null) {
-            res = current.find( sym);
+            res = current.find(sym);
             if (res is NOTFOUND) {
                 return res;
             }
             current = current.parent;
         }
-        throw new ShazaError( "Name not found: " ~ sym);
+        throw new ShazaError("Name not found: " ~ sym);
     }
 
     void put(string sym, Variable var) {
@@ -63,9 +67,9 @@ class Scope {
     void putGlobal(string sym, Variable var) {
         if (parent is null) {
             variables[sym] = var;
-            return ;
+            return;
         }
-        parent.putGlobal( sym, var);
+        parent.putGlobal(sym, var);
     }
 }
 
@@ -78,14 +82,15 @@ struct Symbol {
 
 class ShazaError : Error {
     public this(string msg, string file = __FILE__, size_t line = __LINE__) {
-        super( msg, file, line);
+        super(msg, file, line);
     }
+
     public this(string[] ss...) {
         string msg = "";
         foreach (string t; ss) {
             msg ~= t;
         }
-        super( msg, __FILE__, __LINE__);
+        super(msg, __FILE__, __LINE__);
     }
 }
 
@@ -144,20 +149,20 @@ class SzVector {
     public override string toString() {
         string res = "[";
         foreach (v; val) {
-            res ~= to!string( v);
+            res ~= to!string(v);
             res ~= ", ";
         }
-        res = res[0 .. $-2];
+        res = res[0 .. $ - 2];
         res ~= "]";
-        return to!string( val);
+        return to!string(val);
     }
 
     public SzVector append(Variable v) {
-        return new SzVector( val ~ v);
+        return new SzVector(val ~ v);
     }
 
     public SzVector appendAll(SzVector sv) {
-        return new SzVector( val ~ sv.val);
+        return new SzVector(val ~ sv.val);
     }
 
     public int size() {
@@ -170,7 +175,8 @@ class SzVector {
 }
 
 class SzNull {
-    private this() {}
+    private this() {
+    }
 
     // Cache instantiation flag in thread-local bool
     // Thread local
@@ -181,8 +187,9 @@ class SzNull {
 
     static SzNull get() {
         if (!instantiated_) {
-            synchronized(SzNull.classinfo) {
-                if (!instance_) instance_ = new SzNull();
+            synchronized (SzNull.classinfo) {
+                if (!instance_)
+                    instance_ = new SzNull();
                 instantiated_ = true;
             }
         }
@@ -206,25 +213,26 @@ class SzMap {
         this.val = val;
     }
 
-    this() {}
+    this() {
+    }
 
     public override string toString() {
         string res = "{";
         foreach (k, v; val) {
-            res ~= to!string( k);
+            res ~= to!string(k);
             res ~= " ";
-            res ~= to!string( v);
+            res ~= to!string(v);
             res ~= ", ";
         }
-        res = res[0 .. $-2];
+        res = res[0 .. $ - 2];
         res ~= "}";
-        return to!string( val);
+        return to!string(val);
     }
 
     public SzMap assoc(Variable key, Variable value) {
         Variable[Variable] newVal = val.dup;
         newVal[key] = value;
-        return new SzMap( newVal);
+        return new SzMap(newVal);
     }
 
     public int size() {
@@ -258,55 +266,63 @@ class SzFunction {
     }
 
     this(Variable delegate() val) {
-        this.val = SzFunctionInner( val);
+        this.val = SzFunctionInner(val);
         this.numParams = 0;
     }
 
     this(Variable delegate(Variable) val) {
-        SzFunctionInner f = { p1 : val };
-        this( f, 1);
+        SzFunctionInner f = {p1: val};
+        this(f, 1);
     }
 
     this(Variable delegate(Variable, Variable) val) {
-        SzFunctionInner f = { p2 : val };
-        this( f, 2);
+        SzFunctionInner f = {p2: val};
+        this(f, 2);
     }
 
     this(Variable delegate(Variable, Variable, Variable) val) {
-        SzFunctionInner f = { p3 : val };
-        this( f, 3);
+        SzFunctionInner f = {p3: val};
+        this(f, 3);
     }
 
     this(Variable delegate(Variable[]) val) {
-        SzFunctionInner f = { pn : val };
-        this( f, -1);
+        SzFunctionInner f = {pn: val};
+        this(f, -1);
     }
 
     public Variable opCall(Variable[] args) {
         if (numParams != -1 && (args.size() != numParams)) {
-            throw new ShazaError( toString(), ": Wrong number of parameters (", to!string( args.size()), ")");
+            throw new ShazaError(toString(), ": Wrong number of parameters (",
+                    to!string(args.size()), ")");
         }
         switch (numParams) {
-            case 0: return val.p0();
-            case 1: return val.p1( args[0]);
-            case 2: return val.p2( args[0], args[1]);
-            case 3: return val.p3( args[0], args[1], args[2]);
-            default: return val.pn( args);
+        case 0:
+            return val.p0();
+        case 1:
+            return val.p1(args[0]);
+        case 2:
+            return val.p2(args[0], args[1]);
+        case 3:
+            return val.p3(args[0], args[1], args[2]);
+        default:
+            return val.pn(args);
         }
     }
 
     public Variable opCall() {
         if (numParams > 0) {
-            throw new ShazaError( toString(), ": Wrong number of parameters (0)");
+            throw new ShazaError(toString(), ": Wrong number of parameters (0)");
         }
         switch (numParams) {
-            case 0: return val.p0();
-            default: return val.pn(Variable[]);
+        case 0:
+            return val.p0();
+        default:
+            return val.pn(Variable[]);
         }
     }
 
     public override string toString() {
-        return "<Function " ~ to!string( val) ~ "(" ~ to!string( numParams) ~ ")>";
+        return "<Function " ~ to!string(val) ~ "(" ~ to!string(numParams) ~ ")>";
     }
 }
 
@@ -314,11 +330,11 @@ class Cell {
     Variable v;
     Cell next;
 
-    this (Variable v) {
+    this(Variable v) {
         this.v = v;
     }
 
-    this (Variable v, Cell c) {
+    this(Variable v, Cell c) {
         this.v = v;
         this.next = c;
     }
@@ -332,7 +348,7 @@ class Cell {
     }
 
     Cell withCdr(Cell c) {
-        return new Cell( v, c);
+        return new Cell(v, c);
     }
 }
 
@@ -359,7 +375,7 @@ class SzList {
         }
         res = res[0 .. $-2];
         res ~= ")";
-        return to!string( val);
+        return to!string(val);
     }
 
     private Cell copyCells(Cell c) {
@@ -372,7 +388,7 @@ class SzList {
 
     public SzList append(Variable v) {
         if (cell is null) {
-            return new SzList( new Cell( v));
+            return new SzList(new Cell(v));
         }
 
     }
@@ -393,55 +409,64 @@ class SzList {
     }
 
     public Variable next() {
-        return variable( next);
+        return variable(next);
     }
 
     public Variable rest() {
-        return variable( next);
+        return variable(next);
     }
 }
 */
 
-alias Variable = Algebraic!(SzNull, long, double, ulong, string, void*, Symbol,
-ClassKeyword, Keyword, bool, SzVector, SzMap, SzFunction);
+alias Variable = Algebraic!(SzNull, long, double, ulong, string, void*,
+        Symbol, ClassKeyword, Keyword, bool, SzVector, SzMap, SzFunction);
 
 Variable variable(T)(T val) {
-    return Variable( val);
+    return Variable(val);
 }
 
 Variable variable(bool val) {
     return Variable(val);
 }
+
 Variable variable(byte val) {
-    return Variable( to!long( val));
-}
-Variable variable(short val) {
-    return Variable( to!long( val));
-}
-Variable variable(int val) {
-    return Variable( to!long( val));
-}
-Variable variable(uint val) {
-    return Variable( to!ulong( val));
-}
-Variable variable(float val) {
-    return Variable( to!double( val));
+    return Variable(to!long(val));
 }
 
-Variable variable(Variable delegate() val) {
-    return Variable( new SzFunction( val));
+Variable variable(short val) {
+    return Variable(to!long(val));
 }
-Variable variable(Variable delegate(Variable) val) {
-    return Variable( new SzFunction( val));
+
+Variable variable(int val) {
+    return Variable(to!long(val));
 }
-Variable variable(Variable delegate(Variable, Variable) val) {
-    return Variable( new SzFunction( val));
+
+Variable variable(uint val) {
+    return Variable(to!ulong(val));
 }
-Variable variable(Variable delegate(Variable, Variable, Variable) val) {
-    return Variable( new SzFunction( val));
+
+Variable variable(float val) {
+    return Variable(to!double(val));
 }
-Variable variable(Variable delegate(Variable[]) val) {
-    return Variable( new SzFunction( val));
+
+Variable fnToVariable(Variable delegate() val) {
+    return Variable(new SzFunction(val));
+}
+
+Variable fnToVariable(Variable delegate(Variable) val) {
+    return Variable(new SzFunction(val));
+}
+
+Variable fnToVariable(Variable delegate(Variable, Variable) val) {
+    return Variable(new SzFunction(val));
+}
+
+Variable fnToVariable(Variable delegate(Variable, Variable, Variable) val) {
+    return Variable(new SzFunction(val));
+}
+
+Variable fnToVariable(Variable delegate(Variable[]) val) {
+    return Variable(new SzFunction(val));
 }
 
 /*
@@ -450,7 +475,7 @@ class Variable {
     Value val;
 
     this(T)(T val) {
-        this.type = getKeywordForTypeOf( val);
+        this.type = getKeywordForTypeOf(val);
         this.val = szValue(val);
     }
 
@@ -503,22 +528,22 @@ class Variable {
 /*
 void shazaInit() {
     globalTypeMap = [
-    ClassKeyword( "any") : Variable.classinfo,
-    ClassKeyword( "number"): Boxed!SzNum.classinfo,
-    ClassKeyword( "int"): Boxed!SzInt.classinfo,
-    ClassKeyword( "int8"): Boxed!byte.classinfo,
-    ClassKeyword( "int16"): Boxed!short.classinfo,
-    ClassKeyword( "int32"): Boxed!int.classinfo,
-    ClassKeyword( "int64"): Boxed!long.classinfo,
-    ClassKeyword( "float"): Boxed!SzFloat.classinfo,
-    ClassKeyword( "float32"): Boxed!float.classinfo,
-    ClassKeyword( "float64"): Boxed!double.classinfo,
-    ClassKeyword( "string"): Boxed!string.classinfo,
-    ClassKeyword( "vector"): SzVector.classinfo,
-    ClassKeyword( "list"): SzList.classinfo,
-    ClassKeyword( "map"): SzMap.classinfo,
-    ClassKeyword( "boolean"): Boxed!bool.classinfo,
-    ClassKeyword( "function"): SzFunction.classinfo,
+    ClassKeyword("any") : Variable.classinfo,
+    ClassKeyword("number"): Boxed!SzNum.classinfo,
+    ClassKeyword("int"): Boxed!SzInt.classinfo,
+    ClassKeyword("int8"): Boxed!byte.classinfo,
+    ClassKeyword("int16"): Boxed!short.classinfo,
+    ClassKeyword("int32"): Boxed!int.classinfo,
+    ClassKeyword("int64"): Boxed!long.classinfo,
+    ClassKeyword("float"): Boxed!SzFloat.classinfo,
+    ClassKeyword("float32"): Boxed!float.classinfo,
+    ClassKeyword("float64"): Boxed!double.classinfo,
+    ClassKeyword("string"): Boxed!string.classinfo,
+    ClassKeyword("vector"): SzVector.classinfo,
+    ClassKeyword("list"): SzList.classinfo,
+    ClassKeyword("map"): SzMap.classinfo,
+    ClassKeyword("boolean"): Boxed!bool.classinfo,
+    ClassKeyword("function"): SzFunction.classinfo,
     ];
 }
 */
@@ -535,12 +560,12 @@ ClassKeyword getKeywordForTypeOf(T)(T value) {
 */
 
 Namespace define_ns(string name) {
-    return new Namespace( name);
+    return new Namespace(name);
 }
 
 T* shaza_define(T)(string name, T* value) {
     Namespace ns = get_current_ns();
-    ns.variables ~= new Variable( value, T);
+    ns.variables ~= new Variable(value, T);
     return value;
 }
 

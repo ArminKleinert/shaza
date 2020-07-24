@@ -11,24 +11,24 @@ import compiler.ast;
 import compiler.exec;
 
 bool isStringLiteral(string text) {
-    return text.size >= 2 && text[0] == '"' && text[$-1] == '"' && text[$-2] != 92;
+    return text.size >= 2 && text[0] == '"' && text[$ - 1] == '"' && text[$ - 2] != 92;
 }
 
 bool isValidSymbolText(string text) {
     // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#
     foreach (char c; "\";()[]{}#:") {
-        if (text.canFind( c)) return false;
+        if (text.canFind(c))
+            return false;
     }
     return true;
 }
 
 bool isTypeLiteral(string text) {
-    return text.size > 2 && text[0] == ':' && text[1] == ':'
-    && isValidSymbolText( text[2..$]);
+    return text.size > 2 && text[0] == ':' && text[1] == ':' && isValidSymbolText(text[2 .. $]);
 }
 
 bool isKeywordLiteral(string text) {
-    return text.size > 1 && text[0] == ':' && isValidSymbolText( text[1..$]);
+    return text.size > 1 && text[0] == ':' && isValidSymbolText(text[1 .. $]);
 }
 
 bool isBoolLiteral(string text) {
@@ -36,31 +36,31 @@ bool isBoolLiteral(string text) {
 }
 
 TknType tknTypeByText(string text) {
-    if (!toIntOrNull( text).isNull()) {
+    if (!toIntOrNull(text).isNull()) {
         return TknType.litInt;
     }
-    if (!toUIntOrNull( text).isNull()) {
+    if (!toUIntOrNull(text).isNull()) {
         return TknType.litUInt;
     }
-    if (!toUIntOrNull( text).isNull()) {
+    if (!toUIntOrNull(text).isNull()) {
         return TknType.litUInt;
     }
-    if (!toFloatOrNull( text).isNull()) {
+    if (!toFloatOrNull(text).isNull()) {
         return TknType.litFlt;
     }
-    if (isBoolLiteral( text)) {
+    if (isBoolLiteral(text)) {
         return TknType.litBool;
     }
-    if (isKeywordLiteral( text)) {
+    if (isKeywordLiteral(text)) {
         return TknType.litKeyword;
     }
-    if (isTypeLiteral( text)) {
+    if (isTypeLiteral(text)) {
         return TknType.litType;
     }
-    if (isValidSymbolText( text)) {
+    if (isValidSymbolText(text)) {
         return TknType.symbol;
     }
-    if (isStringLiteral( text)) {
+    if (isStringLiteral(text)) {
         return TknType.litString;
     }
     if (text == "Set[" || text == "Map[" || text == "Lst[") {
@@ -86,8 +86,8 @@ TknType tknTypeByText(string text) {
 
 Context closeToken(Context ctx) {
     if (ctx.currTknText.size > 0) {
-        auto type = tknTypeByText( ctx.currTknText);
-        auto tkn = Token( ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
+        auto type = tknTypeByText(ctx.currTknText);
+        auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
         ctx.tokens ~= tkn;
     }
     ctx.currTknText = "";
@@ -103,7 +103,7 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
     if (ctx.nextEscaped) {
         ctx.nextEscaped = false;
     } else if (c == '"' && !ctx.nextEscaped) {
-        ctx = closeToken( ctx);
+        ctx = closeToken(ctx);
     } else if (!ctx.nextEscaped && c == '\\') {
         ctx.nextEscaped = true;
     }
@@ -112,23 +112,23 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
 
 Context tokenizeSubNextChar(Context ctx, char c) {
     if (c == '"') {
-        ctx = closeToken( ctx);
+        ctx = closeToken(ctx);
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
     } else if (c == ' ' || c == '\t' || c == '\n') {
-        ctx = closeToken( ctx);
+        ctx = closeToken(ctx);
     } else if (c == '(' || c == ')' || c == ']') {
-        ctx = closeToken( ctx);
+        ctx = closeToken(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
-        ctx = closeToken( ctx);
+        ctx = closeToken(ctx);
     } else if (c == '[') {
         auto txt = ctx.currTknText;
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
-            ctx = closeToken( ctx);
+            ctx = closeToken(ctx);
         } else {
             ctx.currTknText = ctx.currTknText ~ c;
-            ctx = closeToken( ctx);
+            ctx = closeToken(ctx);
         }
     } else {
         ctx.currTknText = ctx.currTknText ~ c;
@@ -144,32 +144,27 @@ Context tokenize(Context ctx, string source) {
             ctx.currTknChar = 0;
         }
         if (ctx.isInString) {
-            ctx = tokenizeSubNextCharInString( ctx, c);
+            ctx = tokenizeSubNextCharInString(ctx, c);
         } else {
-            ctx = tokenizeSubNextChar( ctx, c);
+            ctx = tokenizeSubNextChar(ctx, c);
         }
     }
-    ctx = closeToken( ctx);
+    ctx = closeToken(ctx);
 
     return ctx;
 }
 
 void main() {
     auto ctx = new Context();
-    ctx = tokenize( ctx, "fncall customns/fncall var " ~
-    "\"string\" \"string\nwith\nlinebreak\" " ~
-    ":keyword " ~
-    "::typeliteral " ~
-    "15 15u 0xF 0b1111 0xFu 0b1111u " ~
-    "15.0 15f 15.f " ~
-    "#t #f nil " ~
-    "() [] Lst[] (+ 1 1) ");
-    writeln( ctx.tokens);
+    ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" " ~ ":keyword "
+            ~ "::typeliteral " ~ "15 15u 0xF 0b1111 0xFu 0b1111u "
+            ~ "15.0 15f 15.f " ~ "#t #f nil " ~ "() [] Lst[] (+ 1 1) ");
+    writeln(ctx.tokens);
     writeln();
-    ctx = buildBasicAst( ctx);
-    writeln( ctx.ast);
+    ctx = buildBasicAst(ctx);
+    writeln(ctx.ast);
 
-    AstNode root = new AstNode( Token( 0, 0, TknType.closedScope, "123"));
+    AstNode root = new AstNode(Token(0, 0, TknType.closedScope, "123"));
     root.children ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
     root.children ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
     root.children ~= new AstNode(Token(0, 0, TknType.litInt, "2"));

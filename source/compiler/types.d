@@ -60,17 +60,17 @@ class AstNode {
     }
 
     this(Token tkn) {
-        this( tkn, []);
+        this(tkn, []);
     }
 
     public override string toString() {
         string[] res = [];
-        auto result = appender( &res);
-        result.put(["\nAstNode { token=", to!string( tkn), "\nchildren=["]);
+        auto result = appender(&res);
+        result.put(["\nAstNode { token=", to!string(tkn), "\nchildren=["]);
         foreach (AstNode child; children) {
-            result.put( child.toString());
+            result.put(child.toString());
         }
-        result.put( "] }");
+        result.put("] }");
         return result[].join();
     }
 }
@@ -90,50 +90,50 @@ class Context {
 
 bool isLiteral(Token tkn) {
     switch (tkn.type) {
-        case TknType.litInt:
-        case TknType.litUInt:
-        case TknType.litFlt:
-        case TknType.litBool:
-        case TknType.litString:
-        case TknType.litList:
-        case TknType.litMap:
-        case TknType.litKeyword:
-        case TknType.litType:
+    case TknType.litInt:
+    case TknType.litUInt:
+    case TknType.litFlt:
+    case TknType.litBool:
+    case TknType.litString:
+    case TknType.litList:
+    case TknType.litMap:
+    case TknType.litKeyword:
+    case TknType.litType:
         return true;
-        default:
+    default:
         return false;
     }
 }
 
 bool isOpener(Token tkn) {
     switch (tkn.type) {
-        case TknType.scopeOpen:
-        case TknType.lstOpen:
-        case TknType.lstTaggedOpen:
+    case TknType.scopeOpen:
+    case TknType.lstOpen:
+    case TknType.lstTaggedOpen:
         return true;
-        default:
+    default:
         return false;
     }
 }
 
 bool isCloser(Token tkn) {
     switch (tkn.type) {
-        case TknType.scopeClose:
-        case TknType.lstClose:
+    case TknType.scopeClose:
+    case TknType.lstClose:
         return true;
-        default:
+    default:
         return false;
     }
 }
 
 bool isSimpleLiteral(Token tkn) {
     switch (tkn.type) {
-        case TknType.litInt:
-        case TknType.litUInt:
-        case TknType.litFlt:
-        case TknType.litBool:
+    case TknType.litInt:
+    case TknType.litUInt:
+    case TknType.litFlt:
+    case TknType.litBool:
         return true;
-        default:
+    default:
         return false;
     }
 }
