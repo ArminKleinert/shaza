@@ -1,8 +1,8 @@
-module compiler_types;
+module compiler.types;
 
 import std.array;
 import std.conv;
-import buildins;
+import shaza.buildins;
 
 class CompilerError : Error {
     public this(string msg, string file = __FILE__, size_t line = __LINE__) {

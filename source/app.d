@@ -4,9 +4,11 @@ import std.typecons;
 import std.string;
 import std.algorithm;
 
-import buildins;
-import compiler_types;
-import ast;
+import shaza.buildins;
+
+import compiler.types;
+import compiler.ast;
+import compiler.exec;
 
 bool isStringLiteral(string text) {
     return text.size >= 2 && text[0] == '"' && text[$-1] == '"' && text[$-2] != 92;
@@ -152,7 +154,6 @@ Context tokenize(Context ctx, string source) {
     return ctx;
 }
 
-/*
 void main() {
     auto ctx = new Context();
     ctx = tokenize( ctx, "fncall customns/fncall var " ~
@@ -167,5 +168,10 @@ void main() {
     writeln();
     ctx = buildBasicAst( ctx);
     writeln( ctx.ast);
+
+    AstNode root = new AstNode( Token( 0, 0, TknType.closedScope, "123"));
+    root.children ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
+    root.children ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
+    root.children ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
+    writeln(exec(root));
 }
-*/

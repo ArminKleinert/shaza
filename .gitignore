@@ -2,7 +2,7 @@
 /sclasses
 
 # Object files
-*.o
+*.compiler
 *.ko
 *.obj
 *.elf
