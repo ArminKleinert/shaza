@@ -34,7 +34,7 @@ class Namespace {
     }
 
     SzFunction findFn(string sym) {
-        return nsScope.find(sym);
+        return nsScope.find(sym).get!(SzFunction);
     }
 }
 
@@ -57,7 +57,7 @@ class Scope {
             }
             current = current.parent;
         }
-        throw new ShazaError("Name not found: " ~ sym);
+        throw new ShazaError("Name not found: ", sym);
     }
 
     void put(string sym, Variable var) {
@@ -165,8 +165,8 @@ class SzVector {
         return new SzVector(val ~ sv.val);
     }
 
-    public int size() {
-        return val.size();
+    public size_t size() {
+        return val.length;
     }
 
     public Variable get(int v) {
@@ -235,7 +235,7 @@ class SzMap {
         return new SzMap(newVal);
     }
 
-    public int size() {
+    public size_t size() {
         return val.length;
     }
 
@@ -243,7 +243,7 @@ class SzMap {
         return val[key];
     }
 
-    public Variable keys(Variable key) {
+    public Variable[] keys(Variable key) {
         return val.keys;
     }
 }
@@ -291,9 +291,9 @@ class SzFunction {
     }
 
     public Variable opCall(Variable[] args) {
-        if (numParams != -1 && (args.size() != numParams)) {
+        if (numParams != -1 && (args.length != numParams)) {
             throw new ShazaError(toString(), ": Wrong number of parameters (",
-                    to!string(args.size()), ")");
+                    to!string(args.length), ")");
         }
         switch (numParams) {
         case 0:
@@ -317,7 +317,7 @@ class SzFunction {
         case 0:
             return val.p0();
         default:
-            return val.pn(Variable[]);
+            return val.pn([]);
         }
     }
 

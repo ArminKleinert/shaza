@@ -325,6 +325,7 @@ static void setup() {
     Namespace.globalNs.put("*", fnToVariable(&mul));
     Namespace.globalNs.put("/", fnToVariable(&div));
     Namespace.globalNs.put("%", fnToVariable(&mod));
+
     Namespace.globalNs.put("+'", fnToVariable(&et_add));
     Namespace.globalNs.put("-'", fnToVariable(&et_sub));
     Namespace.globalNs.put("*'", fnToVariable(&et_mul));
