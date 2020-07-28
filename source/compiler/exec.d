@@ -6,68 +6,50 @@ import std.conv;
 import std.typecons;
 import std.string;
 import std.algorithm;
+import std.array;
 
 import compiler.types;
 import shaza.buildins;
 import shaza.std;
 
-Variable tokenToAtom(Token tkn) {
-    switch (tkn.type) {
-    case TknType.litInt:
-        return variable(to!long(tkn.text));
-    case TknType.litUInt:
-        return variable(to!ulong(tkn.text));
-    case TknType.litFlt:
-        return variable(to!double(tkn.text));
-    case TknType.litKeyword:
-        return variable(Keyword(tkn.text));
-    case TknType.litType:
-        return variable(ClassKeyword(tkn.text));
-    case TknType.litString:
-        return variable(tkn.text);
-    case TknType.litBool:
-        return variable(tkn.text == "#t");
-    case TknType.symbol:
-        return variable(tkn.text);
-    default:
-        throw new CompilerError("Error converting " ~ to!string(tkn));
-    }
-}
+class OutputContext {
+    private string[] globals;
+    private Appender!(string[]) scopes;
+    private string currentScopeString;
 
-Variable exec_define(AstNode ast) {
-    /*
-    if (ast.children.size == 3) {
-        shaza_define( ast.children[1].tkn.text, execScope( ast.children[2]));
-    } else {
-        // shaza_define_function(ast.children[1].tkn.text, execScope(ast.children[2]), )
-    }
-    */
-    return variable("");
-}
-
-Variable execCommand(AstNode ast) {
-    string command = ast.children[0].tkn.text;
-    SzFunction fn = Namespace.globalNs.findFn(command);
-
-    if (fn is null) {
-        throw new CompilerError("Function not found: " ~ ast.children[0].tkn.text);
+    public this() {
+        globals = [];
+        string[] scopes;
+        this.scopes = appender(scopes);
+        currentScopeString = "";
     }
 
-    if (fn.numParams == 0) {
-        return fn();
+    OutputContext append(string text) {
+        currentScopeString ~= text;
+        return this;
     }
 
-    Variable[] args = [];
-    foreach (AstNode child; ast.children[1 .. $]) {
-        Variable temp = exec(child);
-        if (temp.peek!(Symbol) !is null) {
-            temp = Namespace.globalNs.find(temp.get!(Symbol).name);
+    OutputContext closeScope() {
+        scopes ~= currentScopeString;
+        currentScopeString = "";
+        return this;
+    }
+
+    OutputContext addGlobal(string name) {
+        globals ~= name;
+        return this;
+    }
+
+    string getString() {
+        string s = "";
+        foreach (string s1; scopes) {
+            s ~= s1;
         }
-        args ~= exec(child);
+        return s;
     }
-
-    return fn(args);
 }
+
+static const OutputContext globalOutputContext = new OutputContext();
 
 bool isTypedMathOp(string text) {
     return text == "+'" || text == "-'" || text == "*'" || text == "/'" || text == "%'"
@@ -89,59 +71,80 @@ bool isAtom(AstNode ast) {
     auto type = ast.tkn.type;
     return [
         TknType.litInt, TknType.litUInt, TknType.litBool, TknType.litString,
-        TknType.litKeyword, TknType.symbol, TknType.litFlt, TknType.litType
+        TknType.litKeyword, TknType.symbol, TknType.litFlt
     ].contains(type);
 }
 
-Variable parseAtom(AstNode ast) {
-    return variable(tokenToAtom(ast.tkn));
+string callToString(AstNode ast) {
+    //TODO
+    return "";
 }
 
-Variable parseList(AstNode ast) {
-    // TODO
-    return variable(SzNull.get);
+string atomToString(AstNode ast) {
+    string text = ast.tkn.text;
+    if (ast.tkn.type == TknType.litBool) {
+        text = text == "#t" ? "true" : "false";
+    } else if (ast.tkn.type == TknType.litKeyword) {
+        text ~= "Keyword(";
+        text ~= ast.tkn.text;
+        text ~= ")";
+    }
+    return text;
 }
 
-Variable exec(AstNode ast) {
+string typeKeywordToString(AstNode ast) {
+    string text = ast.tkn.text;
+    return text[2 .. $];
+}
+
+string etDefineToString(AstNode ast) {
+    //TODO
+    return "";
+}
+
+string listLiteralToString(AstNode ast) {
+    //TODO
+    return "";
+}
+
+string createOutput(AstNode ast) {
     if (isAtom(ast)) {
-        return parseAtom(ast);
+        return atomToString(ast);
     }
 
     if (ast.tkn.type == TknType.closedTaggedList || ast.tkn.type == TknType.closedList) {
-        return parseList(ast);
+        return listLiteralToString(ast);
     }
 
     if (ast.tkn.type == TknType.closedScope) {
         Token firstTkn = ast.children[0].tkn;
         if (firstTkn.type == TknType.symbol) {
             if (firstTkn.text == "define") {
-                return exec_define(ast);
-                /*
-        } else if (firstTkn.text == "et-define") {
-            exec_et_define( ast);
-        } else if (firstTkn.text == "define-macro") {
-            exec_define_macro( ast);
-        } else if (firstTkn.text == "define-tk-macro") {
-            exec_define_tk_macro( ast);
-        } else if (firstTkn.text == "lambda") {
-            make_lambda( ast);
-        } else if (firstTkn.text == "t-lambda") {
-            make_t_lambda( ast);
-        } else if (firstTkn.text == "def-struct") {
-            exec_def_struct( ast);
-        } else if (firstTkn.text == "struct") {
-            exec_make_struct( ast);
-        } else if (firstTkn.text == "cast") {
-            // TODO
-        } else if (firstTkn.text == "convert") {
-            // TODO
-        } else if (firstTkn.text == "car") {
-            // TODO
-        } else if (firstTkn.text == "cdr") {
-            // TODO
-        } else if (firstTkn.text == "coll") {
-            // TODO
-        */
+                // TODO
+            } else if (firstTkn.text == "et-define") {
+                return etDefineToString(ast);
+            } else if (firstTkn.text == "define-macro") {
+                // TODO
+            } else if (firstTkn.text == "define-tk-macro") {
+                // TODO
+            } else if (firstTkn.text == "lambda") {
+                // TODO
+            } else if (firstTkn.text == "t-lambda") {
+                // TODO
+            } else if (firstTkn.text == "def-struct") {
+                // TODO
+            } else if (firstTkn.text == "struct") {
+                // TODO
+            } else if (firstTkn.text == "cast") {
+                // TODO
+            } else if (firstTkn.text == "convert") {
+                // TODO
+            } else if (firstTkn.text == "car") {
+                // TODO
+            } else if (firstTkn.text == "cdr") {
+                // TODO
+            } else if (firstTkn.text == "coll") {
+                // TODO
             } else if (firstTkn.text == "import-sz") {
                 // TODO
             } else if (firstTkn.text == "rt-import-sz") {
@@ -172,21 +175,13 @@ Variable exec(AstNode ast) {
                 // TODO
             } else if (firstTkn.text == "unquote") {
                 // TODO
-                //} else if (isTypedMathOp( firstTkn.text)) {
-                //    return execCommand( ast);
-                //} else if (isMathOp( firstTkn.text)) {
-                //    return execCommand( ast);
-                //} else if (isBoolOp( firstTkn.text)) {
-                //    return execCommand( ast);
             } else {
-                return execCommand(ast);
+                return callToString(ast);
             }
         } else {
             writeln("Error? " ~ to!string(ast));
         }
     }
 
-    writeln("Error2? " ~ to!string(ast));
-
-    return variable(SzNull.get);
+    return "";
 }

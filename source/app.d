@@ -24,7 +24,8 @@ bool isValidSymbolText(string text) {
 }
 
 bool isTypeLiteral(string text) {
-    return text.size > 2 && text[0] == ':' && text[1] == ':' && isValidSymbolText(text[2 .. $]);
+    return text.size > 2 && text[0] == ':' && text[1] == ':';
+    // return text.size > 2 && text[0] == ':' && text[1] == ':' && isValidSymbolText(text[2 .. $]);
 }
 
 bool isKeywordLiteral(string text) {
@@ -95,6 +96,7 @@ Context closeToken(Context ctx) {
     ctx.currTknStartChar = ctx.currTknChar;
     ctx.nextEscaped = false;
     ctx.isInString = false;
+    ctx.isInSpecialExpression = false;
     return ctx;
 }
 
@@ -115,13 +117,16 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         ctx = closeToken(ctx);
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
+    } else if (c == ':' && ctx.currTknText == ":") {
+        ctx.isInSpecialExpression = true;
+        ctx.currTknText ~= c;
     } else if (c == ' ' || c == '\t' || c == '\n') {
         ctx = closeToken(ctx);
-    } else if (c == '(' || c == ')' || c == ']') {
+    } else if (!ctx.isInSpecialExpression && (c == '(' || c == ')' || c == ']')) {
         ctx = closeToken(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
         ctx = closeToken(ctx);
-    } else if (c == '[') {
+    } else if (!ctx.isInSpecialExpression && c == '[') {
         auto txt = ctx.currTknText;
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
@@ -168,5 +173,5 @@ void main() {
     root.children ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
     root.children ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
     root.children ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
-    writeln(exec(root));
+    writeln(createOutput(root));
 }

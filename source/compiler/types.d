@@ -86,6 +86,7 @@ class Context {
     bool nextEscaped = false;
     string currTknText = "";
     bool isInString = false;
+    bool isInSpecialExpression = false;
 }
 
 bool isLiteral(Token tkn) {
