@@ -1,0 +1,85 @@
+(et-define ::int (plus ::int i0 ::int i1) (ll i0 + i1))
+(et-define ::long (plus ::long i0 ::long i1) (ll i0 + i1))
+(et-define ::double (plus ::double i0 ::double i1) (ll i0 + i1))
+
+(et-define ::int (minus ::int i0 ::int i1) (ll i0 - i1))
+(et-define ::long (minus ::long i0 ::long i1) (ll i0 - i1))
+(et-define ::double (minus ::double i0 ::double i1) (ll i0 - i1))
+
+(et-define ::int (mul ::int i0 ::int i1) (ll i0 * i1))
+(et-define ::long (mul ::long i0 ::long i1) (ll i0 * i1))
+(et-define ::double (mul ::double i0 ::double i1) (ll i0 * i1))
+
+(et-define ::int (div ::int i0 ::int i1) (ll i0 / i1))
+(et-define ::long (div ::long i0 ::long i1) (ll i0 / i1))
+(et-define ::double (div ::double i0 ::double i1) (ll i0 / i1))
+
+(et-define ::int (mod ::int i0 ::int i1) (ll i0 % i1))
+(et-define ::long (mod ::long i0 ::long i1) (ll i0 % i1))
+(et-define ::double (mod ::double i0 ::double i1) (ll i0 % i1))
+
+(et-define ::int (bit-and ::int i0 ::int i1) (ll i0 & i1))
+(et-define ::long (bit-and ::long i0 ::long i1) (ll i0 & i1))
+
+(et-define ::int (bit-or ::int i0 ::int i1) (ll i0 | i1))
+(et-define ::long (bit-or ::long i0 ::long i1) (ll i0 | i1))
+
+(et-define ::int (bit-xor ::int i0 ::int i1) (ll i0 ^ i1))
+(et-define ::long (bit-xor ::long i0 ::long i1) (ll i0 ^ i1))
+
+;(et-define ::bool (and ::bool b0 ::bool b1) (ll b0 && b1))
+;(et-define ::bool (or ::bool b0 ::bool b1) (ll b0 || b1))
+
+(gen-define ::T[] (T) (concat ::T[] coll0 ::T[] coll1) (ll coll0 ~ coll1))
+(gen-define ::T[] (T) (append ::T[] coll0 ::T value) (ll coll0 ~ value))
+
+(gen-define ::T[] (T) (concat! ::T[] coll0 ::T[] coll1)
+    (ll coll0 ~= coll1)
+    coll0)
+(gen-define ::T[] (T) (append! ::T[] coll0 ::T value)
+    (ll coll0 ~= value)
+    coll0)
+
+(gen-define ::bool (T) (contains ::T[] coll0 ::T value)
+    (reduce
+        coll0 false
+        (t-lambda ::bool [::bool res ::T curr] (if (or res (eql? curr value)) (return true) (return false)))))
+
+(gen-define ::O[] (O T) (reduce ::T[] coll ::O init "O delegate(O, T)" f)
+    (let [res init]
+        (ll foreach "(" T " " elem "; " coll ") {")
+        (setv! res (f elem res))
+        (ll "}")
+        (return res)))
+
+(et-define ::void (times ::long num, "void delegate()" f)
+    (ll while "(i < size(coll0)) {")
+    (f)
+    (setv! num (dec num))
+    (ll "}")
+
+(import-host "std.conv" [to])
+
+(gen-define ::string (T) (str ::T obj)
+    (ll to!string(obj)))
+(gen-define ::string (T) (toString ::T obj)
+    (ll to!string(obj)))
+(gen-define ::int (T) (toInt ::T obj)
+    (ll to!int(obj)))
+(gen-define ::long (T) (toInt64 ::T obj)
+    (ll to!long(obj)))
+(gen-define ::double (T) (toFloat ::T obj)
+    (ll to!double(obj)))
+(gen-define ::float (T) (toFloat32 ::T obj)
+    (ll to!float(obj)))
+(gen-define ::double (T) (toFloat64 ::T obj)
+    (ll to!double(obj)))
+
+
+
+
+(et-define ::int (testfn ::int i0 ::int i1)
+  (ll i0 + i1))
+
+
+
