@@ -143,9 +143,11 @@ string functionBindingsToString(Appender!string result, AstNode[] bindings) {
     return result.get();
 }
 
-string functionBodyToString(Appender!string result, string fnType, AstNode[] bindings, AstNode[] bodyNodes, bool withLineBreaks) {
+string functionBodyToString(Appender!string result, string fnType,
+        AstNode[] bindings, AstNode[] bodyNodes, bool withLineBreaks) {
     result ~= '{';
-    if (withLineBreaks) result ~= '\n';
+    if (withLineBreaks)
+        result ~= '\n';
 
     // If the body is empty, return the default value of the return-type
     // or, if the type is void, leave an empty body
@@ -163,7 +165,8 @@ string functionBodyToString(Appender!string result, string fnType, AstNode[] bin
         result ~= createOutput(bodyNode);
         if (result[][$ - 1] != ';')
             result ~= ";";
-    if (withLineBreaks) result ~= '\n';
+        if (withLineBreaks)
+            result ~= '\n';
     }
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
@@ -177,10 +180,12 @@ string functionBodyToString(Appender!string result, string fnType, AstNode[] bin
 
     result ~= createOutput(lastStmt);
     result ~= ';';
-    if (withLineBreaks) result ~= '\n';
+    if (withLineBreaks)
+        result ~= '\n';
 
     result ~= '}';
-    if (withLineBreaks) result ~= '\n';
+    if (withLineBreaks)
+        result ~= '\n';
     return result.get();
 }
 
@@ -461,7 +466,7 @@ string ifToString(AstNode ast) {
 string tLambdaToString(AstNode ast) {
     auto type = typeToString(ast.children[1]);
     auto bindings = ast.children[2].children;
-    auto bodyNodes = ast.children[3..$];
+    auto bodyNodes = ast.children[3 .. $];
     auto result = appender("(delegate ");
     result ~= type;
     etDefineFnToString(result, type, bindings, bodyNodes);
@@ -471,7 +476,7 @@ string tLambdaToString(AstNode ast) {
 
 string lambdaToString(AstNode ast) {
     auto bindings = ast.children[1].children;
-    auto bodyNodes = ast.children[2..$];
+    auto bodyNodes = ast.children[2 .. $];
     auto result = appender("");
     etDefineFnToString(result, "", bindings, bodyNodes);
     return result.get();
