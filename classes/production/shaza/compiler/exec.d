@@ -82,7 +82,7 @@ bool isAtom(AstNode ast) {
 
 string callToString(AstNode ast) {
     string fnname = ast.children[0].text;
-    string result = fnname ~ "(";
+    auto result = appender!string(fnname ~ "(");
     AstNode[] args = ast.children[1 .. $];
     for (int i = 0; i < args.length; i++) {
         result ~= args[i].text;
@@ -90,19 +90,21 @@ string callToString(AstNode ast) {
             result ~= ",";
     }
     result ~= ")";
-    return result;
+    return result.get();
 }
 
 string atomToString(AstNode ast) {
-    string text = ast.text;
+    auto text = appender(ast.text);
+
     if (ast.type == TknType.litBool) {
-        text = text == "#t" ? "true" : "false";
+        text = appender(ast.text == "#t" ? "true" : "false");
     } else if (ast.type == TknType.litKeyword) {
         text ~= "Keyword(";
         text ~= ast.text;
         text ~= ")";
     }
-    return text;
+
+    return text.get();
 }
 
 string typeToString(AstNode ast) {
@@ -115,7 +117,7 @@ string typeToString(string litType) {
 }
 
 string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[] bodyNodes) {
-    string result = type;
+    auto result = appender!string(type);
     result ~= " ";
     result ~= name;
     result ~= "(";
@@ -137,7 +139,7 @@ string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[
     }
 
     result ~= "}\n";
-    return result;
+    return result.get();
 }
 
 string etDefineToString(AstNode ast) {
@@ -152,7 +154,7 @@ string etDefineToString(AstNode ast) {
         return etDefineFnToString(typeText, name, bindings, rest);
     }
 
-    string result = "";
+    auto result = appender!string("");
 
     result ~= typeText; // Type
     result ~= " ";
@@ -161,14 +163,14 @@ string etDefineToString(AstNode ast) {
     result ~= createOutput(ast.children[3]); // Value
     result ~= ";\n";
 
-    return result;
+    return result.get();
 }
 
 string tLetBindingsToString(AstNode[] bindings) {
     if (bindings.length % 3 != 0)
         throw new CompilerError("t-let: Bindings length must be divisible by 3 (type, name, value)");
 
-    string result = "";
+    auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 3) {
         result ~= typeToString(bindings[i]); // Type
         result ~= " ";
@@ -177,14 +179,14 @@ string tLetBindingsToString(AstNode[] bindings) {
         result ~= createOutput(bindings[i + 2]); // Value
         result ~= ";\n";
     }
-    return result;
+    return result.get();
 }
 
 string letBindingsToString(AstNode[] bindings) {
     if (bindings.length % 2 != 0)
         throw new CompilerError("let: Bindings length must be even (name, value)");
 
-    string result = "";
+    auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= "auto ";
         result ~= bindings[i + 0].text; // Name
@@ -192,7 +194,7 @@ string letBindingsToString(AstNode[] bindings) {
         result ~= createOutput(bindings[i + 1]); // Value
         result ~= ";\n";
     }
-    return result;
+    return result.get();
 }
 
 string letToString(AstNode ast, bool isExplicitType) {
@@ -205,7 +207,7 @@ string letToString(AstNode ast, bool isExplicitType) {
     AstNode[] bodyNodes = ast.children[2 .. $];
 
     // "{" without a keyword before it in D source code opens a new scope
-    string result = "{";
+    auto result = appender!string("{\n");
 
     // Write bindings
     result ~= isExplicitType ? tLetBindingsToString(bindings) : letBindingsToString(bindings);
@@ -213,11 +215,13 @@ string letToString(AstNode ast, bool isExplicitType) {
     // Write code
     foreach (AstNode bodyNode; bodyNodes) {
         result ~= createOutput(bodyNode);
-        result ~= ";\n";
+        if (result[][$ - 1] == ';')
+            result ~= ";";
+        result ~= "\n";
     }
 
     result ~= "}";
-    return result;
+    return result[];
 }
 
 string defineToString(AstNode ast) {
@@ -225,14 +229,13 @@ string defineToString(AstNode ast) {
         throw new CompilerError("Functions without explicit typing are not supported yet.");
     }
 
-    string result = "";
+    auto result = appender!string("");
     result ~= "auto ";
     result ~= ast.children[1].text; // Variable name
     result ~= " = ";
     result ~= createOutput(ast.children[2]); // Value
     result ~= ";\n";
-
-    return result;
+    return result.get();
 }
 
 string importHostToString(AstNode ast) {
@@ -258,14 +261,17 @@ string importHostToString(AstNode ast) {
                     "import-host: list of imported functions must be a list. '(...)' or '[...]'");
 
         // Build output string
-        string result = "import " ~ nameText ~ " : ";
+        auto result = appender!string("import ");
+        result ~= nameText;
+        result ~= " : ";
+
         for (int i = 0; i < nodes[1].children.length; i++) {
             result ~= nodes[i].text;
             if (i != nodes[i].children.length - 1)
                 result ~= ",";
         }
         result ~= ";\n";
-        return result;
+        return result.get();
     } else {
         // Too many arguments
         throw new CompilerError("import-host: Too many arguments.");
@@ -276,25 +282,59 @@ string listLiteralToString(AstNode ast) {
     if (ast.children.length == 0)
         return "[]"; // Empty list
 
-    string result = "[";
+    auto result = appender!string("[");
     for (int i = 0; i < ast.children.length; i++) {
         result ~= ast.children[i].text;
         if (i != ast.children[i].children.length - 1)
             result ~= ",";
     }
     result ~= "]";
-    return result;
+    return result.get();
 }
 
 string setvToString(AstNode ast) {
     if (ast.children.length != 3)
         throw new CompilerError("setv! requires exactly 2 arguments!");
-    string result = ast.children[1].text;
+    auto result = appender!string(ast.children[1].text);
     result ~= " = ";
     result ~= createOutput(ast.children[2]);
-    if (result[$ - 1] != ';')
+    if (result[][$ - 1] != ';')
         result ~= ";";
-    return result;
+    return result.get();
+}
+
+void llToStringSub(Appender!string result, AstNode ast) {
+    if (ast.type == TknType.closedList || ast.type == TknType.closedTaggedList) {
+        result ~= ast.text; // Empty for closedList, list tag for closedTaggedList
+        result ~= '[';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ']';
+    } else if (ast.type == TknType.closedScope) {
+        result ~= '(';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ')';
+    } else {
+        result ~= ast.text;
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+    }
+}
+
+string llToString(AstNode ast) {
+    auto result = appender("");
+    foreach (AstNode child; ast.children[1 .. $]) {
+        if (child.type == TknType.litString) {
+            result ~= child.text[1 .. $ - 1];
+        } else {
+            llToStringSub(result, child);
+        }
+    }
+    return result.get();
 }
 
 string createOutput(AstNode ast) {
@@ -318,71 +358,70 @@ string createOutput(AstNode ast) {
     if (ast.type == TknType.closedScope) {
         Token firstTkn = ast.children[0].tkn;
         if (firstTkn.type == TknType.symbol) {
-            if (firstTkn.text == "define") {
+            switch (firstTkn.text) {
+            case "define":
                 return defineToString(ast);
-            } else if (firstTkn.text == "et-define") {
+            case "et-define":
                 return etDefineToString(ast);
-            } else if (firstTkn.text == "define-macro") {
-                // TODO
-            } else if (firstTkn.text == "define-tk-macro") {
-                // TODO
-            } else if (firstTkn.text == "let") {
+            case "define-macro":
+                break; // TODO
+            case "define-tk-macro":
+                break; // TODO
+            case "let":
                 return letToString(ast, false);
-            } else if (firstTkn.text == "t-let") {
+            case "t-let":
                 return letToString(ast, true);
-            } else if (firstTkn.text == "setv!") {
+            case "setv!":
                 return setvToString(ast);
-            } else if (firstTkn.text == "lambda") {
-                // TODO
-            } else if (firstTkn.text == "t-lambda") {
-                // TODO
-            } else if (firstTkn.text == "def-struct") {
-                // TODO
-            } else if (firstTkn.text == "struct") {
-                // TODO
-            } else if (firstTkn.text == "cast") {
-                // TODO
-            } else if (firstTkn.text == "convert") {
-                // TODO
-            } else if (firstTkn.text == "car") {
-                // TODO
-            } else if (firstTkn.text == "cdr") {
-                // TODO
-            } else if (firstTkn.text == "coll") {
-                // TODO
-            } else if (firstTkn.text == "import-sz") {
-                // TODO
-            } else if (firstTkn.text == "import-host") {
-                importHostToString(ast);
-            } else if (firstTkn.text == "rt-import-sz") {
-                // TODO
-            } else if (firstTkn.text == "rt-import-dll") {
-                // TODO
-            } else if (firstTkn.text == "call-extern") {
-                // TODO
-            } else if (firstTkn.text == "call-sys") {
-                // TODO
-            } else if (firstTkn.text == "recur") {
-                // TODO
-            } else if (firstTkn.text == "mut") {
-                // TODO
-            } else if (firstTkn.text == "alloc") {
-                // TODO
-            } else if (firstTkn.text == "set!") {
-                // TODO
-            } else if (firstTkn.text == "get!") {
-                // TODO
-            } else if (firstTkn.text == "free") {
-                // TODO
-            } else if (firstTkn.text == "pointerto") {
-                // TODO
-            } else if (firstTkn.text == "quote") {
-                // TODO
-            } else if (firstTkn.text == "pseudo-quote") {
-                // TODO
-            } else if (firstTkn.text == "unquote") {
-                // TODO
-            } else {
+            case "ll":
+                return llToString(ast);
+            case "lambda":
+                break; // TODO
+            case "t-lambda":
+                break; // TODO
+            case "def-struct":
+                break; // TODO
+            case "struct":
+                break; // TODO
+            case "cast":
+                break; // TODO
+            case "convert":
+                break; // TODO
+            case "import-sz":
+                break; // TODO
+            case "import-host":
+                return importHostToString(ast);
+            case "rt-import-sz":
+                break; // TODO
+            case "rt-import-dll":
+                break; // TODO
+            case "call-extern":
+                break; // TODO
+            case "call-sys":
+                break; // TODO
+            case "recur":
+                break; // TODO
+            case "mut":
+                break; // TODO
+            case "alloc":
+                break; // TODO
+            case "set!":
+                break; // TODO
+            case "get!":
+                break; // TODO
+            case "free":
+                break; // TODO
+            case "pointerto":
+                break; // TODO
+            case "deref":
+                break; // TODO
+            case "quote":
+                break; // TODO
+            case "pseudo-quote":
+                break; // TODO
+            case "unquote":
+                break; // TODO
+            default:
                 return callToString(ast);
             }
         } else {

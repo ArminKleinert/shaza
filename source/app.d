@@ -213,4 +213,14 @@ void main() {
     bodyNode ~= bodyNode2;
     root ~= bodyNode;
     writeln(createOutput(root));
+
+    writeln();
+    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    root ~= new AstNode(Token(0, 0, TknType.symbol, "ll"));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "8"));
+    root ~= new AstNode(Token(0, 0, TknType.litString, "\" \""));
+    root ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
+    root ~= new AstNode(Token(0, 0, TknType.litString, "\" \""));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "8"));
+    writeln(createOutput(root));
 }

@@ -103,7 +103,7 @@ string atomToString(AstNode ast) {
         text ~= ast.text;
         text ~= ")";
     }
-    
+
     return text.get();
 }
 
@@ -207,7 +207,7 @@ string letToString(AstNode ast, bool isExplicitType) {
     AstNode[] bodyNodes = ast.children[2 .. $];
 
     // "{" without a keyword before it in D source code opens a new scope
-    auto result = appender!string("{");
+    auto result = appender!string("{\n");
 
     // Write bindings
     result ~= isExplicitType ? tLetBindingsToString(bindings) : letBindingsToString(bindings);
@@ -303,6 +303,40 @@ string setvToString(AstNode ast) {
     return result.get();
 }
 
+void llToStringSub(Appender!string result, AstNode ast) {
+    if (ast.type == TknType.closedList || ast.type == TknType.closedTaggedList) {
+        result ~= ast.text; // Empty for closedList, list tag for closedTaggedList
+        result ~= '[';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ']';
+    } else if (ast.type == TknType.closedScope) {
+        result ~= '(';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ')';
+    } else {
+        result ~= ast.text;
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+    }
+}
+
+string llToString(AstNode ast) {
+    auto result = appender("");
+    foreach (AstNode child; ast.children[1 .. $]) {
+        if (child.type == TknType.litString) {
+            result ~= child.text[1 .. $ - 1];
+        } else {
+            llToStringSub(result, child);
+        }
+    }
+    return result.get();
+}
+
 string createOutput(AstNode ast) {
     /*
     writeln(isAtom(ast));
@@ -324,71 +358,70 @@ string createOutput(AstNode ast) {
     if (ast.type == TknType.closedScope) {
         Token firstTkn = ast.children[0].tkn;
         if (firstTkn.type == TknType.symbol) {
-            if (firstTkn.text == "define") {
+            switch (firstTkn.text) {
+            case "define":
                 return defineToString(ast);
-            } else if (firstTkn.text == "et-define") {
+            case "et-define":
                 return etDefineToString(ast);
-            } else if (firstTkn.text == "define-macro") {
-                // TODO
-            } else if (firstTkn.text == "define-tk-macro") {
-                // TODO
-            } else if (firstTkn.text == "let") {
+            case "define-macro":
+                break; // TODO
+            case "define-tk-macro":
+                break; // TODO
+            case "let":
                 return letToString(ast, false);
-            } else if (firstTkn.text == "t-let") {
+            case "t-let":
                 return letToString(ast, true);
-            } else if (firstTkn.text == "setv!") {
+            case "setv!":
                 return setvToString(ast);
-            } else if (firstTkn.text == "lambda") {
-                // TODO
-            } else if (firstTkn.text == "t-lambda") {
-                // TODO
-            } else if (firstTkn.text == "def-struct") {
-                // TODO
-            } else if (firstTkn.text == "struct") {
-                // TODO
-            } else if (firstTkn.text == "cast") {
-                // TODO
-            } else if (firstTkn.text == "convert") {
-                // TODO
-            } else if (firstTkn.text == "car") {
-                // TODO
-            } else if (firstTkn.text == "cdr") {
-                // TODO
-            } else if (firstTkn.text == "coll") {
-                // TODO
-            } else if (firstTkn.text == "import-sz") {
-                // TODO
-            } else if (firstTkn.text == "import-host") {
-                importHostToString(ast);
-            } else if (firstTkn.text == "rt-import-sz") {
-                // TODO
-            } else if (firstTkn.text == "rt-import-dll") {
-                // TODO
-            } else if (firstTkn.text == "call-extern") {
-                // TODO
-            } else if (firstTkn.text == "call-sys") {
-                // TODO
-            } else if (firstTkn.text == "recur") {
-                // TODO
-            } else if (firstTkn.text == "mut") {
-                // TODO
-            } else if (firstTkn.text == "alloc") {
-                // TODO
-            } else if (firstTkn.text == "set!") {
-                // TODO
-            } else if (firstTkn.text == "get!") {
-                // TODO
-            } else if (firstTkn.text == "free") {
-                // TODO
-            } else if (firstTkn.text == "pointerto") {
-                // TODO
-            } else if (firstTkn.text == "quote") {
-                // TODO
-            } else if (firstTkn.text == "pseudo-quote") {
-                // TODO
-            } else if (firstTkn.text == "unquote") {
-                // TODO
-            } else {
+            case "ll":
+                return llToString(ast);
+            case "lambda":
+                break; // TODO
+            case "t-lambda":
+                break; // TODO
+            case "def-struct":
+                break; // TODO
+            case "struct":
+                break; // TODO
+            case "cast":
+                break; // TODO
+            case "convert":
+                break; // TODO
+            case "import-sz":
+                break; // TODO
+            case "import-host":
+                return importHostToString(ast);
+            case "rt-import-sz":
+                break; // TODO
+            case "rt-import-dll":
+                break; // TODO
+            case "call-extern":
+                break; // TODO
+            case "call-sys":
+                break; // TODO
+            case "recur":
+                break; // TODO
+            case "mut":
+                break; // TODO
+            case "alloc":
+                break; // TODO
+            case "set!":
+                break; // TODO
+            case "get!":
+                break; // TODO
+            case "free":
+                break; // TODO
+            case "pointerto":
+                break; // TODO
+            case "deref":
+                break; // TODO
+            case "quote":
+                break; // TODO
+            case "pseudo-quote":
+                break; // TODO
+            case "unquote":
+                break; // TODO
+            default:
                 return callToString(ast);
             }
         } else {

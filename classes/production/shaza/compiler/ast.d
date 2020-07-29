@@ -35,7 +35,7 @@ Context buildBasicAst(Context ctx) {
             break;
         case TknType.lstTaggedOpen:
             stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, TknType.closedTaggedList, ""));
+                    current.charIdx, TknType.closedTaggedList, current.text[0 .. $ - 1]));
             break;
         case TknType.lnComment:
             comment_line = current.lineIdx;
