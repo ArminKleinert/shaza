@@ -86,7 +86,7 @@ string callToString(AstNode ast) {
     AstNode[] args = ast.children[1 .. $];
 
     for (int i = 0; i < args.length; i++) {
-        result ~= args[i].text;
+        result ~= createOutput(args[i]);
         if (i < args.length - 1)
             result ~= ",";
     }
@@ -117,15 +117,17 @@ string typeToString(string litType) {
     return litType[2 .. $];
 }
 
-string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[] bodyNodes) {
-    auto result = appender!string(type);
-    result ~= " ";
-    result ~= name;
+string etDefineFnToString(Appender!string result, string type, string name, AstNode[] bindings, AstNode[] bodyNodes) {
     result ~= "(";
 
     // Write function argument list
     for (int i = 0; i < bindings.length; i += 2) {
-        result ~= typeToString(bindings[i]); // Type
+        string argTypeStr = bindings[i].text;
+        if (bindings[i].type == TknType.litString)
+            result ~= argTypeStr[1..$-1];
+        else
+            result ~= typeToString(bindings[i]); // Type
+
         result ~= " ";
         result ~= bindings[i + 1].text; // Name
         if (i < bindings.length - 2)
@@ -134,22 +136,36 @@ string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[
 
     result ~= ") {\n";
 
+    // If the body is empty, return the default value of the return-type
+    // or, if the type is void, leave an empty body
     if (bodyNodes.length == 0) {
+        if (type == "void") return result.get();
         result ~= "return ";
         result ~= type;
         result ~= ".init;";
         return result.get();
     }
 
-    if (bodyNodes.length == 1 && type != "void") {
-        if (!(bodyNodes[0].type == TknType.closedScope && bodyNodes[0].children[0].text == "return"))
-            result ~= "return ";
+    // Write all but the last statement
+    foreach (AstNode bodyNode; bodyNodes[0..$-1]) {
+        result ~= createOutput(bodyNode);
+        if (result[][$-1] != ';') result ~= ";";
+        result ~= "\n";
     }
 
-    foreach (AstNode bodyNode; bodyNodes) {
-        result ~= createOutput(bodyNode);
-        result ~= ";\n";
-    }
+    AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
+
+    // If the last node in the body is
+    if (type != "void"
+        && (lastStmt.type == TknType.closedScope
+            && lastStmt.children[0].text != "return"
+            && lastStmt.children[0].text != "let"
+            && lastStmt.children[0].text != "define")
+        || isAtom(lastStmt))
+        result ~= "return ";
+
+    result ~= createOutput(lastStmt);
+    result ~= ";\n";
 
     result ~= "}\n";
     return result.get();
@@ -159,24 +175,46 @@ string etDefineToString(AstNode ast) {
     string typeText = typeToString(ast.children[1]);
     AstNode signature = ast.children[2];
 
+    auto result = appender!string(typeText);
+    result ~= " ";
+
     // The define seems to be defining a function
     if (signature.type == TknType.closedScope) {
         string name = signature.children[0].text;
+        result ~= name;
         AstNode[] bindings = signature.children[1 .. $];
         AstNode[] rest = ast.children[3 .. $];
-        return etDefineFnToString(typeText, name, bindings, rest);
+        return etDefineFnToString(result, typeText, name, bindings, rest);
     }
 
-    auto result = appender!string("");
-
-    result ~= typeText; // Type
-    result ~= " ";
-    result ~= signature.text; // Value
+    result ~= signature.text; // Name
     result ~= " = ";
     result ~= createOutput(ast.children[3]); // Value
     result ~= ";\n";
 
     return result.get();
+}
+
+string genDefineToString(AstNode ast) {
+    string type = typeToString(ast.children[1]);
+    AstNode[] generics = ast.children[2].children;
+    string name = ast.children[3].children[0].text;
+    AstNode[] bindings = ast.children[3].children[1 .. $];
+    AstNode[] bodyNodes = ast.children[4 .. $];
+
+    auto result = appender!string(type);
+    result ~= " ";
+    result ~= name;
+    result ~= "(";
+
+    for (int i = 0; i < generics.length; i ++) {
+        result ~= generics[i].text; // Type
+        if (i < generics.length - 1)
+            result ~= ", ";
+    }
+
+    result ~= ")";
+    return etDefineFnToString(result, type, name, bindings, bodyNodes);
 }
 
 string tLetBindingsToString(AstNode[] bindings) {
@@ -257,8 +295,9 @@ string importHostToString(AstNode ast) {
     // Handle some errors
     if (nodes.length == 0)
         throw new CompilerError("Too few arguments for import-host.");
-    if (nodes[0].type != TknType.symbol || nodes[0].type != TknType.litString)
+    if (nodes[0].type != TknType.symbol && nodes[0].type != TknType.litString) {
         throw new CompilerError("import-host: Module name must be string or symbol.");
+    }
 
     // Parse name of import
     string nameText = nodes[0].text;
@@ -269,7 +308,7 @@ string importHostToString(AstNode ast) {
         return "import " ~ nameText ~ ";";
     } else if (nodes.length == 2) {
         // Import only specific list of functions.
-        if (nodes[1].type != TknType.closedList || nodes[1].type != TknType.closedScope)
+        if (nodes[1].type != TknType.closedList && nodes[1].type != TknType.closedScope)
             throw new CompilerError(
                     "import-host: list of imported functions must be a list. '(...)' or '[...]'");
 
@@ -279,11 +318,11 @@ string importHostToString(AstNode ast) {
         result ~= " : ";
 
         for (int i = 0; i < nodes[1].children.length; i++) {
-            result ~= nodes[i].text;
-            if (i != nodes[i].children.length - 1)
+            result ~= nodes[1].children[i].text;
+            if (i != nodes[1].children.length - 1)
                 result ~= ",";
         }
-        result ~= ";\n";
+        result ~= ";";
         return result.get();
     } else {
         // Too many arguments
@@ -391,6 +430,8 @@ string createOutput(AstNode ast) {
                 return defineToString(ast);
             case "et-define":
                 return etDefineToString(ast);
+            case "gen-define":
+                return genDefineToString(ast);
             case "define-macro":
                 break; // TODO
             case "define-tk-macro":
