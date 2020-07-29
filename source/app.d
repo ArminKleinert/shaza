@@ -166,19 +166,7 @@ string parseFully(string script) {
     return createOutput(ctx.ast);
 }
 
-void times(int n, int delegate(int) f) {
-    while (n > 0) {
-        f(n--);
-    }
-}
-
 void main() {
-    int hi(int i) {
-        writeln(i);
-        return i;
-    }
-
-    times(10, &hi);
     /*
     auto ctx = new Context();
     ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" "
@@ -281,4 +269,16 @@ void main() {
     testScript = "(et-define ::int (plus \"int\" i0 ::int i1) (ll i0 + i1))";
     writeln(parseFully(testScript));
 
+    writeln();
+    testScript = "(gen-define ::bool (T) (contains ::T[] coll0 ::T value)
+    (reduce coll0 false
+      (lambda [res curr] (if (or res (eql? curr value)) (return true) (return false)))))
+
+(gen-define ::O[] (O T) (reduce ::T[] coll ::O init \"O delegate(O, T)\" f)
+    (let [res init]
+        (ll foreach \"(\" T \" \" elem \"; \" coll \") {\")
+        (setv! res (f elem res))
+        (ll \"}\")
+        (return res)))";
+    writeln(parseFully(testScript));
 }

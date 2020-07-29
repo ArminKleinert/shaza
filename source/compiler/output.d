@@ -82,15 +82,16 @@ bool isAtom(AstNode ast) {
 
 string callToString(AstNode ast) {
     string fnname = ast.children[0].text;
-    auto result = appender!string(fnname ~ "(");
+    auto result = appender!string(szNameToHostName(fnname));
+    result ~= '(';
     AstNode[] args = ast.children[1 .. $];
 
     for (int i = 0; i < args.length; i++) {
         result ~= createOutput(args[i]);
         if (i < args.length - 1)
-            result ~= ",";
+            result ~= ", ";
     }
-    result ~= ")";
+    result ~= ')';
     return result.get();
 }
 
@@ -108,11 +109,20 @@ string atomToString(AstNode ast) {
     return text.get();
 }
 
+string szNameToHostName(string szVarName) {
+    if (szVarName[$ - 1] == '?')
+        return szVarName[0 .. $ - 1] ~ "_Q";
+    else if (szVarName[$ - 1] == '!')
+        return szVarName[0 .. $ - 1] ~ "_E";
+    else
+        return szVarName;
+}
+
 string typeToString(AstNode ast) {
     if (ast.type == TknType.litType)
-        return ast.text[1 .. $ - 1];
-    else
         return ast.text[2 .. $];
+    else
+        return ast.text[1 .. $ - 1];
 }
 
 string typeToString(string litType) {
@@ -126,6 +136,20 @@ string functionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= "(";
 
     // Write function argument list
+    for (int i = 0; i < bindings.length; i++) {
+        result ~= szNameToHostName(bindings[i].text); // Name
+        if (i < bindings.length - 1)
+            result ~= ", ";
+    }
+
+    result ~= ")";
+    return result.get();
+}
+
+string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
+    result ~= "(";
+
+    // Write function argument list
     for (int i = 0; i < bindings.length; i += 2) {
         string argTypeStr = bindings[i].text;
         if (bindings[i].type == TknType.litString)
@@ -134,7 +158,7 @@ string functionBindingsToString(Appender!string result, AstNode[] bindings) {
             result ~= typeToString(bindings[i]); // Type
 
         result ~= " ";
-        result ~= bindings[i + 1].text; // Name
+        result ~= szNameToHostName(bindings[i + 1].text); // Name
         if (i < bindings.length - 2)
             result ~= ", ";
     }
@@ -164,7 +188,7 @@ string functionBodyToString(Appender!string result, string fnType,
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
         if (result[][$ - 1] != ';')
-            result ~= ";";
+            result ~= ';';
         if (withLineBreaks)
             result ~= '\n';
     }
@@ -173,9 +197,10 @@ string functionBodyToString(Appender!string result, string fnType,
 
     // If the last node in the body is
     if (fnType != "void" && (lastStmt.type == TknType.closedScope
-            && lastStmt.children[0].text != "return"
-            && lastStmt.children[0].text != "let" && lastStmt.children[0].text != "define")
-            || isAtom(lastStmt))
+            && lastStmt.children[0].text != "return" && lastStmt.children[0].text != "let"
+            && lastStmt.children[0].text != "define"
+            && lastStmt.children[0].text != "if" && lastStmt.children[0].text != "for"
+            && lastStmt.children[0].text != "foreach") || isAtom(lastStmt))
         result ~= "return ";
 
     result ~= createOutput(lastStmt);
@@ -189,9 +214,7 @@ string functionBodyToString(Appender!string result, string fnType,
     return result.get();
 }
 
-string etDefineFnToString(Appender!string result, string type,
-        AstNode[] bindings, AstNode[] bodyNodes) {
-    functionBindingsToString(result, bindings);
+string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
 
     result ~= "{\n";
 
@@ -209,22 +232,24 @@ string etDefineFnToString(Appender!string result, string type,
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
-        if (result[][$ - 1] != ';')
-            result ~= ";";
-        result ~= "\n";
+        if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
+            result ~= ';';
+        result ~= '\n';
     }
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
 
     // If the last node in the body is
     if (type != "void" && (lastStmt.type == TknType.closedScope
-            && lastStmt.children[0].text != "return"
-            && lastStmt.children[0].text != "let" && lastStmt.children[0].text != "define")
-            || isAtom(lastStmt))
+            && lastStmt.children[0].text != "return" && lastStmt.children[0].text != "let"
+            && lastStmt.children[0].text != "define"
+            && lastStmt.children[0].text != "if" && lastStmt.children[0].text != "for"
+            && lastStmt.children[0].text != "foreach") || isAtom(lastStmt))
         result ~= "return ";
 
     result ~= createOutput(lastStmt);
-    result ~= ";\n";
+    if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
+        result ~= ";\n";
 
     result ~= "}\n";
     return result.get();
@@ -240,13 +265,14 @@ string etDefineToString(AstNode ast) {
     // The define seems to be defining a function
     if (signature.type == TknType.closedScope) {
         string name = signature.children[0].text;
-        result ~= name;
+        result ~= szNameToHostName(name);
         AstNode[] bindings = signature.children[1 .. $];
         AstNode[] rest = ast.children[3 .. $];
-        return etDefineFnToString(result, typeText, bindings, rest);
+        typedFunctionBindingsToString(result, bindings);
+        return etDefineFnToString(result, typeText, rest);
     }
 
-    result ~= signature.text; // Name
+    result ~= szNameToHostName(signature.text); // Name
     result ~= " = ";
     result ~= createOutput(ast.children[3]); // Value
     result ~= ";\n";
@@ -263,7 +289,7 @@ string genDefineToString(AstNode ast) {
 
     auto result = appender!string(type);
     result ~= " ";
-    result ~= name;
+    result ~= szNameToHostName(name);
     result ~= "(";
 
     for (int i = 0; i < generics.length; i++) {
@@ -273,7 +299,8 @@ string genDefineToString(AstNode ast) {
     }
 
     result ~= ")";
-    return etDefineFnToString(result, type, bindings, bodyNodes);
+    typedFunctionBindingsToString(result, bindings);
+    return etDefineFnToString(result, type, bodyNodes);
 }
 
 string tLetBindingsToString(AstNode[] bindings) {
@@ -284,7 +311,7 @@ string tLetBindingsToString(AstNode[] bindings) {
     for (int i = 0; i < bindings.length; i += 3) {
         result ~= typeToString(bindings[i]); // Type
         result ~= " ";
-        result ~= bindings[i + 1].text; // Name
+        result ~= szNameToHostName(bindings[i + 1].text); // Name
         result ~= " = ";
         result ~= createOutput(bindings[i + 2]); // Value
         result ~= ";\n";
@@ -299,7 +326,7 @@ string letBindingsToString(AstNode[] bindings) {
     auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= "auto ";
-        result ~= bindings[i + 0].text; // Name
+        result ~= szNameToHostName(bindings[i + 0].text); // Name
         result ~= " = ";
         result ~= createOutput(bindings[i + 1]); // Value
         result ~= ";\n";
@@ -341,7 +368,7 @@ string defineToString(AstNode ast) {
 
     auto result = appender!string("");
     result ~= "auto ";
-    result ~= ast.children[1].text; // Variable name
+    result ~= szNameToHostName(ast.children[1].text); // Variable name
     result ~= " = ";
     result ~= createOutput(ast.children[2]); // Value
     result ~= ";\n";
@@ -378,7 +405,7 @@ string importHostToString(AstNode ast) {
 
         for (int i = 0; i < nodes[1].children.length; i++) {
             result ~= nodes[1].children[i].text;
-            if (i != nodes[1].children.length - 1)
+            if (i < nodes[1].children.length - 1)
                 result ~= ",";
         }
         result ~= ";";
@@ -396,7 +423,7 @@ string listLiteralToString(AstNode ast) {
     auto result = appender!string("[");
     for (int i = 0; i < ast.children.length; i++) {
         result ~= ast.children[i].text;
-        if (i != ast.children[i].children.length - 1)
+        if (i < ast.children[i].children.length - 1)
             result ~= ",";
     }
     result ~= "]";
@@ -406,7 +433,7 @@ string listLiteralToString(AstNode ast) {
 string setvToString(AstNode ast) {
     if (ast.children.length != 3)
         throw new CompilerError("setv! requires exactly 2 arguments!");
-    auto result = appender!string(ast.children[1].text);
+    auto result = appender!string(szNameToHostName(ast.children[1].text));
     result ~= " = ";
     result ~= createOutput(ast.children[2]);
     if (result[][$ - 1] != ';')
@@ -463,23 +490,43 @@ string ifToString(AstNode ast) {
     return result.get();
 }
 
+// FIXME
 string tLambdaToString(AstNode ast) {
     auto type = typeToString(ast.children[1]);
     auto bindings = ast.children[2].children;
     auto bodyNodes = ast.children[3 .. $];
     auto result = appender("(delegate ");
     result ~= type;
-    etDefineFnToString(result, type, bindings, bodyNodes);
+    typedFunctionBindingsToString(result, bindings);
+    etDefineFnToString(result, type, bodyNodes);
     result ~= ")";
     return result.get();
 }
 
+// FIXME
 string lambdaToString(AstNode ast) {
     auto bindings = ast.children[1].children;
     auto bodyNodes = ast.children[2 .. $];
-    auto result = appender("");
-    etDefineFnToString(result, "", bindings, bodyNodes);
+    auto result = appender("(delegate ");
+    functionBindingsToString(result, bindings);
+    etDefineFnToString(result, "", bodyNodes);
+    result ~= ")";
     return result.get();
+}
+
+string returnToString(AstNode ast) {
+    return "return " ~ createOutput(ast.children[1]) ~ ";";
+}
+
+string boolOpToString(AstNode ast) {
+    string op = ast.children[0].text;
+    if (op == "and")
+        op = "&&";
+    else if (op == "or")
+        op = "||";
+    else if (op == "xor")
+        op = "^";
+    return createOutput(ast.children[1]) ~ op ~ createOutput(ast.children[2]);
 }
 
 string createOutput(AstNode ast) {
@@ -528,6 +575,12 @@ string createOutput(AstNode ast) {
                 return lambdaToString(ast);
             case "t-lambda":
                 return tLambdaToString(ast);
+            case "return":
+                return returnToString(ast);
+            case "and":
+            case "or":
+            case "xor":
+                return boolOpToString(ast);
             case "def-struct":
                 break; // TODO
             case "struct":
