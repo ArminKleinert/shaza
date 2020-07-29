@@ -107,4 +107,12 @@ int indexof(T)(T[] list, T o) {
     return -1;
 }
 
+O reduce(T, O)(T[] coll, O initVal, O function(O, T) fn) {
+    O output = initVal;
+    foreach(T current; coll) {
+        output = fn(output, current);
+    }
+    return output;
+}
+
 // SECTION lib

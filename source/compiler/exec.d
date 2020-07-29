@@ -84,6 +84,7 @@ string callToString(AstNode ast) {
     string fnname = ast.children[0].text;
     auto result = appender!string(fnname ~ "(");
     AstNode[] args = ast.children[1 .. $];
+
     for (int i = 0; i < args.length; i++) {
         result ~= args[i].text;
         if (i < args.length - 1)
@@ -132,6 +133,18 @@ string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[
     }
 
     result ~= ") {\n";
+
+    if (bodyNodes.length == 0) {
+        result ~= "return ";
+        result ~= type;
+        result ~= ".init;";
+        return result.get();
+    }
+
+    if (bodyNodes.length == 1 && type != "void") {
+        if (!(bodyNodes[0].type == TknType.closedScope && bodyNodes[0].children[0].text == "return"))
+            result ~= "return ";
+    }
 
     foreach (AstNode bodyNode; bodyNodes) {
         result ~= createOutput(bodyNode);
@@ -337,6 +350,21 @@ string llToString(AstNode ast) {
     return result.get();
 }
 
+string ifToString(AstNode ast) {
+    AstNode condition = ast.children[1];
+    AstNode branchThen = ast.children[2];
+    AstNode branchElse = ast.children[3];
+    auto result = appender("");
+    result ~= "if(";
+    result ~= createOutput(condition);
+    result ~= ") {\n";
+    result ~= createOutput(branchThen);
+    result ~= "} else {\n";
+    result ~= createOutput(branchElse);
+    result ~= "}";
+    return result.get();
+}
+
 string createOutput(AstNode ast) {
     /*
     writeln(isAtom(ast));
@@ -375,6 +403,8 @@ string createOutput(AstNode ast) {
                 return setvToString(ast);
             case "ll":
                 return llToString(ast);
+            case "if":
+                return ifToString(ast);
             case "lambda":
                 break; // TODO
             case "t-lambda":
@@ -427,6 +457,14 @@ string createOutput(AstNode ast) {
         } else {
             writeln("Error? " ~ to!string(ast));
         }
+    }
+
+    if (ast.type == TknType.root) {
+        auto result = "";
+        foreach(AstNode child; ast.children) {
+            result ~= createOutput(child);
+        }
+        return result;
     }
 
     return "";

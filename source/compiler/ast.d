@@ -14,7 +14,7 @@ AstNode[] mergeTopElements(AstNode[] stack) {
 }
 
 Context buildBasicAst(Context ctx) {
-    auto root = new AstNode(Token(0, 0, TknType.unknown, ""));
+    auto root = new AstNode(Token(0, 0, TknType.root, ""));
     auto stack = [root];
     auto comment_line = -1;
 

@@ -12,6 +12,7 @@ class CompilerError : Error {
 
 enum TknType : byte {
     unknown,
+    root,
     litInt,
     litUInt,
     litFlt,
