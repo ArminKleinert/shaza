@@ -8,7 +8,7 @@ import shaza.buildins;
 
 import compiler.types;
 import compiler.ast;
-import compiler.exec;
+import compiler.output;
 
 bool isStringLiteral(string text) {
     return text.size >= 2 && text[0] == '"' && text[$ - 1] == '"' && text[$ - 2] != 92;
@@ -177,6 +177,7 @@ void main() {
         writeln(i);
         return i;
     }
+
     times(10, &hi);
     /*
     auto ctx = new Context();
@@ -255,7 +256,6 @@ void main() {
     writeln(createOutput(ctx.ast));
     */
 
-
     /*
     string testScript = "(gen-define ::bool (T) (contains ::T[] coll0 ::T value)"
                                                      ~"(let [i 0]"
@@ -281,11 +281,5 @@ void main() {
     testScript = "(et-define ::int (plus \"int\" i0 ::int i1) (ll i0 + i1))";
     writeln(parseFully(testScript));
 
-    testScript = "(gen-define ::O[] (O T) (reduce ::T[] coll, ::O init, \"O function(O, T)\" f)
-        (let [res init]
-        (ll foreach \"(\" T elem \";\" coll \") {\")
-        (setv! res (f elem res))
-        (ll \"}\")
-        (return res)))";
-    writeln(parseFully(testScript));
+
 }
