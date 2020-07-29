@@ -151,3 +151,7 @@ bool isSimpleLiteral(Token tkn) {
         return false;
     }
 }
+
+string get(Appender!string ap) {
+    return ap[];
+}

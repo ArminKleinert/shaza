@@ -82,7 +82,7 @@ bool isAtom(AstNode ast) {
 
 string callToString(AstNode ast) {
     string fnname = ast.children[0].text;
-    string result = fnname ~ "(";
+    auto result = appender!string(fnname ~ "(");
     AstNode[] args = ast.children[1 .. $];
     for (int i = 0; i < args.length; i++) {
         result ~= args[i].text;
@@ -90,19 +90,21 @@ string callToString(AstNode ast) {
             result ~= ",";
     }
     result ~= ")";
-    return result;
+    return result.get();
 }
 
 string atomToString(AstNode ast) {
-    string text = ast.text;
+    auto text = appender(ast.text);
+
     if (ast.type == TknType.litBool) {
-        text = text == "#t" ? "true" : "false";
+        text = appender(ast.text == "#t" ? "true" : "false");
     } else if (ast.type == TknType.litKeyword) {
         text ~= "Keyword(";
         text ~= ast.text;
         text ~= ")";
     }
-    return text;
+    
+    return text.get();
 }
 
 string typeToString(AstNode ast) {
@@ -115,7 +117,7 @@ string typeToString(string litType) {
 }
 
 string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[] bodyNodes) {
-    string result = type;
+    auto result = appender!string(type);
     result ~= " ";
     result ~= name;
     result ~= "(";
@@ -137,7 +139,7 @@ string etDefineFnToString(string type, string name, AstNode[] bindings, AstNode[
     }
 
     result ~= "}\n";
-    return result;
+    return result.get();
 }
 
 string etDefineToString(AstNode ast) {
@@ -152,7 +154,7 @@ string etDefineToString(AstNode ast) {
         return etDefineFnToString(typeText, name, bindings, rest);
     }
 
-    string result = "";
+    auto result = appender!string("");
 
     result ~= typeText; // Type
     result ~= " ";
@@ -161,14 +163,14 @@ string etDefineToString(AstNode ast) {
     result ~= createOutput(ast.children[3]); // Value
     result ~= ";\n";
 
-    return result;
+    return result.get();
 }
 
 string tLetBindingsToString(AstNode[] bindings) {
     if (bindings.length % 3 != 0)
         throw new CompilerError("t-let: Bindings length must be divisible by 3 (type, name, value)");
 
-    string result = "";
+    auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 3) {
         result ~= typeToString(bindings[i]); // Type
         result ~= " ";
@@ -177,14 +179,14 @@ string tLetBindingsToString(AstNode[] bindings) {
         result ~= createOutput(bindings[i + 2]); // Value
         result ~= ";\n";
     }
-    return result;
+    return result.get();
 }
 
 string letBindingsToString(AstNode[] bindings) {
     if (bindings.length % 2 != 0)
         throw new CompilerError("let: Bindings length must be even (name, value)");
 
-    string result = "";
+    auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= "auto ";
         result ~= bindings[i + 0].text; // Name
@@ -192,7 +194,7 @@ string letBindingsToString(AstNode[] bindings) {
         result ~= createOutput(bindings[i + 1]); // Value
         result ~= ";\n";
     }
-    return result;
+    return result.get();
 }
 
 string letToString(AstNode ast, bool isExplicitType) {
@@ -213,7 +215,8 @@ string letToString(AstNode ast, bool isExplicitType) {
     // Write code
     foreach (AstNode bodyNode; bodyNodes) {
         result ~= createOutput(bodyNode);
-        if (result[][$-1] == ';')result ~= ";";
+        if (result[][$ - 1] == ';')
+            result ~= ";";
         result ~= "\n";
     }
 
@@ -226,14 +229,13 @@ string defineToString(AstNode ast) {
         throw new CompilerError("Functions without explicit typing are not supported yet.");
     }
 
-    string result = "";
+    auto result = appender!string("");
     result ~= "auto ";
     result ~= ast.children[1].text; // Variable name
     result ~= " = ";
     result ~= createOutput(ast.children[2]); // Value
     result ~= ";\n";
-
-    return result;
+    return result.get();
 }
 
 string importHostToString(AstNode ast) {
@@ -259,14 +261,17 @@ string importHostToString(AstNode ast) {
                     "import-host: list of imported functions must be a list. '(...)' or '[...]'");
 
         // Build output string
-        string result = "import " ~ nameText ~ " : ";
+        auto result = appender!string("import ");
+        result ~= nameText;
+        result ~= " : ";
+
         for (int i = 0; i < nodes[1].children.length; i++) {
             result ~= nodes[i].text;
             if (i != nodes[i].children.length - 1)
                 result ~= ",";
         }
         result ~= ";\n";
-        return result;
+        return result.get();
     } else {
         // Too many arguments
         throw new CompilerError("import-host: Too many arguments.");
@@ -277,25 +282,25 @@ string listLiteralToString(AstNode ast) {
     if (ast.children.length == 0)
         return "[]"; // Empty list
 
-    string result = "[";
+    auto result = appender!string("[");
     for (int i = 0; i < ast.children.length; i++) {
         result ~= ast.children[i].text;
         if (i != ast.children[i].children.length - 1)
             result ~= ",";
     }
     result ~= "]";
-    return result;
+    return result.get();
 }
 
 string setvToString(AstNode ast) {
     if (ast.children.length != 3)
         throw new CompilerError("setv! requires exactly 2 arguments!");
-    string result = ast.children[1].text;
+    auto result = appender!string(ast.children[1].text);
     result ~= " = ";
     result ~= createOutput(ast.children[2]);
-    if (result[$ - 1] != ';')
+    if (result[][$ - 1] != ';')
         result ~= ";";
-    return result;
+    return result.get();
 }
 
 string createOutput(AstNode ast) {
