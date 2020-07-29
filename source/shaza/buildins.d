@@ -96,7 +96,7 @@ size_t size(T)(T[] lst) {
 }
 
 bool contains(T)(T[] list, T o) {
-    return indexof(list, o) == -1;
+    return indexof(list, o) != -1;
 }
 
 int indexof(T)(T[] list, T o) {

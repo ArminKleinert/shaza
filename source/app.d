@@ -15,7 +15,7 @@ bool isStringLiteral(string text) {
 }
 
 bool isValidSymbolText(string text) {
-    // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#
+    // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#', ':'
     foreach (char c; "\";()[]{}#:") {
         if (text.canFind(c))
             return false;
@@ -161,17 +161,56 @@ Context tokenize(Context ctx, string source) {
 
 void main() {
     auto ctx = new Context();
-    ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" " ~ ":keyword "
-            ~ "::typeliteral " ~ "15 15u 0xF 0b1111 0xFu 0b1111u "
+    ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" "
+            ~ ":keyword ::typeliteral ::int[string] 15 15u 0xF 0b1111 0xFu 0b1111u "
             ~ "15.0 15f 15.f " ~ "#t #f nil " ~ "() [] Lst[] (+ 1 1) ");
     writeln(ctx.tokens);
     writeln();
-    ctx = buildBasicAst(ctx);
-    writeln(ctx.ast);
+    //ctx = buildBasicAst(ctx);
+    //writeln(ctx.ast);
 
-    AstNode root = new AstNode(Token(0, 0, TknType.closedScope, "123"));
-    root.children ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
-    root.children ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
-    root.children ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
+    AstNode root = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    root ~= new AstNode(Token(0, 0, TknType.symbol, "et-define"));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "::int"));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "name"));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
+    writeln(createOutput(root));
+
+    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    root ~= new AstNode(Token(0, 0, TknType.symbol, "et-define"));
+    root ~= new AstNode(Token(0, 0, TknType.litInt, "::int"));
+    AstNode sig = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    sig ~= new AstNode(Token(0, 0, TknType.litInt, "name"));
+    sig ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
+    sig ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
+    sig ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
+    sig ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
+    root ~= sig;
+    AstNode returnCall = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    returnCall ~= new AstNode(Token(0, 0, TknType.symbol, "return"));
+    returnCall ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
+    root ~= returnCall;
+    writeln(createOutput(root));
+
+    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    AstNode letNode = new AstNode(Token(0, 0, TknType.symbol, "t-let"));
+    root ~= letNode;
+    AstNode bindings = new AstNode(Token(0, 0, TknType.closedList, ""));
+    bindings ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
+    bindings ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
+    bindings ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
+    bindings ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
+    bindings ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
+    bindings ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
+    root ~= bindings;
+    AstNode bodyNode = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    bodyNode ~= new AstNode(Token(0, 0, TknType.symbol, "setv!"));
+    bodyNode ~= new AstNode(Token(0, 0, TknType.symbol, "globalvar"));
+    AstNode bodyNode2 = new AstNode(Token(0, 0, TknType.closedScope, ""));
+    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "mul"));
+    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
+    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
+    bodyNode ~= bodyNode2;
+    root ~= bodyNode;
     writeln(createOutput(root));
 }

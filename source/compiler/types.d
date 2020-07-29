@@ -63,6 +63,19 @@ class AstNode {
         this(tkn, []);
     }
 
+    string text() {
+        return tkn.text;
+    }
+
+    TknType type() {
+        return tkn.type;
+    }
+
+    AstNode opOpAssign(string op)(AstNode other) if (op == "~") {
+        children ~= other;
+        return this;
+    }
+
     public override string toString() {
         string[] res = [];
         auto result = appender(&res);
