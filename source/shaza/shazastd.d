@@ -15,20 +15,23 @@ class Cell {
         _cdr = null;
     }
 
-    static Cell create(T)(T val)
-            if (!isBasicType!T && !isArray!T && !isSomeFunction!T) {
+    static Cell wrap(T)(T val) if (is(T == class)) {
         return new Cell(val);
     }
 
-    static Cell create(T)(T val) if (isBasicType!T) {
+    static Cell wrap(T)(T val) if (is(T == typeof(null))) {
+        return new Cell(null);
+    }
+
+    static Cell wrap(T)(T val) if (is(T == struct) || is(T == union)) {
         return new Cell(box(val));
     }
 
-    static Cell create(T)(T val) if (isArray!(T)) {
+    static Cell wrap(T)(T val) if (isBasicType!T || isArray!(T)) {
         return new Cell(box(val));
     }
 
-    static Cell create(T)(T val) if (isSomeFunction!(T)) {
+    static Cell wrap(T)(T val) if (isSomeFunction!(T)) {
         return new Cell(box(val));
     }
 
@@ -106,16 +109,16 @@ Cell cons(T)(T[] vars...) {
         return null;
     writeln(vars);
 
-    Cell head = Cell.create(vars[0]);
+    Cell head = Cell.wrap(vars[0]);
 
     Cell tail;
     if (vars.length >= 2) {
-        tail = Cell.create(vars[1]);
+        tail = Cell.wrap(vars[1]);
         head.setCdr(tail);
     }
 
     for (auto i = 2; i < vars.length; i++) {
-        Cell ncell = Cell.create(vars[i]);
+        Cell ncell = Cell.wrap(vars[i]);
         tail.setCdr(ncell);
         tail = tail.cdr;
     }

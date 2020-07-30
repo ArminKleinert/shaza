@@ -9,6 +9,7 @@ import std.algorithm;
 import std.array;
 
 import compiler.types;
+import compiler.ast;
 import shaza.buildins;
 import shaza.std;
 
@@ -114,35 +115,6 @@ class OutputContext {
         return NO_FUNCTION;
     }
 
-}
-
-bool isTypedMathOp(string text) {
-    return text == "+'" || text == "-'" || text == "*'" || text == "/'" || text == "%'"
-        || text == "<<'" || text == ">>'" || text == "bit-and'"
-        || text == "bit-or'" || text == "bit-xor'";
-}
-
-bool isMathOp(string text) {
-    return text == "+" || text == "-" || text == "*" || text == "/" || text == "%"
-        || text == "<<" || text == ">>" || text == "bit-and" || text == "bit-or" || text == "bit-xor";
-}
-
-bool isBoolOp(string text) {
-    return text == "and" || text == "or" || text == "xor" || text == "lsp-and"
-        || text == "lsp-or" || text == "lsp-xor";
-}
-
-bool isAtom(AstNode ast) {
-    auto type = ast.type;
-    auto types = [
-        TknType.litInt, TknType.litUInt, TknType.litBool, TknType.litString,
-        TknType.litKeyword, TknType.symbol, TknType.litFlt
-    ];
-    foreach (TknType e; types) {
-        if (type == e)
-            return true;
-    }
-    return false;
 }
 
 string callToString(AstNode ast) {
