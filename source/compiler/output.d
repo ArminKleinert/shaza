@@ -184,17 +184,15 @@ string szNameToHostName(string szVarName) {
 }
 
 string typeToString(AstNode ast) {
-    if (ast.type == TknType.litType)
-        return ast.text[2 .. $];
-    else
-        return ast.text[1 .. $ - 1];
+    return typeToString(ast.text);
 }
 
 string typeToString(string litType) {
-    if (litType[0] == '"' && litType[litType.length == '"'])
-        return litType[1 .. $ - 1];
-    else
-        return litType[2 .. $];
+    if (litType[0 .. 2] == "::")
+        litType = litType[2 .. $];
+    if (litType[0] == '"' && litType[litType.length - 1] == '"')
+        litType = litType[1 .. $ - 1];
+    return litType;
 }
 
 string functionBindingsToString(Appender!string result, AstNode[] bindings) {
@@ -216,11 +214,7 @@ string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings)
 
     // Write function argument list
     for (int i = 0; i < bindings.length; i += 2) {
-        string argTypeStr = bindings[i].text;
-        if (bindings[i].type == TknType.litString)
-            result ~= argTypeStr[1 .. $ - 1];
-        else
-            result ~= typeToString(bindings[i]); // Type
+        result ~= typeToString(bindings[i]);
 
         result ~= " ";
         result ~= szNameToHostName(bindings[i + 1].text); // Name

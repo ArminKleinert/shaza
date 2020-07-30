@@ -285,4 +285,8 @@ void main() {
     writeln(parseFully(testScript));
 
     writeln(OutputContext.global.listFunctionsAsString());
+
+    //writeln(cons(1, 2, 3, 4, 5, 6));
+    //    writeln(cons(box(1), box(5), box(4), box(3), box(2)));
+    writeln(cons(1, 2, 3));
 }

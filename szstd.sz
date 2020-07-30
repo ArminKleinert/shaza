@@ -45,14 +45,14 @@
         coll0 false
         (t-lambda ::bool [::bool res ::T curr] (if (or res (eql? curr value)) (return true) (return false)))))
 
-(gen-define ::O[] (O T) (reduce ::T[] coll ::O init "O delegate(O, T)" f)
+(gen-define ::O[] (O T) (reduce ::T[] coll ::O init ::"O delegate(O, T)" f)
     (let [res init]
         (ll foreach "(" T " " elem "; " coll ") {")
         (setv! res (f elem res))
         (ll "}")
         (return res)))
 
-(et-define ::void (times ::long num, "void delegate()" f)
+(et-define ::void (times ::long num, ::"void delegate()" f)
     (ll while "(i < size(coll0)) {")
     (f)
     (setv! num (dec num))
