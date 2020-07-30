@@ -12,44 +12,109 @@ import compiler.types;
 import shaza.buildins;
 import shaza.std;
 
-class OutputContext {
-    private string[] globals;
-    private Appender!(string[]) scopes;
-    private string currentScopeString;
+struct FunctionDecl {
+    const string name;
+    const string returnType;
+    const immutable(string)[] genericTypes;
+    const immutable(string)[] argTypes;
 
-    public this() {
-        globals = [];
-        string[] scopes;
-        this.scopes = appender(scopes);
-        currentScopeString = "";
-    }
-
-    OutputContext append(string text) {
-        currentScopeString ~= text;
-        return this;
-    }
-
-    OutputContext closeScope() {
-        scopes ~= currentScopeString;
-        currentScopeString = "";
-        return this;
-    }
-
-    OutputContext addGlobal(string name) {
-        globals ~= name;
-        return this;
-    }
-
-    string getString() {
-        string s = "";
-        foreach (string s1; scopes) {
-            s ~= s1;
-        }
-        return s;
+    this(string name, string returnType, const immutable(string)[] genericTypes,
+            const immutable(string)[] argTypes) {
+        this.name = name;
+        this.returnType = returnType;
+        this.genericTypes = genericTypes;
+        this.argTypes = argTypes;
     }
 }
 
-static const OutputContext globalOutputContext = new OutputContext();
+class OutputContext {
+    private string[] globals;
+    private FunctionDecl[] _functions;
+    private static FunctionDecl NO_FUNCTION;
+
+    private __gshared OutputContext _global;
+
+    static this() {
+        NO_FUNCTION = FunctionDecl(null, null, null, null);
+    }
+
+    this() {
+        globals = [];
+        _functions = [];
+    }
+
+    public static OutputContext global() {
+        if (_global is null)
+            _global = new OutputContext();
+        return _global;
+    }
+
+    public void addFunc(string name, string returnType, string[] genericTypes, string[] argTypes) {
+        immutable(string)[] args = argTypes.dup;
+        immutable(string)[] gens = genericTypes.dup;
+        _functions ~= FunctionDecl(name, returnType, gens, args);
+    }
+
+    public void addFunc(string name, string returnType, string[] argTypes) {
+        immutable(string)[] args = argTypes.dup;
+        _functions ~= FunctionDecl(name, returnType, [], args);
+    }
+
+    public void addFunc(string name, string returnType) {
+        _functions ~= FunctionDecl(name, returnType, [], []);
+    }
+
+    public string[] functions() {
+        string[] names;
+        foreach (fn; _functions) {
+            names ~= fn.name;
+        }
+        return names;
+    }
+
+    public string returnTypeOf(string functionName) {
+        return findFn(functionName).returnType;
+    }
+
+    public immutable(string)[] argumentsOf(string functionName) {
+        return findFn(functionName).argTypes;
+    }
+
+    public string[] listFunctions() {
+        string[] fns;
+        string current;
+        foreach (fn; _functions) {
+            current = fn.returnType;
+            current ~= ' ';
+            current ~= fn.name;
+            current ~= '(';
+            current ~= to!string(fn.genericTypes)[1 .. $ - 1];
+            current ~= ")(";
+            current ~= to!string(fn.argTypes)[1 .. $ - 1];
+            current ~= ')';
+            fns ~= current;
+        }
+        return fns;
+    }
+
+    public string listFunctionsAsString() {
+        auto fns = listFunctions();
+        string res = "";
+        foreach (fn; fns) {
+            res ~= fn ~ "\n";
+        }
+        return res;
+    }
+
+    private FunctionDecl findFn(string name) {
+        foreach (fn; _functions) {
+            if (fn.name == name)
+                return fn;
+        }
+        return NO_FUNCTION;
+    }
+
+}
 
 bool isTypedMathOp(string text) {
     return text == "+'" || text == "-'" || text == "*'" || text == "/'" || text == "%'"
@@ -215,7 +280,6 @@ string functionBodyToString(Appender!string result, string fnType,
 }
 
 string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
-
     result ~= "{\n";
 
     // If the body is empty, return the default value of the return-type
@@ -255,6 +319,32 @@ string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNod
     return result.get();
 }
 
+void addFunctionFromAst(string name, AstNode typeNode, AstNode[] generics, AstNode[] bindings) {
+    string type = typeToString(typeNode);
+    addFunctionFromAst(name, type, generics, bindings);
+}
+
+void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] bindings) {
+    string[] genericTypes;
+
+    for (int i = 0; i < generics.length; i++) {
+        genericTypes ~= generics[i].text; // Type
+    }
+
+    string[] args;
+
+    for (int i = 0; i < bindings.length; i += 2) { // +2 skips name
+        string argTypeStr = bindings[i].text;
+        if (bindings[i].type == TknType.litString)
+            args ~= argTypeStr[1 .. $ - 1];
+        else
+            args ~= typeToString(bindings[i]);
+    }
+
+    if (OutputContext.global)
+        OutputContext.global.addFunc(name, type, genericTypes, args);
+}
+
 string etDefineToString(AstNode ast) {
     string typeText = typeToString(ast.children[1]);
     AstNode signature = ast.children[2];
@@ -269,6 +359,9 @@ string etDefineToString(AstNode ast) {
         AstNode[] bindings = signature.children[1 .. $];
         AstNode[] rest = ast.children[3 .. $];
         typedFunctionBindingsToString(result, bindings);
+
+        addFunctionFromAst(name, typeText, [], bindings);
+
         return etDefineFnToString(result, typeText, rest);
     }
 
@@ -286,6 +379,8 @@ string genDefineToString(AstNode ast) {
     string name = ast.children[3].children[0].text;
     AstNode[] bindings = ast.children[3].children[1 .. $];
     AstNode[] bodyNodes = ast.children[4 .. $];
+
+    addFunctionFromAst(name, type, generics, bindings);
 
     auto result = appender!string(type);
     result ~= " ";

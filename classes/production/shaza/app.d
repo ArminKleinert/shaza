@@ -5,6 +5,7 @@ import std.string;
 import std.algorithm;
 
 import shaza.buildins;
+import shaza.std;
 
 import compiler.types;
 import compiler.ast;
@@ -167,6 +168,7 @@ string parseFully(string script) {
 }
 
 void main() {
+
     /*
     auto ctx = new Context();
     ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" "
@@ -281,4 +283,6 @@ void main() {
         (ll \"}\")
         (return res)))";
     writeln(parseFully(testScript));
+
+    writeln(OutputContext.global.listFunctionsAsString());
 }
