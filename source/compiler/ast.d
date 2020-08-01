@@ -17,6 +17,8 @@ AstNode[] mergeTopElements(AstNode[] stack) {
 }
 
 Context buildBasicAst(Context ctx) {
+    import std.conv;
+
     auto root = new AstNode(Token(0, 0, TknType.root, ""));
     auto stack = [root];
     auto comment_line = -1;
@@ -27,7 +29,16 @@ Context buildBasicAst(Context ctx) {
             continue;
         }
 
+        if (stack[$ - 1].type == TknType.litType) {
+            stack[$ - 1].tkn.text ~= current.text;
+            stack = mergeTopElements(stack);
+            continue;
+        }
+
         switch (current.type) {
+        case TknType.litType:
+            stack ~= new AstNode(current);
+            break;
         case TknType.scopeOpen:
             stack ~= new AstNode(Token(current.lineIdx,
                     current.charIdx, TknType.closedScope, ""));
@@ -48,7 +59,7 @@ Context buildBasicAst(Context ctx) {
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
-                auto err = "Attempting to close root node.";
+                auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
             auto is_valid = list_token.type == TknType.closedList && current.type
@@ -60,8 +71,7 @@ Context buildBasicAst(Context ctx) {
             if (is_valid) {
                 stack = mergeTopElements(stack);
             } else {
-                import std.conv;
-
+                writeln(ctx.tokens);
                 throw new CompilerError("The closing token " ~ to!string(
                         current) ~ " isn't closing anything.");
             }
