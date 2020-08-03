@@ -3,6 +3,8 @@ module shaza.buildins;
 import std.variant;
 import std.conv;
 import std.typecons;
+import std.bigint;
+import std.stdio;
 
 import shaza.std;
 
@@ -105,6 +107,69 @@ int indexof(T)(T[] list, T o) {
             return i;
     }
     return -1;
+}
+
+uint digits10(ulong v) {
+    auto result = 1u;
+    for (;;) {
+        if (v < 10)
+            return result;
+        if (v < 100)
+            return result + 1;
+        if (v < 1000)
+            return result + 2;
+        if (v < 10000)
+            return result + 3;
+        v /= 10000u;
+        result += 4;
+    }
+}
+
+int indexOf(string str, string sub) {
+    if (sub.length == 0) {
+        return 0;
+    }
+    if (str.length < sub.length) {
+        return -1;
+    }
+    for (auto i = 0; i < str.length; i++) {
+        if (str[i] == sub[0]) {
+            if (sub.length == 1)
+                return i;
+            auto subi = 1u;
+            for (; subi < sub.length; subi++) {
+                if (str[i + subi] != subi) {
+                    subi = -1;
+                    break;
+                }
+            }
+            if (subi != -1) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+int multiplicationPersistance(ulong n) {
+    return multiplicationPersistance(BigInt(n));
+}
+
+int multiplicationPersistance(BigInt n) {
+    int score = 1;
+    BigInt temp;
+
+    while(true) {
+        if (n < 10)
+            return score;
+        score++;
+        temp = 1;
+        while (n >= 10) {
+            temp *= n % 10;
+            n /= 10;
+        }
+        n = temp * n;
+    }
 }
 
 // SECTION lib

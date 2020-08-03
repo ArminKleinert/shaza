@@ -25,7 +25,7 @@ bool isValidSymbolText(string text) {
 }
 
 bool isTypeLiteral(string text) {
-    return text.size > 2 && text[0] == ':' && text[1] == ':';
+    return text.size >= 2 && text[0] == ':' && text[1] == ':';
     // return text.size > 2 && text[0] == ':' && text[1] == ':' && isValidSymbolText(text[2 .. $]);
 }
 
@@ -167,126 +167,46 @@ string parseFully(string script) {
     return createOutput(ctx.ast);
 }
 
+N inc(N)(N n) {
+    return n + 1;
+}
+
+N dec(N)(N n) {
+    return n - 1;
+}
+
 void main() {
+    import std.file;
+
+    //string txt = readText("./szstd.sz");
+    //auto ctx = new Context();
+    // tx = tokenize(ctx, txt);
+    //writeln(ctx.tokens);
+    //writeln(parseFully(txt));
 
     /*
-    auto ctx = new Context();
-    ctx = tokenize(ctx, "fncall customns/fncall var " ~ "\"string\" \"string\nwith\nlinebreak\" "
-            ~ ":keyword ::typeliteral ::int[string] 15 15u 0xF 0b1111 0xFu 0b1111u "
-            ~ "15.0 15f 15.f " ~ "#t #f nil " ~ "() [] Lst[] (+ 1 1) ");
-    writeln(ctx.tokens);
     writeln();
-    //ctx = buildBasicAst(ctx);
-    //writeln(ctx.ast);
-
-    AstNode root = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    root ~= new AstNode(Token(0, 0, TknType.symbol, "et-define"));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "::int"));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "name"));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
-    writeln(createOutput(root));
-
-    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    root ~= new AstNode(Token(0, 0, TknType.symbol, "et-define"));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "::int"));
-    AstNode sig = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    sig ~= new AstNode(Token(0, 0, TknType.litInt, "name"));
-    sig ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
-    sig ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
-    sig ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
-    sig ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
-    root ~= sig;
-    AstNode returnCall = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    returnCall ~= new AstNode(Token(0, 0, TknType.symbol, "return"));
-    returnCall ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
-    root ~= returnCall;
-    writeln(createOutput(root));
-
-    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    AstNode letNode = new AstNode(Token(0, 0, TknType.symbol, "t-let"));
-    root ~= letNode;
-    AstNode bindings = new AstNode(Token(0, 0, TknType.closedList, ""));
-    bindings ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
-    bindings ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
-    bindings ~= new AstNode(Token(0, 0, TknType.litInt, "1"));
-    bindings ~= new AstNode(Token(0, 0, TknType.litType, "::int"));
-    bindings ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
-    bindings ~= new AstNode(Token(0, 0, TknType.litInt, "2"));
-    root ~= bindings;
-    AstNode bodyNode = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    bodyNode ~= new AstNode(Token(0, 0, TknType.symbol, "setv!"));
-    bodyNode ~= new AstNode(Token(0, 0, TknType.symbol, "globalvar"));
-    AstNode bodyNode2 = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "mul"));
-    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "arg0"));
-    bodyNode2 ~= new AstNode(Token(0, 0, TknType.symbol, "arg1"));
-    bodyNode ~= bodyNode2;
-    root ~= bodyNode;
-    writeln(createOutput(root));
-
-    writeln();
-    root = new AstNode(Token(0, 0, TknType.closedScope, ""));
-    root ~= new AstNode(Token(0, 0, TknType.symbol, "ll"));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "8"));
-    root ~= new AstNode(Token(0, 0, TknType.litString, "\" \""));
-    root ~= new AstNode(Token(0, 0, TknType.symbol, "+"));
-    root ~= new AstNode(Token(0, 0, TknType.litString, "\" \""));
-    root ~= new AstNode(Token(0, 0, TknType.litInt, "8"));
-    writeln(createOutput(root));
-
-    writeln();
-    ctx = new Context();
-    ctx = tokenize(ctx, "(et-define ::void (helloWorld) (writeln \"Hello World!\"))");
+    ctx = tokenize(ctx, "::\"void delegate()\"");
     ctx = buildBasicAst(ctx);
-    writeln(createOutput(ctx.ast));
-
-    ctx = new Context();
-    ctx = tokenize(ctx, "(gen-define ::T (T) (concat ::T coll0 ::coll1 coll1) (ll coll0 ~= coll1))");
-    ctx = buildBasicAst(ctx);
-    writeln(createOutput(ctx.ast));
+    writeln(ctx.ast);
     */
+    writeln("here0");
 
-    /*
-    string testScript = "(gen-define ::bool (T) (contains ::T[] coll0 ::T value)"
-                                                     ~"(let [i 0]"
-                                                      ~"(ll while \"(i < size(coll0)) {\")"
-                                                      ~"(if (eql? (get coll0 i) value) (return #t) null)"
-                                                      ~"(ll \"}\"))"
-                                                      ~"#f)";
-    */
-    string testScript;
+    import std.bigint;
 
-    testScript = "(et-define ::int (inc2 ::int i0) (plus (plus i0 1) 1))";
-    writeln(parseFully(testScript));
+    writeln("here1");
 
-    testScript = "(et-define ::int (plus ::int i0 ::int i1) (ll i0 + i1))";
-    writeln(parseFully(testScript));
-
-    testScript = "(et-define ::int n 2)";
-    writeln(parseFully(testScript));
-
-    testScript = "(define n2 4)";
-    writeln(parseFully(testScript));
-
-    testScript = "(et-define ::int (plus \"int\" i0 ::int i1) (ll i0 + i1))";
-    writeln(parseFully(testScript));
-
-    writeln();
-    testScript = "(gen-define ::bool (T) (contains ::T[] coll0 ::T value)
-    (reduce coll0 false
-      (lambda [res curr] (if (or res (eql? curr value)) (return true) (return false)))))
-
-(gen-define ::O[] (O T) (reduce ::T[] coll ::O init \"O delegate(O, T)\" f)
-    (let [res init]
-        (ll foreach \"(\" T \" \" elem \"; \" coll \") {\")
-        (setv! res (f elem res))
-        (ll \"}\")
-        (return res)))";
-    writeln(parseFully(testScript));
-
-    writeln(OutputContext.global.listFunctionsAsString());
-
-    //writeln(cons(1, 2, 3, 4, 5, 6));
-    //    writeln(cons(box(1), box(5), box(4), box(3), box(2)));
-    writeln(cons(1, 2, 3));
+    BigInt record = 0;
+    int highest = 0;
+    int temp = 0;
+    while (highest < 10) {
+        temp = multiplicationPersistance(record);
+        if (temp > highest) {
+            highest = temp;
+            writeln(record);
+        }
+        record++;
+    }
+    // 277777788888899
+    writeln(highest);
 }

@@ -5,6 +5,9 @@ import std.stdio;
 
 import compiler.types;
 import shaza.buildins;
+import shaza.std;
+
+// SECTION AST creation
 
 AstNode[] mergeTopElements(AstNode[] stack) {
     auto last = stack[$ - 1];
@@ -14,6 +17,8 @@ AstNode[] mergeTopElements(AstNode[] stack) {
 }
 
 Context buildBasicAst(Context ctx) {
+    import std.conv;
+
     auto root = new AstNode(Token(0, 0, TknType.root, ""));
     auto stack = [root];
     auto comment_line = -1;
@@ -24,7 +29,16 @@ Context buildBasicAst(Context ctx) {
             continue;
         }
 
+        if (stack[$ - 1].type == TknType.litType) {
+            stack[$ - 1].tkn.text ~= current.text;
+            stack = mergeTopElements(stack);
+            continue;
+        }
+
         switch (current.type) {
+        case TknType.litType:
+            stack ~= new AstNode(current);
+            break;
         case TknType.scopeOpen:
             stack ~= new AstNode(Token(current.lineIdx,
                     current.charIdx, TknType.closedScope, ""));
@@ -45,7 +59,7 @@ Context buildBasicAst(Context ctx) {
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
-                auto err = "Attempting to close root node.";
+                auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
             auto is_valid = list_token.type == TknType.closedList && current.type
@@ -57,8 +71,7 @@ Context buildBasicAst(Context ctx) {
             if (is_valid) {
                 stack = mergeTopElements(stack);
             } else {
-                import std.conv;
-
+                writeln(ctx.tokens);
                 throw new CompilerError("The closing token " ~ to!string(
                         current) ~ " isn't closing anything.");
             }
@@ -77,4 +90,64 @@ Context buildBasicAst(Context ctx) {
     ctx.ast = root;
 
     return ctx;
+}
+
+// SECTION Conversion from AST to Cells
+
+bool isTypedMathOp(string text) {
+    return text == "+'" || text == "-'" || text == "*'" || text == "/'" || text == "%'"
+        || text == "<<'" || text == ">>'" || text == "bit-and'"
+        || text == "bit-or'" || text == "bit-xor'";
+}
+
+bool isMathOp(string text) {
+    return text == "+" || text == "-" || text == "*" || text == "/" || text == "%"
+        || text == "<<" || text == ">>" || text == "bit-and" || text == "bit-or" || text == "bit-xor";
+}
+
+bool isBoolOp(string text) {
+    return text == "and" || text == "or" || text == "xor" || text == "lsp-and"
+        || text == "lsp-or" || text == "lsp-xor";
+}
+
+bool isAtom(AstNode ast) {
+    auto type = ast.type;
+    auto types = [
+        TknType.litInt, TknType.litUInt, TknType.litBool, TknType.litString,
+        TknType.litKeyword, TknType.symbol, TknType.litFlt
+    ];
+    foreach (TknType e; types) {
+        if (type == e)
+            return true;
+    }
+    return false;
+}
+
+Cell parseAtom(AstNode node) {
+    import std.conv : to;
+
+    switch (node.type) {
+    case TknType.litInt:
+        return Cell.wrap(to!long(node.text));
+    case TknType.litUInt:
+        return Cell.wrap(to!ulong(node.text));
+    case TknType.litBool:
+        return Cell.wrap(node.text != "#f");
+    case TknType.litString:
+        return Cell.wrap(node.text[1 .. $ - 1]);
+    case TknType.litKeyword:
+        return Cell.wrap(Keyword(node.text));
+    case TknType.symbol:
+        return Cell.wrap(Symbol(node.text));
+    case TknType.litFlt:
+        return Cell.wrap(to!double(node.text));
+    default:
+        return null;
+    }
+}
+
+Cell convertAstToCells(AstNode ast) {
+    Cell root = Cell.wrap(null);
+
+    return root;
 }

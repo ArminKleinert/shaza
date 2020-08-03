@@ -149,7 +149,5 @@ Cell parseAtom(AstNode node) {
 Cell convertAstToCells(AstNode ast) {
     Cell root = Cell.wrap(null);
 
-    
-
     return root;
 }

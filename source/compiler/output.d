@@ -157,12 +157,14 @@ string szNameToHostName(string szVarName) {
 
 string typeToString(AstNode ast) {
     import core.exception;
+
     try {
-    return typeToString(ast.text);
-    }catch(RangeError re){
+        return typeToString(ast.text);
+    } catch (RangeError re) {
         writeln(ast.toString());
         throw re;
-    }}
+    }
+}
 
 string typeToString(string litType) {
     if (litType[0 .. 2] == "::")
