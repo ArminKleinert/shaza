@@ -175,6 +175,7 @@ N dec(N)(N n) {
     return n - 1;
 }
 
+/*
 void main() {
     import std.file;
 
@@ -183,30 +184,5 @@ void main() {
     // tx = tokenize(ctx, txt);
     //writeln(ctx.tokens);
     //writeln(parseFully(txt));
-
-    /*
-    writeln();
-    ctx = tokenize(ctx, "::\"void delegate()\"");
-    ctx = buildBasicAst(ctx);
-    writeln(ctx.ast);
-    */
-    writeln("here0");
-
-    import std.bigint;
-
-    writeln("here1");
-
-    BigInt record = 0;
-    int highest = 0;
-    int temp = 0;
-    while (highest < 10) {
-        temp = multiplicationPersistance(record);
-        if (temp > highest) {
-            highest = temp;
-            writeln(record);
-        }
-        record++;
-    }
-    // 277777788888899
-    writeln(highest);
 }
+*/

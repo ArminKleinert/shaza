@@ -159,17 +159,19 @@ int multiplicationPersistance(BigInt n) {
     int score = 1;
     BigInt temp;
 
-    while(true) {
-        if (n < 10)
-            return score;
-        score++;
-        temp = 1;
-        while (n >= 10) {
-            temp *= n % 10;
-            n /= 10;
-        }
-        n = temp * n;
+start:
+
+    if (n < 10)
+        return score;
+    score++;
+    temp = 1;
+    while (n >= 10) {
+        temp *= n % 10;
+        n /= 10;
     }
+    n = temp * n;
+
+    goto start;
 }
 
 // SECTION lib

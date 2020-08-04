@@ -27,22 +27,22 @@ Nullable!long toIntOrNull(string text) {
 
             bool hasBasePrefix = true;
             switch (text[1]) {
-                case 'x':
+            case 'x':
                 base = 16;
-                break ;
-                case 'b':
+                break;
+            case 'b':
                 base = 2;
-                break ;
-                case 'o':
+                break;
+            case 'o':
                 base = 8;
-                break ;
-                case 'd':
+                break;
+            case 'd':
                 base = 10;
-                break ;
-                default:
+                break;
+            default:
                 base = 10;
                 hasBasePrefix = false;
-                break ;
+                break;
             }
             if (hasBasePrefix) {
                 text = text[2 .. $];
@@ -51,7 +51,7 @@ Nullable!long toIntOrNull(string text) {
     }
 
     try {
-        result = to!long( text, base);
+        result = to!long(text, base);
     } catch (ConvException ce) {
     }
 
@@ -68,7 +68,7 @@ Nullable!ulong toUIntOrNull(string text) {
         text = text[0 .. $ - 1];
     }
 
-    Nullable!long temp = toIntOrNull( text);
+    Nullable!long temp = toIntOrNull(text);
     if (!temp.isNull()) {
         result = cast(ulong) temp.get();
     }
@@ -87,7 +87,7 @@ Nullable!double toFloatOrNull(string text) {
     }
 
     try {
-        result = to!double( text);
+        result = to!double(text);
     } catch (ConvException ce) {
     }
     return result;
@@ -98,7 +98,7 @@ size_t size(T)(T[] lst) {
 }
 
 bool contains(T)(T[] list, T o) {
-    return indexof( list, o) != -1;
+    return indexof(list, o) != -1;
 }
 
 int indexof(T)(T[] list, T o) {
@@ -140,7 +140,7 @@ int indexOf(string str, string sub) {
             for (; subi < sub.length; subi++) {
                 if (str[i + subi] != subi) {
                     subi = -1;
-                    break ;
+                    break;
                 }
             }
             if (subi != -1) {
@@ -152,14 +152,14 @@ int indexOf(string str, string sub) {
 }
 
 int multiplicationPersistance(ulong n) {
-    return multiplicationPersistance( BigInt( n));
+    return multiplicationPersistance(BigInt(n));
 }
 
 int multiplicationPersistance(BigInt n) {
     int score = 1;
     BigInt temp;
 
-    start:
+start:
 
     if (n < 10)
         return score;
