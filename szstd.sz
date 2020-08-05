@@ -43,14 +43,14 @@
 (et-define ::bool (or ::bool b0 ::bool b1) (ll b0 || b1))
 (et-define ::bool (not ::bool b0) (ll !b0))
 
-(et-define ::bool (T) (eql? ::T e0 ::T e1) (ll e0 == e1))
-(et-define ::bool (T) (not_eql? ::T e0 ::T e1) (ll e0 != e1))
-(et-define ::bool (T) (lt? ::T e0 ::T e1) (ll e0 < e1))
-(et-define ::bool (T) (le? ::T e0 ::T e1) (ll e0 <= e1))
-(et-define ::bool (T) (gt? ::T e0 ::T e1) (ll e0 > e1))
-(et-define ::bool (T) (ge? ::T e0 ::T e1) (ll e0 >= e1))
+(gen-define ::bool (T) (eql? ::T e0 ::T e1) (ll e0 == e1))
+(gen-define ::bool (T) (not_eql? ::T e0 ::T e1) (ll e0 != e1))
+(gen-define ::bool (T) (lt? ::T e0 ::T e1) (ll e0 < e1))
+(gen-define ::bool (T) (le? ::T e0 ::T e1) (ll e0 <= e1))
+(gen-define ::bool (T) (gt? ::T e0 ::T e1) (ll e0 > e1))
+(gen-define ::bool (T) (ge? ::T e0 ::T e1) (ll e0 >= e1))
 
-(et-define ::bool (T) (nil? ::T e) (ll e is null))
+(gen-define ::bool (T) (nil? ::T e) (ll "e is null"))
 
 (gen-define ::T[] (T) (concat ::T[] coll0 ::T[] coll1) (ll coll0 ~ coll1))
 (gen-define ::T[] (T) (append ::T[] coll0 ::T value) (ll coll0 ~ value))
@@ -121,7 +121,7 @@
 (import-host "compiler.ast")
 (import-host "compiler.output")
 
-(define dquote (ll '"'))
+(define dquote (ll "'\"'"))
 
 (et-define ::bool (is_string_literal ::string text)
     (and
@@ -129,11 +129,1309 @@
         (and (eql? (last text) dquote) (not_eql? (get text -2) 92))))
 
 (et-define ::bool (is_valid_symbol_text? ::string text)
-    (ll "foreach (char c; \"\\";()[]{}#:\") {")
+    (ll "foreach (char c; \"\\\";()[]{}#:\") {")
         (if (string_include? text c)
             (return false)
-            0)
+            (return 0))
     (ll "}")
-    true)
+    true))
+
+(et-define ::bool (is_type_literal ::string text)
+    (and (and (gt? (size text) 2) (eql? (get text 0) ':'))
+         (eql? (get text 1) ':')))
+
+(et-define ::bool (is_keyword_literal ::string text)
+    (and (and (gt? (size text) 1) (eql? (get text 0) ':'))
+         (is_valid_symbol_text? (slice text 1 1))))
+
+(et-define ::bool (is_bool_literal ::string text)
+    (or (eql? text "#t") (eql? text "#f")))
+
+(ll
+"TknType tknTypeByText(string text) {
+    if (!toIntOrNull(text).isNull()) {
+        return TknType.litInt;
+    }
+    if (!toUIntOrNull(text).isNull()) {
+        return TknType.litUInt;
+    }
+    if (!toUIntOrNull(text).isNull()) {
+        return TknType.litUInt;
+    }
+    if (!toFloatOrNull(text).isNull()) {
+        return TknType.litFlt;
+    }
+    if (isBoolLiteral(text)) {
+        return TknType.litBool;
+    }
+    if (isKeywordLiteral(text)) {
+        return TknType.litKeyword;
+    }
+    if (isTypeLiteral(text)) {
+        return TknType.litType;
+    }
+    if (isValidSymbolText(text)) {
+        return TknType.symbol;
+    }
+    if (isStringLiteral(text)) {
+        return TknType.litString;
+    }
+    if (text == \"Set[\" || text == \"Map[\" || text == \"Lst[\" || text == \"Vec[\") {
+        return TknType.lstTaggedOpen;
+    }
+    if (text == \"[\") {
+        return TknType.lstOpen;
+    }
+    if (text == \"]\") {
+        return TknType.lstClose;
+    }
+    if (text == \"(\") {
+        return TknType.scopeOpen;
+    }
+    if (text == \")\") {
+        return TknType.scopeClose;
+    }
+    if (text == \";\") {
+        return TknType.lnComment;
+    }
+    return TknType.unknown;
+}
+
+Context closeToken(Context ctx) {
+    if (ctx.currTknText.size > 0) {
+        auto type = tknTypeByText(ctx.currTknText);
+        auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
+        ctx.tokens ~= tkn;
+    }
+    ctx.currTknText = \"\";
+    ctx.currTknStartLine = ctx.currTknLine;
+    ctx.currTknStartChar = ctx.currTknChar;
+    ctx.nextEscaped = false;
+    ctx.isInString = false;
+    ctx.isInSpecialExpression = false;
+    return ctx;
+}
+
+Context tokenizeSubNextCharInString(Context ctx, char c) {
+    ctx.currTknText = ctx.currTknText ~ c;
+    if (ctx.nextEscaped) {
+        ctx.nextEscaped = false;
+    } else if (c == '\"' && !ctx.nextEscaped) {
+        ctx = closeToken(ctx);
+    } else if (!ctx.nextEscaped && c == '\\') {
+        ctx.nextEscaped = true;
+    }
+    return ctx;
+}
+
+Context tokenizeSubNextChar(Context ctx, char c) {
+    if (c == '\"') {
+        ctx = closeToken(ctx);
+        ctx.isInString = true;
+        ctx.currTknText = ctx.currTknText ~ c;
+    } else if (c == ':' && ctx.currTknText == \":\") {
+        ctx.isInSpecialExpression = true;
+        ctx.currTknText ~= c;
+    } else if (c == ' ' || c == '\t' || c == '\n') {
+        ctx = closeToken(ctx);
+    } else if (!ctx.isInSpecialExpression && (c == '(' || c == ')' || c == ']')) {
+        ctx = closeToken(ctx);
+        ctx.currTknText = ctx.currTknText ~ c;
+        ctx = closeToken(ctx);
+    } else if (!ctx.isInSpecialExpression && c == '[') {
+        auto txt = ctx.currTknText;
+        if (txt == \"Set\" || txt == \"Map\" || txt == \"Lst\" || txt == \"Vec\") {
+            ctx.currTknText = ctx.currTknText ~ c;
+            ctx = closeToken(ctx);
+        } else {
+            ctx.currTknText = ctx.currTknText ~ c;
+            ctx = closeToken(ctx);
+        }
+    } else {
+        ctx.currTknText = ctx.currTknText ~ c;
+    }
+    return ctx;
+}
+
+Context tokenize(Context ctx, string source) {
+    foreach (char c; source) {
+        ctx.currTknChar += 1;
+        if (c == '\\n') {
+            ctx.currTknLine += 1;
+            ctx.currTknChar = 0;
+        }
+        if (ctx.isInString) {
+            ctx = tokenizeSubNextCharInString(ctx, c);
+        } else {
+            ctx = tokenizeSubNextChar(ctx, c);
+        }
+    }
+    ctx = closeToken(ctx);
+
+    return ctx;
+}
+
+string parseFully(string script) {
+    auto ctx = new Context();
+    ctx = tokenize(ctx, script);
+    ctx = buildBasicAst(ctx);
+    return createOutput(ctx.ast);
+}")
+
+(ll
+  "class CompilerError : Error {
+    public this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+}
+
+enum TknType : byte {
+    unknown,
+    root,
+    litInt,
+    litUInt,
+    litFlt,
+    litBool,
+    litString,
+    litList,
+    litMap,
+    litKeyword,
+    litType,
+    symbol,
+    buildinFnCall,
+    buildinMacroCall,
+    scopeOpen,
+    scopeClose,
+    lstOpen,
+    lstTaggedOpen,
+    lstClose,
+    closedScope,
+    closedTaggedList,
+    closedList,
+    lnComment,
+}
+
+struct Token {
+    int lineIdx;
+    int charIdx;
+    TknType type;
+    string text;
+
+    this(int lineIdx, int charIdx, TknType type, string text) {
+        this.lineIdx = lineIdx;
+        this.charIdx = charIdx;
+        this.type = type;
+        this.text = text;
+    }
+}
+
+class AstNode {
+    Token tkn;
+    AstNode[] children;
+    int argc;
+
+    this(Token tkn, AstNode[] children) {
+        this.tkn = tkn;
+        this.children = children;
+    }
+
+    this(Token tkn) {
+        this(tkn, []);
+    }
+
+    string text() {
+        return tkn.text;
+    }
+
+    TknType type() {
+        return tkn.type;
+    }
+
+    AstNode opOpAssign(string op)(AstNode other) if (op == \"~\") {
+        children ~= other;
+        return this;
+    }
+
+    public override string toString() {
+        string[] res = [];
+        auto result = appender(&res);
+        result.put([\"\\nAstNode { token=\", to!string(tkn), \"\\nchildren=[\"]);
+        foreach (AstNode child; children) {
+            result.put(child.toString());
+        }
+        result.put(\"] }\");
+        return result[].join();
+    }
+}
+
+class Context {
+    Token[] tokens = [];
+    AstNode ast = null;
+
+    int currTknLine = 0;
+    int currTknChar = 0;
+    int currTknStartLine = 0;
+    int currTknStartChar = 0;
+    bool nextEscaped = false;
+    string currTknText = "";
+    bool isInString = false;
+    bool isInSpecialExpression = false;
+}
+
+bool isLiteral(Token tkn) {
+    switch (tkn.type) {
+    case TknType.litInt:
+    case TknType.litUInt:
+    case TknType.litFlt:
+    case TknType.litBool:
+    case TknType.litString:
+    case TknType.litList:
+    case TknType.litMap:
+    case TknType.litKeyword:
+    case TknType.litType:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool isOpener(Token tkn) {
+    switch (tkn.type) {
+    case TknType.scopeOpen:
+    case TknType.lstOpen:
+    case TknType.lstTaggedOpen:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool isCloser(Token tkn) {
+    switch (tkn.type) {
+    case TknType.scopeClose:
+    case TknType.lstClose:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool isSimpleLiteral(Token tkn) {
+    switch (tkn.type) {
+    case TknType.litInt:
+    case TknType.litUInt:
+    case TknType.litFlt:
+    case TknType.litBool:
+        return true;
+    default:
+        return false;
+    }
+}
+
+string get(Appender!string ap) {
+    return ap[];
+}"
+)
+
+(ll
+"Nullable!long toIntOrNull(string text) {
+    Nullable!long result;
+
+    if (text == null || text.size == 0) {
+        return result;
+    }
+
+    int base = 10;
+
+    if (text.size > 1) {
+        if (text[0] == '+' || text[0] == '-') {
+            text = text[1 .. $]; // Cut prefix
+        }
+
+        if (text[0] == '0') {
+            import std.stdio;
+
+            bool hasBasePrefix = true;
+            switch (text[1]) {
+            case 'x':
+                base = 16;
+                break;
+            case 'b':
+                base = 2;
+                break;
+            case 'o':
+                base = 8;
+                break;
+            case 'd':
+                base = 10;
+                break;
+            default:
+                base = 10;
+                hasBasePrefix = false;
+                break;
+            }
+            if (hasBasePrefix) {
+                text = text[2 .. $];
+            }
+        }
+    }
+
+    try {
+        result = to!long(text, base);
+    } catch (ConvException ce) {
+    }
+
+    return result;
+}
+
+Nullable!ulong toUIntOrNull(string text) {
+    Nullable!ulong result;
+
+    if (text == null || text.size == 0) {
+        return result;
+    }
+    if (text[$ - 1] == 'u') {
+        text = text[0 .. $ - 1];
+    }
+
+    Nullable!long temp = toIntOrNull(text);
+    if (!temp.isNull()) {
+        result = cast(ulong) temp.get();
+    }
+
+    return result;
+}
+
+Nullable!double toFloatOrNull(string text) {
+    Nullable!double result;
+
+    if (text == null || text.size == 0) {
+        return result;
+    }
+    if (text[$ - 1] == 'f') {
+        text = text[0 .. $ - 1];
+    }
+
+    try {
+        result = to!double(text);
+    } catch (ConvException ce) {
+    }
+    return result;
+}
+
+size_t size(T)(T[] lst) {
+    return lst.length;
+}
+
+bool contains(T)(T[] list, T o) {
+    return indexof(list, o) != -1;
+}
+
+int indexof(T)(T[] list, T o) {
+    for (int i = 0; i < list.size; i++) {
+        if (list[i] == 0)
+            return i;
+    }
+    return -1;
+}
+")
+
+(ll
+"struct Symbol {
+    const string name;
+    alias name this;
+    public this(string _name) {
+        name = _name;
+    }
+}
+
+class ShazaError : Error {
+    public this(string msg, string file = __FILE__, size_t line = __LINE__) {
+        super(msg, file, line);
+    }
+
+    public this(string[] ss...) {
+        string msg = "";
+        foreach (string t; ss) {
+            msg ~= t;
+        }
+        super(msg, __FILE__, __LINE__);
+    }
+}
+
+class Boxed(T) {
+    const T _v;
+    alias _v this;
+
+    this(in T v) {
+        _v = v;
+    }
+
+    T get() {
+        return _v;
+    }
+
+    override string toString() {
+        return to!string(_v);
+    }
+}
+
+Boxed!T box(T)(T val) {
+    return new Boxed!T(val);
+}
+
+struct Keyword {
+    const string text;
+
+    this(string text) {
+        this.text = text;
+    }
+
+    string toString() {
+        return text;
+    }
+}
+
+struct ClassKeyword {
+    const string text;
+
+    this(string text) {
+        this.text = text;
+    }
+
+    string toString() {
+        return text;
+    }
+}
+
+alias SzVector(T) = T[];
+
+class SzNull {
+    private this() {
+    }
+
+    // Cache instantiation flag in thread-local bool
+    // Thread local
+    private static bool instantiated_;
+
+    // Thread global
+    private __gshared SzNull instance_;
+
+    static SzNull get() {
+        if (!instantiated_) {
+            synchronized (SzNull.classinfo) {
+                if (!instance_)
+                    instance_ = new SzNull();
+                instantiated_ = true;
+            }
+        }
+
+        return instance_;
+    }
+
+    static SzNull nil() {
+        return get();
+    }
+
+    override string toString() {
+        return \"nil\";
+    }
+}"
+)
+
+(ll
+"// SECTION AST creation
+
+AstNode[] mergeTopElements(AstNode[] stack) {
+    auto last = stack[$ - 1];
+    stack[$ - 2].children ~= stack[$ - 1];
+    stack = stack[0 .. $ - 1];
+    return stack;
+}
+
+Context buildBasicAst(Context ctx) {
+    import std.conv;
+
+    auto root = new AstNode(Token(0, 0, TknType.root, \"\"));
+    auto stack = [root];
+    auto comment_line = -1;
+
+    foreach (Token current; ctx.tokens) {
+
+        if (current.lineIdx == comment_line) {
+            continue;
+        }
+
+        if (stack[$ - 1].type == TknType.litType) {
+            stack[$ - 1].tkn.text ~= current.text;
+            stack = mergeTopElements(stack);
+            continue;
+        }
+
+        switch (current.type) {
+        case TknType.litType:
+            stack ~= new AstNode(current);
+            break;
+        case TknType.scopeOpen:
+            stack ~= new AstNode(Token(current.lineIdx,
+                    current.charIdx, TknType.closedScope, \"\"));
+            break;
+        case TknType.lstOpen:
+            stack ~= new AstNode(Token(current.lineIdx,
+                    current.charIdx, TknType.closedList, \"\"));
+            break;
+        case TknType.lstTaggedOpen:
+            stack ~= new AstNode(Token(current.lineIdx,
+                    current.charIdx, TknType.closedTaggedList, current.text[0 .. $ - 1]));
+            break;
+        case TknType.lnComment:
+            comment_line = current.lineIdx;
+            break;
+        case TknType.scopeClose:
+        case TknType.lstClose:
+            auto list_node = stack[$ - 1];
+            auto list_token = list_node.tkn;
+            if (list_node == root) {
+                auto err = \"Attempting to close root node: \" ~ to!string(current);
+                throw new CompilerError(err);
+            }
+            auto is_valid = list_token.type == TknType.closedList && current.type
+                == TknType.lstClose;
+            is_valid = is_valid || (list_token.type == TknType.closedTaggedList
+                    && current.type == TknType.lstClose);
+            is_valid = is_valid || (list_token.type == TknType.closedScope
+                    && current.type == TknType.scopeClose);
+            if (is_valid) {
+                stack = mergeTopElements(stack);
+            } else {
+                writeln(ctx.tokens);
+                throw new CompilerError(\"The closing token \" ~ to!string(
+                        current) ~ \" isn't closing anything.\");
+            }
+            break;
+        default:
+            stack ~= new AstNode(current);
+            stack = mergeTopElements(stack);
+            break;
+        }
+    }
+
+    for (auto i = 1; i < stack.size(); i++) {
+        root.children ~= stack[i];
+    }
+
+    ctx.ast = root;
+
+    return ctx;
+}"
+)
+
+(ll
+"module compiler.output;
+
+import std.variant;
+import std.stdio;
+import std.conv;
+import std.typecons;
+import std.string;
+import std.algorithm;
+import std.array;
+
+import compiler.types;
+import compiler.ast;
+import shaza.buildins;
+import shaza.std;
+
+struct FunctionDecl {
+    const string name;
+    const string returnType;
+    const immutable(string)[] genericTypes;
+    const immutable(string)[] argTypes;
+
+    this(string name, string returnType, const immutable(string)[] genericTypes,
+            const immutable(string)[] argTypes) {
+        this.name = name;
+        this.returnType = returnType;
+        this.genericTypes = genericTypes;
+        this.argTypes = argTypes;
+    }
+}
+
+class OutputContext {
+    private string[] globals;
+    private FunctionDecl[] _functions;
+    private static FunctionDecl NO_FUNCTION;
+
+    private __gshared OutputContext _global;
+
+    static this() {
+        NO_FUNCTION = FunctionDecl(null, null, null, null);
+    }
+
+    this() {
+        globals = [];
+        _functions = [];
+    }
+
+    public static OutputContext global() {
+        if (_global is null)
+            _global = new OutputContext();
+        return _global;
+    }
+
+    public void addFunc(string name, string returnType, string[] genericTypes, string[] argTypes) {
+        immutable(string)[] args = argTypes.dup;
+        immutable(string)[] gens = genericTypes.dup;
+        _functions ~= FunctionDecl(name, returnType, gens, args);
+    }
+
+    public void addFunc(string name, string returnType, string[] argTypes) {
+        immutable(string)[] args = argTypes.dup;
+        _functions ~= FunctionDecl(name, returnType, [], args);
+    }
+
+    public void addFunc(string name, string returnType) {
+        _functions ~= FunctionDecl(name, returnType, [], []);
+    }
+
+    public string[] functions() {
+        string[] names;
+        foreach (fn; _functions) {
+            names ~= fn.name;
+        }
+        return names;
+    }
+
+    public string returnTypeOf(string functionName) {
+        return findFn(functionName).returnType;
+    }
+
+    public immutable(string)[] argumentsOf(string functionName) {
+        return findFn(functionName).argTypes;
+    }
+
+    public string[] listFunctions() {
+        string[] fns;
+        string current;
+        foreach (fn; _functions) {
+            current = fn.returnType;
+            current ~= ' ';
+            current ~= fn.name;
+            current ~= '(';
+            current ~= to!string(fn.genericTypes)[1 .. $ - 1];
+            current ~= \")(\";
+            current ~= to!string(fn.argTypes)[1 .. $ - 1];
+            current ~= ')';
+            fns ~= current;
+        }
+        return fns;
+    }
+
+    public string listFunctionsAsString() {
+        auto fns = listFunctions();
+        string res = \"\";
+        foreach (fn; fns) {
+            res ~= fn ~ \"\\n\";
+        }
+        return res;
+    }
+
+    private FunctionDecl findFn(string name) {
+        foreach (fn; _functions) {
+            if (fn.name == name)
+                return fn;
+        }
+        return NO_FUNCTION;
+    }
+
+}
 
 
+string llQuotedStringToString(string text) {
+    import std.array : replace;
+    text = text[1 .. $ - 1];
+    text =  text.replace(\"\\\\\"\", \"\\\"\");
+    text =  text.replace(\"\\\\r\", \"\\r\");
+    text =  text.replace(\"\\\\n\", \"\\n\");
+    text =  text.replace(\"\\\\t\", \"\\t\");
+    return text;
+}
+
+string llToString(AstNode ast) {
+    auto result = appender("");
+    foreach (AstNode child; ast.children[1 .. $]) {
+        if (child.type == TknType.litString) {
+            result ~= llQuotedStringToString(child.text);
+        } else {
+            llToStringSub(result, child);
+        }
+    }
+    return result.get();
+}
+
+string atomToString(AstNode ast) {
+    auto text = appender(ast.text);
+
+    if (ast.type == TknType.litBool) {
+        text = appender(ast.text == \"#t\" ? \"true\" : \"false\");
+    } else if (ast.type == TknType.litKeyword) {
+        text ~= \"Keyword(\";
+        text ~= ast.text;
+        text ~= \")\";
+    }
+
+    return text.get();
+}
+
+string szNameToHostName(string szVarName) {
+    szVarName = szVarName.replace(\"-\", \"_\");
+    szVarName = szVarName.replace(\"?\", \"_Q\");
+    szVarName = szVarName.replace(\"!\", \"_E\");
+    return szVarName;
+}
+
+string typeToString(AstNode ast) {
+    import core.exception;
+
+    try {
+        return typeToString(ast.text);
+    } catch (RangeError re) {
+        writeln(ast.toString());
+        throw re;
+    }
+}
+
+string typeToString(string litType) {
+    if (litType[0 .. 2] == \"::\")
+        litType = litType[2 .. $];
+    if (litType[0] == '\"' && litType[litType.length - 1] == '\"')
+        litType = litType[1 .. $ - 1];
+    return litType;
+}
+
+string functionBindingsToString(Appender!string result, AstNode[] bindings) {
+    result ~= \"(\";
+
+    // Write function argument list
+    for (int i = 0; i < bindings.length; i++) {
+        result ~= szNameToHostName(bindings[i].text); // Name
+        if (i < bindings.length - 1)
+            result ~= \", \";
+    }
+
+    result ~= \")\";
+    return result.get();
+}
+
+string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
+    result ~= \"(\";
+
+    // Write function argument list
+    for (int i = 0; i < bindings.length; i += 2) {
+        result ~= typeToString(bindings[i]);
+
+        result ~= \" \";
+        result ~= szNameToHostName(bindings[i + 1].text); // Name
+        if (i < bindings.length - 2)
+            result ~= \", \";
+    }
+
+    result ~= \")\";
+    return result.get();
+}
+
+string functionBodyToString(Appender!string result, string fnType,
+        AstNode[] bindings, AstNode[] bodyNodes, bool withLineBreaks) {
+    result ~= '{';
+    if (withLineBreaks)
+        result ~= '\n';
+
+    // If the body is empty, return the default value of the return-type
+    // or, if the type is void, leave an empty body
+    if (bodyNodes.length == 0) {
+        if (fnType == \"void\")
+            return result.get();
+        result ~= \"return \";
+        result ~= fnType;
+        result ~= \".init;\";
+        return result.get();
+    }
+
+    // Write all but the last statement
+    foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
+        result ~= createOutput(bodyNode);
+        if (result[][$ - 1] != ';')
+            result ~= ';';
+        if (withLineBreaks)
+            result ~= '\n';
+    }
+
+    AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
+
+    // If the last node in the body is
+    if (fnType != \"void\" && (lastStmt.type == TknType.closedScope
+            && lastStmt.children[0].text != \"return\" && lastStmt.children[0].text != \"let\"
+            && lastStmt.children[0].text != \"define\"
+            && lastStmt.children[0].text != \"if\" && lastStmt.children[0].text != \"for\"
+            && lastStmt.children[0].text != \"foreach\") || isAtom(lastStmt))
+        result ~= \"return \";
+
+    result ~= createOutput(lastStmt);
+    result ~= ';';
+    if (withLineBreaks)
+        result ~= '\n';
+
+    result ~= '}';
+    if (withLineBreaks)
+        result ~= '\n';
+    return result.get();
+}
+
+string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
+    result ~= \"{\\n\";
+
+    // If the body is empty, return the default value of the return-type
+    // or, if the type is void, leave an empty body
+    if (bodyNodes.length == 0) {
+        if (type == \"void\")
+            return result.get();
+        result ~= \"return \";
+        result ~= type;
+        result ~= \".init;\";
+        return result.get();
+    }
+
+    // Write all but the last statement
+    foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
+        result ~= createOutput(bodyNode);
+        if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
+            result ~= ';';
+        result ~= '\n';
+    }
+
+    AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
+
+    // If the last node in the body is
+    if (type != \"void\" && (lastStmt.type == TknType.closedScope
+            && lastStmt.children[0].text != \"return\" && lastStmt.children[0].text != \"let\"
+            && lastStmt.children[0].text != \"define\"
+            && lastStmt.children[0].text != \"if\" && lastStmt.children[0].text != \"for\"
+            && lastStmt.children[0].text != \"foreach\") || isAtom(lastStmt))
+        result ~= \"return \";
+
+    result ~= createOutput(lastStmt);
+    if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
+        result ~= \";\\n\";
+
+    result ~= \"}\\n\";
+    return result.get();
+}
+
+void addFunctionFromAst(string name, AstNode typeNode, AstNode[] generics, AstNode[] bindings) {
+    string type = typeToString(typeNode);
+    addFunctionFromAst(name, type, generics, bindings);
+}
+
+void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] bindings) {
+    string[] genericTypes;
+
+    for (int i = 0; i < generics.length; i++) {
+        genericTypes ~= generics[i].text; // Type
+    }
+
+    string[] args;
+
+    for (int i = 0; i < bindings.length; i += 2) { // +2 skips name
+        string argTypeStr = bindings[i].text;
+        if (bindings[i].type == TknType.litString)
+            args ~= argTypeStr[1 .. $ - 1];
+        else
+            args ~= typeToString(bindings[i]);
+    }
+
+    if (OutputContext.global)
+        OutputContext.global.addFunc(name, type, genericTypes, args);
+}
+
+string etDefineToString(AstNode ast) {
+    string typeText = typeToString(ast.children[1]);
+    AstNode signature = ast.children[2];
+
+    auto result = appender!string(typeText);
+    result ~= " ";
+
+    // The define seems to be defining a function
+    if (signature.type == TknType.closedScope) {
+        string name = signature.children[0].text;
+        result ~= szNameToHostName(name);
+        AstNode[] bindings = signature.children[1 .. $];
+        AstNode[] rest = ast.children[3 .. $];
+        typedFunctionBindingsToString(result, bindings);
+
+        addFunctionFromAst(name, typeText, [], bindings);
+
+        return etDefineFnToString(result, typeText, rest);
+    }
+
+    result ~= szNameToHostName(signature.text); // Name
+    result ~= \" = \";
+    result ~= createOutput(ast.children[3]); // Value
+    result ~= \";\\n\";
+
+    return result.get();
+}
+
+string genDefineToString(AstNode ast) {
+    string type = typeToString(ast.children[1]);
+    AstNode[] generics = ast.children[2].children;
+    string name = ast.children[3].children[0].text;
+    AstNode[] bindings = ast.children[3].children[1 .. $];
+    AstNode[] bodyNodes = ast.children[4 .. $];
+
+    addFunctionFromAst(name, type, generics, bindings);
+
+    auto result = appender!string(type);
+    result ~= \" \";
+    result ~= szNameToHostName(name);
+    result ~= \"(\";
+
+    for (int i = 0; i < generics.length; i++) {
+        result ~= generics[i].text; // Type
+        if (i < generics.length - 1)
+            result ~= \", \";
+    }
+
+    result ~= \")\";
+    typedFunctionBindingsToString(result, bindings);
+    return etDefineFnToString(result, type, bodyNodes);
+}
+
+string tLetBindingsToString(AstNode[] bindings) {
+    if (bindings.length % 3 != 0)
+        throw new CompilerError(\"t-let: Bindings length must be divisible by 3 (type, name, value)\");
+
+    auto result = appender!string(\"\");
+    for (int i = 0; i < bindings.length; i += 3) {
+        result ~= typeToString(bindings[i]); // Type
+        result ~= \" \";
+        result ~= szNameToHostName(bindings[i + 1].text); // Name
+        result ~= \" = \";
+        result ~= createOutput(bindings[i + 2]); // Value
+        result ~= \";\n\";
+    }
+    return result.get();
+}
+
+string letBindingsToString(AstNode[] bindings) {
+    if (bindings.length % 2 != 0)
+        throw new CompilerError(\"let: Bindings length must be even (name, value)\");
+
+    auto result = appender!string(\"\");
+    for (int i = 0; i < bindings.length; i += 2) {
+        result ~= \"auto \";
+        result ~= szNameToHostName(bindings[i + 0].text); // Name
+        result ~= \" = \";
+        result ~= createOutput(bindings[i + 1]); // Value
+        result ~= \";\n\";
+    }
+    return result.get();
+}
+
+string letToString(AstNode ast, bool isExplicitType) {
+    if (ast.children.length < 2)
+        throw new CompilerError(\"let or t-let: Too few arguments.\");
+    if (ast.children[1].type != TknType.closedList)
+        throw new CompilerError(\"let or t-let: Bindings must be a list literal.\");
+
+    AstNode[] bindings = ast.children[1].children;
+    AstNode[] bodyNodes = ast.children[2 .. $];
+
+    // "{" without a keyword before it in D source code opens a new scope
+    auto result = appender!string(\"{\\n\");
+
+    // Write bindings
+    result ~= isExplicitType ? tLetBindingsToString(bindings) : letBindingsToString(bindings);
+
+    // Write code
+    foreach (AstNode bodyNode; bodyNodes) {
+        result ~= createOutput(bodyNode);
+        if (result[][$ - 1] == ';')
+            result ~= \";\";
+        result ~= \"\\n\";
+    }
+
+    result ~= \"}\";
+    return result[];
+}
+
+string defineToString(AstNode ast) {
+    if (ast.children[1].type == TknType.closedScope) {
+        throw new CompilerError(\"Functions without explicit typing are not supported yet.\");
+    }
+
+    auto result = appender!string(\"\");
+    result ~= \"auto \";
+    result ~= szNameToHostName(ast.children[1].text); // Variable name
+    result ~= \" = \";
+    result ~= createOutput(ast.children[2]); // Value
+    result ~= \";\\n\";
+    return result.get();
+}
+
+string importHostToString(AstNode ast) {
+    auto nodes = ast.children[1 .. $];
+
+    // Handle some errors
+    if (nodes.length == 0)
+        throw new CompilerError(\"Too few arguments for import-host.\");
+    if (nodes[0].type != TknType.symbol && nodes[0].type != TknType.litString) {
+        throw new CompilerError(\"import-host: Module name must be string or symbol.\");
+    }
+
+    // Parse name of import
+    string nameText = nodes[0].text;
+    nameText = nodes[0].type == TknType.litString ? nameText[1 .. $ - 1] : nameText;
+
+    if (nodes.length == 1) {
+        // Normal import
+        return \"import \" ~ nameText ~ \";\";
+    } else if (nodes.length == 2) {
+        // Import only specific list of functions.
+        if (nodes[1].type != TknType.closedList && nodes[1].type != TknType.closedScope)
+            throw new CompilerError(
+                    \"import-host: list of imported functions must be a list. '(...)' or '[...]'\");
+
+        // Build output string
+        auto result = appender!string(\"import \");
+        result ~= nameText;
+        result ~= \" : \";
+
+        for (int i = 0; i < nodes[1].children.length; i++) {
+            result ~= nodes[1].children[i].text;
+            if (i < nodes[1].children.length - 1)
+                result ~= \",\";
+        }
+        result ~= \";\";
+        return result.get();
+    } else {
+        // Too many arguments
+        throw new CompilerError(\"import-host: Too many arguments.\");
+    }
+}
+
+string listLiteralToString(AstNode ast) {
+    if (ast.children.length == 0)
+        return \"[]\"; // Empty list
+
+    auto result = appender!string(\"[\");
+    for (int i = 0; i < ast.children.length; i++) {
+        result ~= ast.children[i].text;
+        if (i < ast.children[i].children.length - 1)
+            result ~= \",\";
+    }
+    result ~= \"]\";
+    return result.get();
+}
+
+string setvToString(AstNode ast) {
+    if (ast.children.length != 3)
+        throw new CompilerError(\"setv! requires exactly 2 arguments!\");
+    auto result = appender!string(szNameToHostName(ast.children[1].text));
+    result ~= \" = \";
+    result ~= createOutput(ast.children[2]);
+    if (result[][$ - 1] != ';')
+        result ~= \";\";
+    return result.get();
+}
+
+void llToStringSub(Appender!string result, AstNode ast) {
+    if (ast.type == TknType.closedList || ast.type == TknType.closedTaggedList) {
+        result ~= ast.text; // Empty for closedList, list tag for closedTaggedList
+        result ~= '[';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ']';
+    } else if (ast.type == TknType.closedScope) {
+        result ~= '(';
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+        result ~= ')';
+    } else {
+        result ~= ast.text;
+        foreach (AstNode child; ast.children) {
+            llToStringSub(result, child);
+        }
+    }
+}
+
+string llToString(AstNode ast) {
+    auto result = appender(\"\");
+    foreach (AstNode child; ast.children[1 .. $]) {
+        if (child.type == TknType.litString) {
+            result ~= child.text[1 .. $ - 1];
+        } else {
+            llToStringSub(result, child);
+        }
+    }
+    return result.get();
+}
+
+string ifToString(AstNode ast) {
+    AstNode condition = ast.children[1];
+    AstNode branchThen = ast.children[2];
+    AstNode branchElse = ast.children[3];
+    auto result = appender(\"\");
+    result ~= \"if(\";
+    result ~= createOutput(condition);
+    result ~= \") {\\n\";
+    result ~= createOutput(branchThen);
+    result ~= \"} else {\\n\";
+    result ~= createOutput(branchElse);
+    result ~= \"}\";
+    return result.get();
+}
+
+// FIXME
+string tLambdaToString(AstNode ast) {
+    auto type = typeToString(ast.children[1]);
+    auto bindings = ast.children[2].children;
+    auto bodyNodes = ast.children[3 .. $];
+    auto result = appender(\"(delegate \");
+    result ~= type;
+    typedFunctionBindingsToString(result, bindings);
+    etDefineFnToString(result, type, bodyNodes);
+    result ~= \")\";
+    return result.get();
+}
+
+// FIXME
+string lambdaToString(AstNode ast) {
+    auto bindings = ast.children[1].children;
+    auto bodyNodes = ast.children[2 .. $];
+    auto result = appender(\"(delegate \");
+    functionBindingsToString(result, bindings);
+    etDefineFnToString(result, \"\", bodyNodes);
+    result ~= \")\";
+    return result.get();
+}
+
+string returnToString(AstNode ast) {
+    return \"return \" ~ createOutput(ast.children[1]) ~ \";\";
+}
+
+string boolOpToString(AstNode ast) {
+    string op = ast.children[0].text;
+    if (op == \"and\")
+        op = \"&&\";
+    else if (op == \"or\")
+        op = \"||\";
+    else if (op == \"xor\")
+        op = \"^\";
+    return createOutput(ast.children[1]) ~ op ~ createOutput(ast.children[2]);
+}
+
+string createOutput(AstNode ast) {
+    if (isAtom(ast)) {
+        return atomToString(ast);
+    }
+
+    if (ast.type == TknType.closedTaggedList || ast.type == TknType.closedList) {
+        return listLiteralToString(ast);
+    }
+
+    if (ast.type == TknType.closedScope) {
+        Token firstTkn = ast.children[0].tkn;
+        if (firstTkn.type == TknType.symbol) {
+            switch (firstTkn.text) {
+            case \"define\":
+                return defineToString(ast);
+            case \"et-define\":
+                return etDefineToString(ast);
+            case \"gen-define\":
+                return genDefineToString(ast);
+            case \"define-macro\":
+                break; // TODO
+            case \"define-tk-macro\":
+                break; // TODO
+            case \"let\":
+                return letToString(ast, false);
+            case \"t-let\":
+                return letToString(ast, true);
+            case \"setv!\":
+                return setvToString(ast);
+            case \"ll\":
+                return llToString(ast);
+            case \"if\":
+                return ifToString(ast);
+            case \"lambda\":
+                return lambdaToString(ast);
+            case \"t-lambda\":
+                return tLambdaToString(ast);
+            case \"return\":
+                return returnToString(ast);
+            case \"and\":
+            case \"or\":
+            case \"xor\":
+                return boolOpToString(ast);
+            case \"def-struct\":
+                break; // TODO
+            case \"struct\":
+                break; // TODO
+            case \"cast\":
+                break; // TODO
+            case \"convert\":
+                break; // TODO
+            case \"import-sz\":
+                break; // TODO
+            case \"import-host\":
+                return importHostToString(ast);
+            case \"rt-import-sz\":
+                break; // TODO
+            case \"rt-import-dll\":
+                break; // TODO
+            case \"call-extern\":
+                break; // TODO
+            case \"call-sys\":
+                break; // TODO
+            case \"recur\":
+                break; // TODO
+            case \"mut\":
+                break; // TODO
+            case \"alloc\":
+                break; // TODO
+            case \"set!\":
+                break; // TODO
+            case \"get!\":
+                break; // TODO
+            case \"free\":
+                break; // TODO
+            case \"pointerto\":
+                break; // TODO
+            case \"deref\":
+                break; // TODO
+            case \"quote\":
+                break; // TODO
+            case \"pseudo-quote\":
+                break; // TODO
+            case \"unquote\":
+                break; // TODO
+            default:
+                return callToString(ast);
+            }
+        } else {
+            writeln(\"Error? \" ~ to!string(ast));
+        }
+    }
+
+    if (ast.type == TknType.root) {
+        auto result = \"\";
+        foreach (AstNode child; ast.children) {
+            result ~= createOutput(child);
+        }
+        return result;
+    }
+
+    return \"\";
+}")

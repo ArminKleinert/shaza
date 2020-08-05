@@ -167,22 +167,11 @@ string parseFully(string script) {
     return createOutput(ctx.ast);
 }
 
-N inc(N)(N n) {
-    return n + 1;
-}
-
-N dec(N)(N n) {
-    return n - 1;
-}
-
-/*
 void main() {
     import std.file;
 
-    //string txt = readText("./szstd.sz");
-    //auto ctx = new Context();
-    // tx = tokenize(ctx, txt);
-    //writeln(ctx.tokens);
-    //writeln(parseFully(txt));
+    string txt = readText("./szstd.sz");
+    auto ctx = new Context();
+    ctx = tokenize(ctx, txt);
+    writeln(parseFully(txt));
 }
-*/

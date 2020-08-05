@@ -29,7 +29,7 @@ BigInt version1(int stopat) {
     BigInt record = 0;
     int persistance = 0;
     while (persistance < stopat) {
-        persistance = multiplicationPersistance( record);
+        persistance = multiplicationPersistance(record);
         record++;
     }
     return record;
@@ -42,7 +42,7 @@ BigInt version2(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
         }
         record++;
     }
@@ -57,7 +57,7 @@ BigInt version3(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
         }
         record++;
         if (record > (expo * 10)) {
@@ -76,7 +76,7 @@ BigInt version4(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
         }
         record++;
         if (record > expo1) {
@@ -96,7 +96,7 @@ BigInt version5(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
         }
         record++;
         if (record > expo1) {
@@ -116,7 +116,7 @@ BigInt version6(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
         }
         record++;
         if (record > expo1) {
@@ -134,7 +134,7 @@ int multiplicationPersistance2(BigInt n) {
     int score = 1;
     BigInt temp;
 
-    start:
+start:
 
     if (n < 10)
         return score;
@@ -158,7 +158,7 @@ BigInt version7(int stopat) {
     int persistance = 0;
     while (persistance < stopat) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance2( record);
+            persistance = multiplicationPersistance2(record);
         }
         record++;
         if (record > expo1) {
@@ -182,9 +182,9 @@ BigInt version8(int stopat) {
 
     while (true) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
             if (persistance >= stopat)
-                break ;
+                break;
         }
 
         record++;
@@ -208,7 +208,7 @@ BigInt version9(int stopat) {
 
     while (true) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance( record);
+            persistance = multiplicationPersistance(record);
             if (persistance >= stopat)
                 return record;
         }
@@ -251,9 +251,9 @@ BigInt version10(int stopat) {
 
     while (true) {
         if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance3( record);
+            persistance = multiplicationPersistance3(record);
             if (persistance >= stopat) {
-                break ;
+                break;
             }
         }
 
@@ -270,14 +270,15 @@ BigInt version10(int stopat) {
 // SECTION Version 11
 
 BigInt[BigInt] nextNumLookup;
+BigInt maxInLookup;
 
 void v11prepareLookup() {
     BigInt record = 21;
     BigInt expo = 20;
     BigInt expo1 = 100;
 
-    while (nextNumLookup.length < 5000) {
-        if (record & 1 && record > expo) {
+    while (nextNumLookup.length < 500) {
+        if (record & 1) {
             BigInt n = record;
             BigInt key = record;
             BigInt value = 1;
@@ -288,6 +289,7 @@ void v11prepareLookup() {
             }
             n *= value;
             nextNumLookup[key] = value;
+            maxInLookup = key;
         }
 
         record++;
@@ -302,18 +304,18 @@ void v11prepareLookup() {
 
 // SECTION Multiplication persistance calculator 4
 
-int multiplicationPersistance4(ref BigInt n) {
+int multiplicationPersistance4(BigInt n) {
     int score = 1;
     BigInt temp;
 
     while (true) {
         if (n < 10)
             return score;
-        if (n in nextNumLookup){
-            n = nextNumLookup[n];
-            continue ;
-        }
         score++;
+        if (n < maxInLookup && n in nextNumLookup) {
+            n = nextNumLookup[n];
+            continue;
+        }
         temp = 1;
         while (n >= 10 && temp > 0) {
             temp *= n % 10;
@@ -324,16 +326,17 @@ int multiplicationPersistance4(ref BigInt n) {
 }
 
 BigInt version11(int stopat) {
-    BigInt record = 21;
     BigInt expo = 20;
+    BigInt record = expo + 1;
     BigInt expo1 = 100;
     int persistance = 0;
 
     while (true) {
-        if (record & 1 && record > expo) {
-            persistance = multiplicationPersistance4( record);
+        if (record & 1) {
+            persistance = multiplicationPersistance4(record);
+            //writefln("%d %d", record, persistance);
             if (persistance >= stopat) {
-                break ;
+                break;
             }
         }
 
@@ -347,103 +350,88 @@ BigInt version11(int stopat) {
     return record;
 }
 
+/*
 void main() {
     ulong total;
     const int targetPersist = 10;
+    BigInt res;
 
     StopWatch sw;
-    /*
     sw.reset();
     sw.start();
-    version1(targetPersist);
+    res = version1(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V1 %s", total);
+    writefln("V1 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version2(targetPersist);
+    res = version2(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V2 %s", total);
+    writefln("V2 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version3(targetPersist);
+    res = version3(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V3 %s", total);
+    writefln("V3 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version4(targetPersist);
+    res = version4(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V4 %s", total);
+    writefln("V4 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version5(targetPersist);
+    res = version5(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V5 %s", total);
+    writefln("V5 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version6(targetPersist);
+    res = version6(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V6 %s", total);
+    writefln("V6 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version7(targetPersist);
+    res = version7(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V7 %s", total);
+    writefln("V7 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version8(targetPersist);
+    res = version8(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V8 %s", total);
-    */
+    writefln("V8 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version9(targetPersist);
+    res = version9(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln("V9 %s", total);
+    writefln("V9 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version10( targetPersist);
+    res = version10(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln( "V10 %s", total);
+    writefln("V10 %s %s", total, res);
 
     sw.reset();
     sw.start();
     v11prepareLookup();
     total = sw.peek().total!"msecs"();
-    writefln( "Lookup: %s", total);
-    version11( targetPersist);
+    writefln("Lookup: %s", total);
+    res = version11(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln( "V11 %s", total);
+    writefln("V11 %s %s", total, res);
 
     sw.reset();
     sw.start();
-    version11( targetPersist);
+    res = version11(targetPersist);
     total = sw.peek().total!"msecs"();
-    writefln( "V11 %s", total);
-}
+    writefln("V11 %s %s", total, res);
 
-/*
-void main() {
-    ulong total;
-    const int targetPersist = 10;
-    BigInt result = 0;
-
-    writeln("Lets go.");
-
-    StopWatch sw;
-    sw.reset();
-    sw.start();
-    result = findPersistance12(result);
-    total = sw.peek().total!"msecs"();
-    writefln("Num: %s\nTime: %s", result, total);
 }
 */
 
@@ -458,6 +446,7 @@ V6 39699
 V7 39344
 V8 40238
 V9 40133
+V11 39194
 
 With release option:
 V1 88910
@@ -470,4 +459,5 @@ V7 30696
 V8 30800
 V9 30735
 V10 25367
+V11 29197
 */

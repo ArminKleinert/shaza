@@ -147,12 +147,10 @@ string atomToString(AstNode ast) {
 }
 
 string szNameToHostName(string szVarName) {
-    if (szVarName[$ - 1] == '?')
-        return szVarName[0 .. $ - 1] ~ "_Q";
-    else if (szVarName[$ - 1] == '!')
-        return szVarName[0 .. $ - 1] ~ "_E";
-    else
-        return szVarName;
+    szVarName = szVarName.replace("-", "_");
+    szVarName = szVarName.replace("?", "_Q");
+    szVarName = szVarName.replace("!", "_E");
+    return szVarName;
 }
 
 string typeToString(AstNode ast) {
@@ -269,7 +267,7 @@ string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNod
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
-        if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
+        if (bodyNode.text != "ll" && result[][$ - 1] != ';' && result[][$ - 1] != '}')
             result ~= ';';
         result ~= '\n';
     }
@@ -531,11 +529,21 @@ void llToStringSub(Appender!string result, AstNode ast) {
     }
 }
 
+string llQuotedStringToString(string text) {
+    import std.array : replace;
+    text = text[1 .. $ - 1];
+    text =  text.replace("\\\"", "\"");
+    text =  text.replace("\\\r", "\r");
+    text =  text.replace("\\\n", "\n");
+    text =  text.replace("\\\t", "\t");
+    return text;
+}
+
 string llToString(AstNode ast) {
     auto result = appender("");
     foreach (AstNode child; ast.children[1 .. $]) {
         if (child.type == TknType.litString) {
-            result ~= child.text[1 .. $ - 1];
+            result ~= llQuotedStringToString(child.text);
         } else {
             llToStringSub(result, child);
         }
