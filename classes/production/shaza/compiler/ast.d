@@ -22,6 +22,7 @@ Context buildBasicAst(Context ctx) {
     auto root = new AstNode(Token(0, 0, TknType.root, ""));
     auto stack = [root];
     auto comment_line = -1;
+    auto tknIndex = 0;
 
     foreach (Token current; ctx.tokens) {
 
@@ -29,7 +30,7 @@ Context buildBasicAst(Context ctx) {
             continue;
         }
 
-        if (stack[$ - 1].type == TknType.litType) {
+        if (stack[$ - 1].type == TknType.litType && current.type == TknType.litString) {
             stack[$ - 1].tkn.text ~= current.text;
             stack = mergeTopElements(stack);
             continue;
@@ -38,6 +39,9 @@ Context buildBasicAst(Context ctx) {
         switch (current.type) {
         case TknType.litType:
             stack ~= new AstNode(current);
+            if (!(current.text.length == 2 && ctx.tokens[tknIndex + 1].type == TknType.litString)) {
+                stack = mergeTopElements(stack);
+            }
             break;
         case TknType.scopeOpen:
             stack ~= new AstNode(Token(current.lineIdx,
@@ -59,6 +63,7 @@ Context buildBasicAst(Context ctx) {
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
+                writeln(stack);
                 auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
@@ -71,7 +76,7 @@ Context buildBasicAst(Context ctx) {
             if (is_valid) {
                 stack = mergeTopElements(stack);
             } else {
-                writeln(ctx.tokens);
+                writeln(stack);
                 throw new CompilerError("The closing token " ~ to!string(
                         current) ~ " isn't closing anything.");
             }
@@ -81,6 +86,8 @@ Context buildBasicAst(Context ctx) {
             stack = mergeTopElements(stack);
             break;
         }
+
+        tknIndex++;
     }
 
     for (auto i = 1; i < stack.size(); i++) {

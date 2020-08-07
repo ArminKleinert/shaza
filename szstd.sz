@@ -3,9 +3,7 @@
 (import-host "std.typecons")
 (import-host "std.string")
 (import-host "std.algorithm")
-
-(import-host "shaza.buildins")
-(import-host "shaza.std")
+(import-host "std.array")
 
 (gen-define ::N (N) (inc ::N n) (ll n + 1))
 (gen-define ::N (N) (dec ::N n) (ll n - 1))
@@ -62,9 +60,9 @@
     (ll coll0 ~= value)
     coll0)
 
-(gen-define ::bool (T) (contains ::T[] coll0 ::T value)
+(gen-define ::bool (T) (contains ::T[] coll ::T value)
    (ll "foreach ( elem ;  coll ) {")
-   (if (eql? elem value) (return true) (coninue))
+   (if (eql? elem value) (return true) (ll "continue;"))
    (ll "}")
    false)
 
@@ -77,13 +75,14 @@
 (et-define ::bool (string_end_with? ::string s ::char c)
    (eql? (get s (dec (size s))) c))
 
-(et-define ::void (times ::long num, ::"void delegate()" f)
-    (ll while "(i < size(coll0)) {")
-    (f)
-    (setv! num (dec num))
-    (ll "}")
+(et-define ::void (times ::long num ::"void delegate()" f)
+    (let [i 0]
+        (ll while "(i < num) {")
+        (f)
+        (setv! num (dec num))
+        (ll "}")))
 
-(gen-define ::T (T) (size ::T[] coll)
+(gen-define ::size_t (T) (size ::T[] coll)
     (ll "coll.length"))
 
 (gen-define ::T (T) (get ::T[] coll ::size_t index)
@@ -95,8 +94,8 @@
 (gen-define ::T (T) (set! ::T[] coll ::size_t index ::T value)
     (ll "coll[index]" = value))
 
-(gen-define ::T (T) (slice ::T[] coll ::size_t start ::size_t end_offset)
-    (ll "coll[start .. $-offset]" = value))
+(gen-define ::T[] (T) (slice ::T[] coll ::size_t start ::size_t end_offset)
+    (ll "coll[start .. $-end_offset]"))
 
 (import-host "std.conv" [to])
 
@@ -123,28 +122,28 @@
 
 (define dquote (ll "'\"'"))
 
-(et-define ::bool (is_string_literal ::string text)
+(et-define ::bool (is_string_literal? ::string text)
     (and
         (and (ge? (size text) 2) (eql? (first text) dquote))
         (and (eql? (last text) dquote) (not_eql? (get text -2) 92))))
 
 (et-define ::bool (is_valid_symbol_text? ::string text)
-    (ll "foreach (char c; \"\\\";()[]{}#:\") {")
+    (ll "foreach (char c; \";()[]{}#:\" ~ '\"') {")
         (if (string_include? text c)
             (return false)
             (return 0))
     (ll "}")
-    true))
+    true)
 
-(et-define ::bool (is_type_literal ::string text)
-    (and (and (gt? (size text) 2) (eql? (get text 0) ':'))
-         (eql? (get text 1) ':')))
+(et-define ::bool (is_type_literal? ::string text)
+    (and (and (gt? (size text) 2) (eql? (get text 0) (ll ':')))
+         (eql? (get text 1) (ll ':'))))
 
-(et-define ::bool (is_keyword_literal ::string text)
-    (and (and (gt? (size text) 1) (eql? (get text 0) ':'))
+(et-define ::bool (is_keyword_literal? ::string text)
+    (and (and (gt? (size text) 1) (eql? (get text 0) (ll ':')))
          (is_valid_symbol_text? (slice text 1 1))))
 
-(et-define ::bool (is_bool_literal ::string text)
+(et-define ::bool (is_bool_literal? ::string text)
     (or (eql? text "#t") (eql? text "#f")))
 
 (ll
@@ -161,19 +160,19 @@
     if (!toFloatOrNull(text).isNull()) {
         return TknType.litFlt;
     }
-    if (isBoolLiteral(text)) {
+    if (is_bool_literal_Q(text)) {
         return TknType.litBool;
     }
-    if (isKeywordLiteral(text)) {
+    if (is_keyword_literal(text)) {
         return TknType.litKeyword;
     }
-    if (isTypeLiteral(text)) {
+    if (is_type_literal_Q(text)) {
         return TknType.litType;
     }
-    if (isValidSymbolText(text)) {
+    if (is_valid_symbol_text_Q(text)) {
         return TknType.symbol;
     }
-    if (isStringLiteral(text)) {
+    if (is_string_literal_Q(text)) {
         return TknType.litString;
     }
     if (text == \"Set[\" || text == \"Map[\" || text == \"Lst[\" || text == \"Vec[\") {
@@ -256,7 +255,7 @@ Context tokenizeSubNextChar(Context ctx, char c) {
 Context tokenize(Context ctx, string source) {
     foreach (char c; source) {
         ctx.currTknChar += 1;
-        if (c == '\\n') {
+        if (c == '\n') {
             ctx.currTknLine += 1;
             ctx.currTknChar = 0;
         }
@@ -373,7 +372,7 @@ class Context {
     int currTknStartLine = 0;
     int currTknStartChar = 0;
     bool nextEscaped = false;
-    string currTknText = "";
+    string currTknText = \"\";
     bool isInString = false;
     bool isInSpecialExpression = false;
 }
@@ -449,8 +448,6 @@ string get(Appender!string ap) {
         }
 
         if (text[0] == '0') {
-            import std.stdio;
-
             bool hasBasePrefix = true;
             switch (text[1]) {
             case 'x':
@@ -519,14 +516,6 @@ Nullable!double toFloatOrNull(string text) {
     return result;
 }
 
-size_t size(T)(T[] lst) {
-    return lst.length;
-}
-
-bool contains(T)(T[] list, T o) {
-    return indexof(list, o) != -1;
-}
-
 int indexof(T)(T[] list, T o) {
     for (int i = 0; i < list.size; i++) {
         if (list[i] == 0)
@@ -551,7 +540,7 @@ class ShazaError : Error {
     }
 
     public this(string[] ss...) {
-        string msg = "";
+        string msg = \"\";
         foreach (string t; ss) {
             msg ~= t;
         }
@@ -723,25 +712,23 @@ Context buildBasicAst(Context ctx) {
     ctx.ast = root;
 
     return ctx;
+}
+
+bool isAtom(AstNode ast) {
+    auto type = ast.type;
+    auto types = [
+        TknType.litInt, TknType.litUInt, TknType.litBool, TknType.litString,
+        TknType.litKeyword, TknType.symbol, TknType.litFlt
+    ];
+    foreach (TknType e; types) {
+        if (type == e)
+            return true;
+    }
+    return false;
 }"
 )
 
-(ll
-"module compiler.output;
-
-import std.variant;
-import std.stdio;
-import std.conv;
-import std.typecons;
-import std.string;
-import std.algorithm;
-import std.array;
-
-import compiler.types;
-import compiler.ast;
-import shaza.buildins;
-import shaza.std;
-
+(ll "
 struct FunctionDecl {
     const string name;
     const string returnType;
@@ -846,27 +833,29 @@ class OutputContext {
 
 }
 
+string callToString(AstNode ast) {
+    string fnname = ast.children[0].text;
+    auto result = appender!string(szNameToHostName(fnname));
+    result ~= '(';
+    AstNode[] args = ast.children[1 .. $];
+
+    for (int i = 0; i < args.length; i++) {
+        result ~= createOutput(args[i]);
+        if (i < args.length - 1)
+            result ~= \", \";
+    }
+    result ~= ')';
+    return result.get();
+}
 
 string llQuotedStringToString(string text) {
     import std.array : replace;
     text = text[1 .. $ - 1];
-    text =  text.replace(\"\\\\\"\", \"\\\"\");
+    text =  text.replace(\"\\\\\\\"\", \"\\\"\");
     text =  text.replace(\"\\\\r\", \"\\r\");
     text =  text.replace(\"\\\\n\", \"\\n\");
     text =  text.replace(\"\\\\t\", \"\\t\");
     return text;
-}
-
-string llToString(AstNode ast) {
-    auto result = appender("");
-    foreach (AstNode child; ast.children[1 .. $]) {
-        if (child.type == TknType.litString) {
-            result ~= llQuotedStringToString(child.text);
-        } else {
-            llToStringSub(result, child);
-        }
-    }
-    return result.get();
 }
 
 string atomToString(AstNode ast) {
@@ -1058,7 +1047,7 @@ string etDefineToString(AstNode ast) {
     AstNode signature = ast.children[2];
 
     auto result = appender!string(typeText);
-    result ~= " ";
+    result ~= \" \";
 
     // The define seems to be defining a function
     if (signature.type == TknType.closedScope) {
@@ -1287,8 +1276,12 @@ string ifToString(AstNode ast) {
     result ~= createOutput(condition);
     result ~= \") {\\n\";
     result ~= createOutput(branchThen);
+    if (result[][$ - 1] != ';')
+        result ~= ';';
     result ~= \"} else {\\n\";
     result ~= createOutput(branchElse);
+    if (result[][$ - 1] != ';')
+        result ~= ';';
     result ~= \"}\";
     return result.get();
 }

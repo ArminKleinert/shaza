@@ -171,7 +171,5 @@ void main() {
     import std.file;
 
     string txt = readText("./szstd.sz");
-    auto ctx = new Context();
-    ctx = tokenize(ctx, txt);
     writeln(parseFully(txt));
 }

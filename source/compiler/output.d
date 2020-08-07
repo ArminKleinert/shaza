@@ -117,6 +117,12 @@ class OutputContext {
 
 }
 
+Appender!string insertSemicolon(Appender!string result, AstNode node) {
+    if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '}')
+        result ~= ';';
+    return result;
+}
+
 string callToString(AstNode ast) {
     string fnname = ast.children[0].text;
     auto result = appender!string(szNameToHostName(fnname));
@@ -192,7 +198,6 @@ string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings)
     // Write function argument list
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= typeToString(bindings[i]);
-
         result ~= " ";
         result ~= szNameToHostName(bindings[i + 1].text); // Name
         if (i < bindings.length - 2)
@@ -223,8 +228,7 @@ string functionBodyToString(Appender!string result, string fnType,
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
-        if (result[][$ - 1] != ';')
-            result ~= ';';
+        insertSemicolon(result, bodyNode);
         if (withLineBreaks)
             result ~= '\n';
     }
@@ -240,7 +244,7 @@ string functionBodyToString(Appender!string result, string fnType,
         result ~= "return ";
 
     result ~= createOutput(lastStmt);
-    result ~= ';';
+    insertSemicolon(result, lastStmt);
     if (withLineBreaks)
         result ~= '\n';
 
@@ -267,8 +271,7 @@ string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNod
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
-        if (bodyNode.text != "ll" && result[][$ - 1] != ';' && result[][$ - 1] != '}')
-            result ~= ';';
+        insertSemicolon(result, bodyNode);
         result ~= '\n';
     }
 
@@ -283,8 +286,7 @@ string etDefineFnToString(Appender!string result, string type, AstNode[] bodyNod
         result ~= "return ";
 
     result ~= createOutput(lastStmt);
-    if (result[][$ - 1] != ';' && result[][$ - 1] != '}')
-        result ~= ";\n";
+    insertSemicolon(result, lastStmt);
 
     result ~= "}\n";
     return result.get();
@@ -418,8 +420,7 @@ string letToString(AstNode ast, bool isExplicitType) {
     // Write code
     foreach (AstNode bodyNode; bodyNodes) {
         result ~= createOutput(bodyNode);
-        if (result[][$ - 1] == ';')
-            result ~= ";";
+        insertSemicolon(result, bodyNode);
         result ~= "\n";
     }
 
@@ -457,7 +458,7 @@ string importHostToString(AstNode ast) {
 
     if (nodes.length == 1) {
         // Normal import
-        return "import " ~ nameText ~ ";";
+        return "import " ~ nameText ~ ";\n";
     } else if (nodes.length == 2) {
         // Import only specific list of functions.
         if (nodes[1].type != TknType.closedList && nodes[1].type != TknType.closedScope)
@@ -502,8 +503,7 @@ string setvToString(AstNode ast) {
     auto result = appender!string(szNameToHostName(ast.children[1].text));
     result ~= " = ";
     result ~= createOutput(ast.children[2]);
-    if (result[][$ - 1] != ';')
-        result ~= ";";
+    insertSemicolon(result, null);
     return result.get();
 }
 
@@ -531,11 +531,12 @@ void llToStringSub(Appender!string result, AstNode ast) {
 
 string llQuotedStringToString(string text) {
     import std.array : replace;
+
     text = text[1 .. $ - 1];
-    text =  text.replace("\\\"", "\"");
-    text =  text.replace("\\\r", "\r");
-    text =  text.replace("\\\n", "\n");
-    text =  text.replace("\\\t", "\t");
+    text = text.replace("\\\"", "\"");
+    text = text.replace("\\\r", "\r");
+    text = text.replace("\\\n", "\n");
+    text = text.replace("\\\t", "\t");
     return text;
 }
 
@@ -560,8 +561,10 @@ string ifToString(AstNode ast) {
     result ~= createOutput(condition);
     result ~= ") {\n";
     result ~= createOutput(branchThen);
+    insertSemicolon(result, branchThen);
     result ~= "} else {\n";
     result ~= createOutput(branchElse);
+    insertSemicolon(result, branchElse);
     result ~= "}";
     return result.get();
 }
@@ -606,15 +609,6 @@ string boolOpToString(AstNode ast) {
 }
 
 string createOutput(AstNode ast) {
-    /*
-    writeln(isAtom(ast));
-    writeln(ast.type == TknType.closedTaggedList || ast.type == TknType.closedList);
-    writeln(ast.type == TknType.closedScope);
-    Token fTkn = ast.children[0].tkn;
-    writeln(fTkn.type == TknType.symbol);
-    writeln(fTkn.text == "et-define");
-    */
-
     if (isAtom(ast)) {
         return atomToString(ast);
     }

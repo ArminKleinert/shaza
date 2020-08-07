@@ -39,7 +39,7 @@ Context buildBasicAst(Context ctx) {
         switch (current.type) {
         case TknType.litType:
             stack ~= new AstNode(current);
-            if (!(current.text.length == 2 && ctx.tokens[tknIndex+1].type == TknType.litString)) {
+            if (!(current.text.length == 2 && ctx.tokens[tknIndex + 1].type == TknType.litString)) {
                 stack = mergeTopElements(stack);
             }
             break;
