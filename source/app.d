@@ -164,12 +164,12 @@ string parseFully(string script) {
     auto ctx = new Context();
     ctx = tokenize(ctx, script);
     ctx = buildBasicAst(ctx);
+    writeln("HERE");
     return createOutput(ctx.ast);
 }
 
 void main() {
     import std.file;
-
     string txt = readText("./szstd.sz");
     writeln(parseFully(txt));
 }

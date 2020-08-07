@@ -161,16 +161,15 @@ Context tokenize(Context ctx, string source) {
 }
 
 string parseFully(string script) {
-    writeln("HERE");
     auto ctx = new Context();
     ctx = tokenize(ctx, script);
     ctx = buildBasicAst(ctx);
+    writeln("HERE");
     return createOutput(ctx.ast);
 }
 
 void main() {
     import std.file;
-
     string txt = readText("./szstd.sz");
     writeln(parseFully(txt));
 }
