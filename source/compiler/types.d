@@ -80,7 +80,7 @@ class AstNode {
     public override string toString() {
         string[] res = [];
         auto result = appender(&res);
-        result.put(["\nAstNode { token=", to!string(tkn), "\nchildren=["]);
+        result.put(["\nAstNode { token=", to!string(tkn), " children=["]);
         foreach (AstNode child; children) {
             result.put(child.toString());
         }

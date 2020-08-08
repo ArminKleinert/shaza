@@ -144,7 +144,7 @@ string atomToString(AstNode ast) {
     if (ast.type == TknType.litBool) {
         text = appender(ast.text == "#t" ? "true" : "false");
     } else if (ast.type == TknType.litKeyword) {
-        text ~= "Keyword(";
+        text = appender("Keyword(");
         text ~= ast.text;
         text ~= ")";
     }
@@ -503,7 +503,7 @@ string setvToString(AstNode ast) {
     auto result = appender!string(szNameToHostName(ast.children[1].text));
     result ~= " = ";
     result ~= createOutput(ast.children[2]);
-    insertSemicolon(result, null);
+    insertSemicolon(result, ast);
     return result.get();
 }
 
@@ -647,10 +647,10 @@ string createOutput(AstNode ast) {
                 return tLambdaToString(ast);
             case "return":
                 return returnToString(ast);
-            case "and":
-            case "or":
-            case "xor":
-                return boolOpToString(ast);
+                //case "and":
+                //case "or":
+                //case "xor":
+                //    return boolOpToString(ast);
             case "def-struct":
                 break; // TODO
             case "struct":
