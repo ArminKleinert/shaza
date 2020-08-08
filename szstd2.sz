@@ -1,0 +1,89 @@
+(import-host "std.stdio")
+(import-host "std.conv")
+(import-host "std.typecons")
+(import-host "std.string")
+(import-host "std.algorithm")
+(import-host "std.array")
+
+(gen-define ::N (N) (inc ::N n) (llr n + 1))
+(gen-define ::N (N) (dec ::N n) (llr n - 1))
+
+(et-define ::int (plus ::int i0 ::int i1) (llr i0 + i1))
+(et-define ::long (plus ::long i0 ::long i1) (llr i0 + i1))
+(et-define ::double (plus ::double i0 ::double i1) (llr i0 + i1))
+
+(et-define ::int (minus ::int i0 ::int i1) (llr i0 - i1))
+(et-define ::long (minus ::long i0 ::long i1) (llr i0 - i1))
+(et-define ::double (minus ::double i0 ::double i1) (llr i0 - i1))
+
+(et-define ::int (mul ::int i0 ::int i1) (llr i0 * i1))
+(et-define ::long (mul ::long i0 ::long i1) (llr i0 * i1))
+(et-define ::double (mul ::double i0 ::double i1) (llr i0 * i1))
+
+(et-define ::int (div ::int i0 ::int i1) (llr i0 / i1))
+(et-define ::long (div ::long i0 ::long i1) (llr i0 / i1))
+(et-define ::double (div ::double i0 ::double i1) (llr i0 / i1))
+
+(et-define ::int (mod ::int i0 ::int i1) (llr i0 % i1))
+(et-define ::long (mod ::long i0 ::long i1) (llr i0 % i1))
+(et-define ::double (mod ::double i0 ::double i1) (llr i0 % i1))
+
+(et-define ::int (bit-and ::int i0 ::int i1) (llr i0 & i1))
+(et-define ::long (bit-and ::long i0 ::long i1) (llr i0 & i1))
+
+(et-define ::int (bit-or ::int i0 ::int i1) (llr i0 | i1))
+(et-define ::long (bit-or ::long i0 ::long i1) (llr i0 | i1))
+
+(et-define ::int (bit-xor ::int i0 ::int i1) (llr i0 ^ i1))
+(et-define ::long (bit-xor ::long i0 ::long i1) (llr i0 ^ i1))
+
+(et-define ::bool (and ::bool b0 ::bool b1) (llr b0 && b1))
+(et-define ::bool (or ::bool b0 ::bool b1) (llr b0 || b1))
+(et-define ::bool (not ::bool b0) (llr !b0))
+
+(gen-define ::bool (T) (eql? ::T e0 ::T e1) (llr e0 == e1))
+(gen-define ::bool (T) (not_eql? ::T e0 ::T e1) (llr e0 != e1))
+(gen-define ::bool (T) (lt? ::T e0 ::T e1) (llr e0 < e1))
+(gen-define ::bool (T) (le? ::T e0 ::T e1) (llr e0 <= e1))
+(gen-define ::bool (T) (gt? ::T e0 ::T e1) (llr e0 > e1))
+(gen-define ::bool (T) (ge? ::T e0 ::T e1) (llr e0 >= e1))
+
+(gen-define ::bool (T) (nil? ::T e) (llr "e is null"))
+
+(gen-define ::T[] (T) (concat ::T[] coll0 ::T[] coll1) (llr coll0 ~ coll1))
+(gen-define ::T[] (T) (append ::T[] coll0 ::T value) (llr coll0 ~ value))
+
+(gen-define ::T[] (T) (concat! ::T[] coll0 ::T[] coll1)
+    (ll coll0 ~= coll1)
+    coll0)
+(gen-define ::T[] (T) (append! ::T[] coll0 ::T value)
+    (ll coll0 ~= value)
+    coll0)
+
+(gen-define ::T[] (T) (map ::"T delegate(T elem)" func ::T[] coll)
+    (t-let [::T[] outcoll []]
+     (reduce
+      (lambda (elem outcoll) (append outcoll (func elem)))
+      coll
+      outcoll)))
+
+(gen-define ::T1 (T T1) (reduce ::"T1 delegate(T curr, T1 res)" func ::T[] coll ::T1 initVal)
+    (ll
+     "T1 output = initVal; foreach (current; coll) { output = func(current, output); } return output;"
+     ))
+
+(gen-define ::bool (T) (contains ::T[] coll ::T value)
+    (reduce
+     (lambda (elem found1) (if (or found1 (eql? elem value)) (return true) (return false)))
+     coll false))
+
+(et-define ::bool (string_include? ::string s ::char c)
+   (contains s c))
+
+(et-define ::bool (string_start_with? ::string s ::char c)
+   (eql? (first s) c))
+
+(et-define ::bool (string_end_with? ::string s ::char c)
+   (eql? (last s) c))
+
+(gen-define ::T (T)

@@ -115,7 +115,9 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
 
 Context tokenizeSubNextChar(Context ctx, char c) {
     if (c == '"') {
-        ctx = closeToken(ctx);
+        if (!ctx.isInSpecialExpression) {
+            ctx = closeToken(ctx);
+        }
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
     } else if (c == ':' && ctx.currTknText == ":") {

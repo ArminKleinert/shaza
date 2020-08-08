@@ -48,6 +48,12 @@ struct Token {
         this.type = type;
         this.text = text;
     }
+
+    string as_readable() @property {
+        import std.conv : to;
+
+        return to!string(this);
+    }
 }
 
 class AstNode {
