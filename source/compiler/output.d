@@ -65,6 +65,10 @@ class OutputContext {
         _functions ~= FunctionDecl(name, returnType, [], []);
     }
 
+    public void addScope(Token orig, ) {
+
+    }
+
     public string[] functions() {
         string[] names;
         foreach (fn; _functions) {

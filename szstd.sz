@@ -18,6 +18,9 @@
   (::T elem ::T default1 ::"bool delegate (T e)" pred  ::"T delegate (T e)" func)
   (if (pred elem) (return (func elem)) (return default1)))
 
+; A trick: ::" " (important whitespace) can be used to make a define with no type.
+(define ::" " abc "defg")
+
 ; Single line comment
 
 (comment
