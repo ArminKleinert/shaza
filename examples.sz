@@ -1,0 +1,32 @@
+(import-host "std.string")
+
+(define abc "def")
+(define foo (::int i) (opcall + i 1))
+(define ::int bar () 1)
+(define (T) baz (::T arg) (writeln arg))
+
+(define ::N (N) inc (::N n) (opcall + n 1))
+(define ::N (N) dec (::N n) (opcall - n 1))
+
+(define ::T (T) applySelf (::T elem ::"T delegate (T e)" func) (func elem))
+(define ::T (T) applyIf
+  (::T elem ::T default1 ::"bool delegate (T e)" pred  ::"T delegate (T e)" func)
+  (if (pred elem) (return (func elem)) (return default1)))
+
+; A trick: ::" " (important whitespace) can be used to make a define with no type.
+(define ::" " abc "defg")
+
+; Single line comment
+
+(comment
+    Everything here is completely ignored.
+    This works across lines.)
+
+(def-struct MyType ::int n)
+(def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
+(def-struct GenericType (T) ::T entry)
+(def-struct EmptyType)
+
+(define ::void infinite_loop ()
+    (writeln "hey!")
+    (recur))

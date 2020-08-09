@@ -170,7 +170,7 @@ string parseFully(string script) {
 void main() {
     import std.file;
 
-    string txt = readText("./szstd.sz");
+    string txt = readText("./examples.sz");
     //    writeln(parseFully(txt));
     //string txt = "(define abc 0)";
     auto ctx = new Context();

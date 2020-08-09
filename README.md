@@ -110,7 +110,7 @@ Near future:
 - Operators with ``'``  
 - ``lsp-and, lsp-or, lsp-xor``  
 - Implicit return from ``if`` and loops.  
-- ``def-struct, struct``  
+- ``struct``  
 - ``define-ns`` (This has not proven necessary yet)
 - ``import-sz``  
 - ``bit-cast``  
@@ -130,8 +130,8 @@ A byte further in the future:
 
 ## TODO List
 
-- Implement lambdas
 - Implement loop and recur  
+- Implement lambdas  
 - Clean up code  
 - Implement tests.
 - Go down the "missing features" list.  

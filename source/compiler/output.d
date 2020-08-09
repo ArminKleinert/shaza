@@ -36,6 +36,7 @@ class OutputContext {
     private string[] globals;
     private FunctionDecl[] _functions;
     private static FunctionDecl NO_FUNCTION;
+    private string[] jumpLabelStack;
 
     private __gshared OutputContext _global;
 
@@ -123,6 +124,19 @@ class OutputContext {
         return NO_FUNCTION;
     }
 
+    string newLabel() {
+        string name = "jumplbl" ~ to!string(jumpLabelStack.size + 1);
+        jumpLabelStack ~= name;
+        return name~":\n";
+    }
+
+    string getLastJumpLabel() {
+        return jumpLabelStack[jumpLabelStack.size - 1];
+    }
+
+    void removeLastLabel() {
+        jumpLabelStack = jumpLabelStack[0 .. $ - 1];
+    }
 }
 
 // SECTION Checked string converters
@@ -145,6 +159,25 @@ Appender!string insertSemicolon(Appender!string result, AstNode node) {
     if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '}')
         result ~= ';';
     return result;
+}
+
+// SUBSECT Do nested search for "recur" in nodes.
+
+bool nodeContainsRecur(AstNode node) {
+    if (node.type == TknType.symbol && node.text == "recur"){
+        return true;
+    }
+    return nodesContainRecur(node.nodes);
+}
+
+bool nodesContainRecur(AstNode[] astNodes) {
+    if (astNodes.size == 0) return false;
+
+    foreach(node; astNodes) {
+        if (nodeContainsRecur(node)) return true;
+    }
+
+    return false;
 }
 
 // SECTION Fucntion call to string
@@ -376,12 +409,16 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
         return result.get();
     }
 
+    // Add jump-label
+    bool doAddLabel =nodesContainRecur(bodyNodes);
+    if (doAddLabel)
+        result ~= OutputContext.global.newLabel();
+
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
         insertSemicolon(result, bodyNode);
-        result ~= '\n';
-    }
+        result ~= '\n';}
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
 
@@ -392,6 +429,10 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
 
     result ~= createOutput(lastStmt);
     insertSemicolon(result, lastStmt);
+
+    // Pop jump label
+    if (doAddLabel)
+    OutputContext.global.removeLastLabel();
 
     result ~= "\n}\n";
     return result.get();
@@ -622,6 +663,54 @@ string lambdaToString(AstNode ast) {
     throw new CompilerError("lambda not implemented yet: " ~ ast.tkn.as_readable());
 }
 
+// SECTION loop
+
+string loopToString(AstNode ast) {
+    // TODO Verification
+    // TODO assert bindings is closedScope
+    // TODO assert body not empty
+
+    AstNode[] bindings = ast.nodes[1].nodes;
+    AstNode[] bodyNodes = ast.nodes[2..$];
+
+    auto result = appender("");
+    // TODO Generate variable definition
+
+    // Add label
+    bool doAddLabel = nodesContainRecur(bodyNodes);
+if (doAddLabel)    result ~= OutputContext.global.newLabel();
+
+    // Generate body
+    foreach (node; bodyNodes) {
+        result ~= createOutput(node);
+        insertSemicolon(result, node);
+        result ~= '\n';
+    }
+
+    if (doAddLabel)
+    OutputContext.global.removeLastLabel();
+
+    return result.get();
+}
+
+// SECTION recur
+
+string recurToString(AstNode ast) {
+    // TODO verification
+
+    AstNode[] bindings = ast.nodes[1..$];
+    // TODO Set variables to new bindings here
+
+    auto result = appender("");
+
+    // TODO Add text of setting variables here.
+
+    result ~= "goto ";
+    result ~= OutputContext.global.getLastJumpLabel();
+    result ~= ';';
+    return result.get();
+}
+
 // SECTION Return
 
 string returnToString(AstNode ast) {
@@ -821,6 +910,10 @@ string createOutput(AstNode ast) {
                 return returnToString(ast);
             case "new":
                 return newToString(ast);
+            case "loop":
+                return loopToString(ast);
+            case "recur":
+                return recurToString(ast);
             case "and":
             case "or":
             case "xor":
@@ -833,10 +926,6 @@ string createOutput(AstNode ast) {
                 return defStructToString(ast);
             case "struct":
                 break; // TODO
-            case "cast":
-                break; // TODO
-            case "convert":
-                break; // TODO
             case "import-sz":
                 break; // TODO
             case "import-host":
@@ -844,22 +933,6 @@ string createOutput(AstNode ast) {
             case "rt-import-sz":
                 break; // TODO
             case "rt-import-dll":
-                break; // TODO
-            case "call-extern":
-                break; // TODO
-            case "call-sys":
-                break; // TODO
-            case "recur":
-                break; // TODO
-            case "mut":
-                break; // TODO
-            case "alloc":
-                break; // TODO
-            case "free":
-                break; // TODO
-            case "pointerto":
-                break; // TODO
-            case "deref":
                 break; // TODO
             case "quote":
                 break; // TODO

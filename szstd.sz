@@ -5,29 +5,87 @@
 (import-host "std.algorithm")
 (import-host "std.array")
 
-(define abc "def")
-(define foo (::int i) (opcall + i 1))
-(define ::int bar () 1)
-(define (T) baz (::T arg) (writeln arg))
+(define ::N (N) inc (::N n) (llr n + 1))
+(define ::N (N) dec (::N n) (llr n - 1))
 
-(define ::N (N) inc (::N n) (opcall + n 1))
-(define ::N (N) dec (::N n) (opcall - n 1))
+(define ::Num (Num) add (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::Num (Num) plus (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::Num (Num) sub (::Num i0 ::Num i1) (opcall - i0 i1))
+(define ::Num (Num) minus (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::Num (Num) mul (::Num i0 ::Num i1) (opcall * i0 i1))
+(define ::Num (Num) div (::Num i0 ::Num i1) (opcall / i0 i1))
+(define ::Num (Num) mod (::Num i0 ::Num i1) (opcall % i0 i1))
 
-(define ::T (T) applySelf (::T elem ::"T delegate (T e)" func) (func elem))
-(define ::T (T) applyIf
-  (::T elem ::T default1 ::"bool delegate (T e)" pred  ::"T delegate (T e)" func)
-  (if (pred elem) (return (func elem)) (return default1)))
+(et-define ::Integral (Integral) (bit-and ::Integral i0 ::Integral i1)
+    (opcall & i0 i1))
+(et-define ::Integral (Integral) (bit-or ::Integral i0 ::Integral i1)
+    (opcall | i0 i1))
+(et-define ::Integral (Integral) (bit-xor ::Integral i0 ::Integral i1)
+    (opcall ^ i0 i1))
 
-; A trick: ::" " (important whitespace) can be used to make a define with no type.
-(define ::" " abc "defg")
+(comment Not yet. Implement when lazy arguments are implemented.
+    (define ::bool (and ::bool b0 ::bool b1) (llr b0 && b1))
+    (define ::bool (or ::bool b0 ::bool b1) (llr b0 || b1))
+    (define ::bool (not ::bool b0) (llr !b0))
+)
 
-; Single line comment
+(define ::bool (T) eql? (::T e0 ::T e1) (llr e0 == e1))
+(define ::bool (T) not_eql? (::T e0 ::T e1) (llr e0 != e1))
+(define ::bool (T) lt? (::T e0 ::T e1) (llr e0 < e1))
+(define ::bool (T) le? (::T e0 ::T e1) (llr e0 <= e1))
+(define ::bool (T) gt? (::T e0 ::T e1) (llr e0 > e1))
+(define ::bool (T) ge? (::T e0 ::T e1) (llr e0 >= e1))
+
+(define ::bool (T) nil? (::T e) (llr "e is null"))
+
+(define ::T[] (T) concat (::T[] coll0 ::T[] coll1) (llr coll0 ~ coll1))
+(define ::T[] (T) append (::T[] coll0 ::T value) (llr coll0 ~ value))
+
+(define ::T[] (T) concat! (::T[] coll0 ::T[] coll1)
+    (ll coll0 ~= coll1)
+    coll0)
+(define ::T[] (T) append! (::T[] coll0 ::T value)
+    (ll coll0 ~= value)
+    coll0)
+
+(define ::size_t (T) size (::T[] coll) (llr "coll.length"))
+(define ::T (T) get (::T[] coll ::size_t index) (llr "coll[index]"))
+(define ::T (T) first (::T[] coll) (get coll 0))
+(define ::T (T) second (::T[] coll) (get coll 1))
+(define ::T (T) last (::T[] coll) (get coll (dec (size coll))))
+
+(define ::T[] (T) slice (::T[] coll ::size_t start)
+    (llr "coll[start .. $]"))
+(define ::T[] (T) slice (::T[] coll ::size_t start ::size_t end_offset)
+    (llr "coll[start .. $ - end_offset]"))
 
 (comment
-    Everything here is completely ignored.
-    This works across lines.)
+    (define ::T[] (T) map (::"T delegate(T elem)" func ::T[] coll)
+        (t-let [::T[] outcoll []]
+        (reduce
+            (lambda (elem outcoll) (append outcoll (func elem)))
+            coll
+            outcoll)))
+)
 
-(def-struct MyType ::int n)
-(def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
-(def-struct GenericType (T) ::T entry)
-(def-struct EmptyType)
+(comment
+    (define ::T1 (T T1) reduce (::"T1 delegate(T curr, T1 res)" func ::T[] coll ::T1 initVal)
+        (ll
+            "T1 output = initVal; foreach (current; coll) { output = func(current, output); } return output;"
+            ))
+)
+
+(define ::bool (T) contains (::T[] coll ::T value)
+    (loop (::T current ::T[] rest_)
+        (if (eql? current value)
+            (return true)
+            (recur (first rest_) (rest coll)))))
+
+(et-define ::bool (string_include? ::string s ::char c)
+   (contains s c))
+
+(et-define ::bool (string_start_with? ::string s ::char c)
+   (eql? (first s) c))
+
+(et-define ::bool (string_end_with? ::string s ::char c)
+   (eql? (last s) c))
