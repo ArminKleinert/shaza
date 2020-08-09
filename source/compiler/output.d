@@ -13,6 +13,8 @@ import compiler.ast;
 import shaza.buildins;
 import shaza.std;
 
+// SECTION Struct for info about function declarations
+
 struct FunctionDecl {
     const string name;
     const string returnType;
@@ -27,6 +29,8 @@ struct FunctionDecl {
         this.argTypes = argTypes;
     }
 }
+
+// SECTION Class for a global context holding information about registered functions
 
 class OutputContext {
     private string[] globals;
@@ -65,7 +69,7 @@ class OutputContext {
         _functions ~= FunctionDecl(name, returnType, [], []);
     }
 
-    public void addScope(Token orig, ) {
+    public void addScope(Token orig,) {
 
     }
 
@@ -121,18 +125,36 @@ class OutputContext {
 
 }
 
+// SECTION Checked string converters
+
+string symbolToString(AstNode node) {
+    if (node.type != TknType.symbol)
+        throw new CompilerError("Expected symbol: " ~ node.tkn.as_readable());
+    return node.text;
+}
+
+string typestring(AstNode node) {
+    if (node.type != TknType.symbol)
+        throw new CompilerError("Expected type: " ~ node.tkn.as_readable());
+    return node.text;
+}
+
+// SECTION Minor helpers
+
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
     if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '}')
         result ~= ';';
     return result;
 }
 
-string callToString(AstNode ast) {
-    string fnname = ast.nodes[0].text;
-    auto result = appender!string(szNameToHostName(fnname));
-    result ~= '(';
-    AstNode[] args = ast.nodes[1 .. $];
+// SECTION Fucntion call to string
 
+string callToString(AstNode ast) {
+    return symbolToString(ast.nodes[0]) ~ callArgsToString(ast.nodes[1 .. $]);
+}
+
+string callArgsToString(AstNode[] args) {
+    auto result = appender!string("(");
     for (int i = 0; i < args.length; i++) {
         result ~= createOutput(args[i]);
         if (i < args.length - 1)
@@ -142,12 +164,14 @@ string callToString(AstNode ast) {
     return result.get();
 }
 
+// FIXME Remove?
+/*
 string functionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= "(";
 
     // Write function argument list
     for (int i = 0; i < bindings.length; i++) {
-        result ~= szNameToHostName(bindings[i].text); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i])); // Name
         if (i < bindings.length - 1)
             result ~= ", ";
     }
@@ -155,7 +179,10 @@ string functionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= ")";
     return result.get();
 }
+*/
 
+// FIXME Remove?
+/*
 string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= "(";
 
@@ -163,7 +190,7 @@ string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings)
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= typeToString(bindings[i]);
         result ~= " ";
-        result ~= szNameToHostName(bindings[i + 1].text); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i + 1])); // Name
         if (i < bindings.length - 2)
             result ~= ", ";
     }
@@ -171,6 +198,9 @@ string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings)
     result ~= ")";
     return result.get();
 }
+*/
+
+// SECTION Generate text for function bindings.
 
 static const string SHAZA_PARENT_TYPE = "Object";
 
@@ -186,7 +216,7 @@ string generalFunctionBindingsToString(Appender!string result, AstNode[] binding
             result ~= SHAZA_PARENT_TYPE;
         }
         result ~= " ";
-        result ~= szNameToHostName(bindings[i].text); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i])); // Name
 
         if (i < bindings.length - 2) {
             result ~= ", ";
@@ -196,6 +226,141 @@ string generalFunctionBindingsToString(Appender!string result, AstNode[] binding
     result ~= ")";
     return result.get();
 }
+
+// SECTION Add function to globally visible functions (May be used for type induction)
+
+void addFunctionFromAst(string name, AstNode typeNode, AstNode[] generics, AstNode[] bindings) {
+    string type = typestring(typeNode);
+    addFunctionFromAst(name, type, generics, bindings);
+}
+
+void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] bindings) {
+    string[] genericTypes;
+
+    for (int i = 0; i < generics.length; i++) {
+        genericTypes ~= symbolToString(generics[i]); // Type
+    }
+
+    string[] args;
+
+    for (int i = 0; i < bindings.length; i += 2) { // +2 skips name
+        args ~= typeToString(bindings[i]);
+    }
+
+    if (OutputContext.global)
+        OutputContext.global.addFunc(name, type, genericTypes, args);
+}
+
+// SECTION define-instruction
+
+string generalDefineToString(AstNode ast) {
+    int nameIndex = 1; // Assume that the name symbol is at index 1
+    bool isFunctionDef = false;
+
+    // SUBSECT Try to get type.
+    // If none is given, try again later.
+    string type = ""; // Infer if not given.
+    if (ast.nodes[nameIndex].type == TknType.litType) {
+        type = typeToString(ast.nodes[nameIndex]);
+        nameIndex++; // Type found, name comes later.
+    }
+
+    // SUBSECT Generics
+
+    AstNode[] generics = []; // None if not given
+    if (ast.nodes[nameIndex].type == TknType.closedScope) {
+        isFunctionDef = true;
+        generics = ast.nodes[nameIndex].nodes;
+        nameIndex++;
+    }
+
+    // SUBSECT Name
+
+    AstNode nameNode = ast.nodes[nameIndex];
+    if (nameNode.type != TknType.symbol) {
+        string msg = "Token " ~ nameNode.tkn.as_readable;
+        msg ~= " not allowed as a variable/function name. Token must be a symbol!";
+        throw new CompilerError(msg);
+    }
+    string name = symbolToString(nameNode);
+
+    // SUBSECT Check if this is a function declaration
+
+    if (!isFunctionDef && (ast.nodes[nameIndex + 1 .. $].length > 1)) {
+        isFunctionDef = true;
+    }
+
+    // SUBSECT Induce type of variable / return-type of function
+
+    if (type.length == 0) {
+        if (!isFunctionDef) {
+            type = "auto"; // For variables, use "auto" :)
+        } else {
+            string msg = "Cannot induce return type for function definitions yet: ";
+            msg ~= nameNode.tkn.as_readable;
+            msg ~= ". Assuming type 'void'.";
+            stderr.writeln(msg);
+            type = "void";
+        }
+    }
+
+    // SUBSECT Create output text for variables and return
+
+    if (!isFunctionDef) {
+        auto result = appender("");
+        result ~= type;
+        result ~= " ";
+        result ~= name;
+        result ~= " = ";
+        result ~= createOutput(ast.nodes[2]); // Value
+        result ~= ";\n";
+        return result.get();
+    }
+
+    // SUBSECT Bindings and body
+
+    // Arguments must be in (...)
+    if (ast.nodes[nameIndex + 1].type != TknType.closedScope) {
+        string msg = "Token " ~ ast.nodes[nameIndex + 1].tkn.as_readable;
+        msg ~= " not allowed as function argument list. Please surround arguments with '(...)'.";
+        throw new CompilerError(msg);
+    }
+
+    AstNode[] bindings = ast.nodes[nameIndex + 1].nodes;
+    AstNode[] bodyNodes = ast.nodes[nameIndex + 2 .. $];
+
+    // Error if body is empty
+    if (bodyNodes.length == 0) {
+        throw new CompilerError("Empty function body: " ~ ast.tkn.as_readable());
+    }
+
+    // Add function to globals
+    addFunctionFromAst(name, type, generics, bindings);
+
+    // SUBSECT Write name and (if given) generic types.
+
+    auto result = appender!string(type);
+    result ~= " ";
+    result ~= szNameToHostName(name);
+
+    // If the function has generic arguments.
+    if (generics.length > 0) {
+        result ~= "(";
+        for (int i = 0; i < generics.length; i++) {
+            result ~= symbolToString(generics[i]); // Type
+            if (i < generics.length - 1)
+                result ~= ", ";
+        }
+        result ~= ")";
+    }
+
+    // SUBSECT Write rest of arguments and body and return
+
+    generalFunctionBindingsToString(result, bindings);
+    return defineFnToString(result, type, bodyNodes);
+}
+
+// SUBSECT Helper for bindings and body of the define-instruction
 
 string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
     result ~= "{\n";
@@ -232,118 +397,7 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
     return result.get();
 }
 
-void addFunctionFromAst(string name, AstNode typeNode, AstNode[] generics, AstNode[] bindings) {
-    string type = typeToString(typeNode);
-    addFunctionFromAst(name, type, generics, bindings);
-}
-
-void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] bindings) {
-    string[] genericTypes;
-
-    for (int i = 0; i < generics.length; i++) {
-        genericTypes ~= generics[i].text; // Type
-    }
-
-    string[] args;
-
-    for (int i = 0; i < bindings.length; i += 2) { // +2 skips name
-        string argTypeStr = bindings[i].text;
-        if (bindings[i].type == TknType.litString)
-            args ~= argTypeStr[1 .. $ - 1];
-        else
-            args ~= typeToString(bindings[i]);
-    }
-
-    if (OutputContext.global)
-        OutputContext.global.addFunc(name, type, genericTypes, args);
-}
-
-string generalDefineToString(AstNode ast) {
-    int nameIndex = 1; // Assume that the name symbol is at index 1
-    bool isFunctionDef = false;
-
-    // Try to get type. If no
-    string type = ""; // Infer if not given.
-    if (ast.nodes[nameIndex].type == TknType.litType) {
-        type = typeToString(ast.nodes[nameIndex]);
-        nameIndex++;
-    }
-
-    AstNode[] generics = []; // None if not given
-    if (ast.nodes[nameIndex].type == TknType.closedScope) {
-        isFunctionDef = true;
-        generics = ast.nodes[nameIndex].nodes;
-        nameIndex++;
-    }
-
-    AstNode nameNode = ast.nodes[nameIndex];
-    if (nameNode.type != TknType.symbol) {
-        string msg = "Token " ~ nameNode.tkn.as_readable;
-        msg ~= " not allowed as a variable/function name. Token must be a symbol!";
-        throw new CompilerError(msg);
-    }
-    string name = nameNode.text;
-
-    if (!isFunctionDef && (ast.nodes[nameIndex + 1 .. $].length > 1)) {
-        isFunctionDef = true;
-    }
-
-    if (type.length == 0) {
-        if (!isFunctionDef) {
-            type = "auto";
-        } else {
-            string msg = "Cannot induce return type for function definitions yet: ";
-            msg ~= nameNode.tkn.as_readable;
-            msg ~= ". Assuming type 'void'.";
-            stderr.writeln(msg);
-            type = "void";
-        }
-    }
-
-    if (!isFunctionDef) {
-        auto result = appender("");
-        result ~= type;
-        result ~= " ";
-        result ~= name;
-        result ~= " = ";
-        result ~= createOutput(ast.nodes[2]); // Value
-        result ~= ";\n";
-        return result.get();
-    }
-
-    if (ast.nodes[nameIndex + 1].type != TknType.closedScope) {
-        string msg = "Token " ~ ast.nodes[nameIndex + 1].tkn.as_readable;
-        msg ~= " not allowed as function argument list. Please surround arguments with '(...)'.";
-        throw new CompilerError(msg);
-    }
-
-    AstNode[] bindings = ast.nodes[nameIndex + 1].nodes;
-    AstNode[] bodyNodes = ast.nodes[nameIndex + 2 .. $];
-
-    if (bodyNodes.length == 0) {
-        throw new CompilerError("Empty function body: " ~ ast.tkn.as_readable());
-    }
-
-    addFunctionFromAst(name, type, generics, bindings);
-
-    auto result = appender!string(type);
-    result ~= " ";
-    result ~= szNameToHostName(name);
-
-    // If the function has generic arguments.
-    if (generics.length > 0) {
-        result ~= "(";
-        for (int i = 0; i < generics.length; i++) {
-            result ~= generics[i].text; // Type
-            if (i < generics.length - 1)
-                result ~= ", ";
-        }
-        result ~= ")";
-    }
-
-    generalFunctionBindingsToString(result, bindings);
-    return defineFnToString(result, type, bodyNodes);
-}
+// SECTION let-instruction
 
 string tLetBindingsToString(AstNode[] bindings) {
     if (bindings.length % 3 != 0)
@@ -353,7 +407,7 @@ string tLetBindingsToString(AstNode[] bindings) {
     for (int i = 0; i < bindings.length; i += 3) {
         result ~= typeToString(bindings[i]); // Type
         result ~= " ";
-        result ~= szNameToHostName(bindings[i + 1].text); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i + 1])); // Name
         result ~= " = ";
         result ~= createOutput(bindings[i + 2]); // Value
         result ~= ";\n";
@@ -368,7 +422,7 @@ string letBindingsToString(AstNode[] bindings) {
     auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 2) {
         result ~= "auto ";
-        result ~= szNameToHostName(bindings[i + 0].text); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i + 0])); // Name
         result ~= " = ";
         result ~= createOutput(bindings[i + 1]); // Value
         result ~= ";\n";
@@ -402,6 +456,8 @@ string letToString(AstNode ast, bool isExplicitType) {
     return result[];
 }
 
+// SECTION import-host
+
 string importHostToString(AstNode ast) {
     auto nodes = ast.nodes[1 .. $];
 
@@ -413,8 +469,12 @@ string importHostToString(AstNode ast) {
     }
 
     // Parse name of import
-    string nameText = nodes[0].text;
-    nameText = nodes[0].type == TknType.litString ? nameText[1 .. $ - 1] : nameText;
+    string nameText;
+    if (nodes[0].type == TknType.litString) {
+        nameText = nodes[0].text[1 .. $ - 1];
+    } else {
+        nameText = symbolToString(nodes[0]);
+    }
 
     if (nodes.length == 1) {
         // Normal import
@@ -431,7 +491,7 @@ string importHostToString(AstNode ast) {
         result ~= " : ";
 
         for (int i = 0; i < nodes[1].nodes.length; i++) {
-            result ~= nodes[1].nodes[i].text;
+            result ~= symbolToString(nodes[1].nodes[i]);
             if (i < nodes[1].nodes.length - 1)
                 result ~= ",";
         }
@@ -443,13 +503,15 @@ string importHostToString(AstNode ast) {
     }
 }
 
+// SECTION List literal to string
+
 string listLiteralToString(AstNode ast) {
     if (ast.nodes.length == 0)
         return "[]"; // Empty list
 
     auto result = appender!string("[");
     for (int i = 0; i < ast.nodes.length; i++) {
-        result ~= ast.nodes[i].text;
+        result ~= symbolToString(ast.nodes[i]);
         if (i < ast.nodes[i].nodes.length - 1)
             result ~= ",";
     }
@@ -457,15 +519,24 @@ string listLiteralToString(AstNode ast) {
     return result.get();
 }
 
+// SECTION setv! (assignment) to string
+
 string setvToString(AstNode ast) {
-    if (ast.nodes.length != 3)
+    if (ast.nodes.length != 3) {
         throw new CompilerError("setv! requires exactly 2 arguments!");
-    auto result = appender!string(szNameToHostName(ast.nodes[1].text));
+    }
+
+    auto result = appender("");
+    result ~= szNameToHostName(symbolToString(ast.nodes[1])); // Var name
     result ~= " = ";
-    result ~= createOutput(ast.nodes[2]);
+    result ~= createOutput(ast.nodes[2]); // Value
     insertSemicolon(result, ast);
     return result.get();
 }
+
+// SECTION ll-instruction
+
+// SUBSECT Convert arguments of ll back into their string representation
 
 void llToStringSub(Appender!string result, AstNode ast) {
     if (ast.type == TknType.closedList || ast.type == TknType.closedTaggedList) {
@@ -489,6 +560,8 @@ void llToStringSub(Appender!string result, AstNode ast) {
     }
 }
 
+// SUBSECT Un-quotify strings from ll-blocks
+
 string llQuotedStringToString(string text) {
     import std.array : replace;
 
@@ -499,6 +572,8 @@ string llQuotedStringToString(string text) {
     text = text.replace("\\\t", "\t");
     return text;
 }
+
+// SUBSECT ll-instruction main
 
 string llToString(AstNode ast) {
     auto result = appender("");
@@ -512,6 +587,8 @@ string llToString(AstNode ast) {
     return result.get();
 }
 
+// SECTION if-else
+
 string ifToString(AstNode ast) {
     AstNode condition = ast.nodes[1];
     AstNode branchThen = ast.nodes[2];
@@ -524,13 +601,16 @@ string ifToString(AstNode ast) {
     result ~= "\n}";
 
     if (ast.size == 4) {
-    AstNode branchElse = ast.nodes[3];
-    result ~=" else {\n";
-    result ~= createOutput(branchElse);
-    insertSemicolon(result, branchElse);
-    result ~= "\n}";}
+        AstNode branchElse = ast.nodes[3];
+        result ~= " else {\n";
+        result ~= createOutput(branchElse);
+        insertSemicolon(result, branchElse);
+        result ~= "\n}";
+    }
     return result.get();
 }
+
+// SECTION Lambdas
 
 // FIXME
 string tLambdaToString(AstNode ast) {
@@ -542,9 +622,136 @@ string lambdaToString(AstNode ast) {
     throw new CompilerError("lambda not implemented yet: " ~ ast.tkn.as_readable());
 }
 
+// SECTION Return
+
 string returnToString(AstNode ast) {
     return "return " ~ createOutput(ast.nodes[1]) ~ ";";
 }
+
+// SECTION new-operator
+
+string newToString(AstNode ast) {
+    if (ast.nodes.length < 2) {
+        throw new CompilerError("new requires at least one parameter. " ~ ast.tkn.as_readable());
+    }
+
+    if (ast.nodes[1].type != TknType.litType) {
+        throw new CompilerError(
+                "new: First parameter must be type literal. " ~ ast.nodes[1].tkn.as_readable());
+    }
+
+    return "new " ~ createOutput(ast.nodes[1]) ~ callArgsToString(ast.nodes[2 .. $]) ~ ";";
+}
+
+// SECTION Code for def-struct
+
+// This should really be made into a macro once possible...
+string defStructToString(AstNode ast) {
+    // SUBSECT Error checking stuff
+
+    if (ast.size < 2) {
+        auto msg = "def-struct: Not enough parameters. ";
+        throw new CompilerError(msg ~ ast.tkn.as_readable());
+    }
+
+    // SUBSECT Get type name
+
+    AstNode typeNode = ast.nodes[1]; // Type name
+
+    if (typeNode.type != TknType.symbol) {
+        auto msg = "def-struct: First argument must be a symbol. ";
+        throw new CompilerError(msg ~ typeNode.tkn.as_readable());
+    }
+
+    // SUBSECT find generics (if given) and fields
+
+    AstNode generics; // Optional
+    AstNode[] attrList;
+
+    // If the type is not empty
+    if (ast.nodes.size > 2) {
+        // If the type has generics
+        if (ast.nodes[2].type == TknType.closedScope) {
+            generics = ast.nodes[2];
+            attrList = ast.nodes[3 .. $];
+        } else {
+            attrList = ast.nodes[2 .. $];
+        }
+    }
+
+    if (attrList.size % 2 != 0) {
+        auto msg = "def-struct: fields must be a sequence of types and symbols.";
+        throw new CompilerError(msg ~ typeNode.tkn.as_readable());
+    }
+
+    // SUBSECT Retrieve field types and field names
+
+    string[] fieldTypes = [];
+    string[] fieldNames = [];
+    for (auto i = 0; i < attrList.size; i += 2) {
+        fieldTypes ~= typeToString(attrList[i]);
+        fieldNames ~= symbolToString(attrList[i + 1]);
+    }
+
+    // SUBSECT Write header
+
+    // Start class definition text
+    auto result = appender("class ");
+    result ~= symbolToString(typeNode); // Write typename
+
+    // SUBSECT Generate list of generics (if given).
+    if (generics !is null) {
+        result ~= "(";
+        for (int i = 0; i < generics.size; i++) {
+            result ~= symbolToString(generics.nodes[i]);
+            if (i < generics.size - 1)
+                result ~= ", ";
+        }
+        result ~= ")";
+    }
+
+    result ~= " {\n";
+
+    // SUBSECT Write list of attributes
+
+    for (auto i = 0; i < fieldTypes.size; i++) {
+        result ~= fieldTypes[i];
+        result ~= ' ';
+        result ~= fieldNames[i];
+        result ~= ";\n";
+    }
+
+    // SUBSECT Write constructor
+
+    // Name
+    result ~= symbolToString(typeNode);
+    result ~= '(';
+    // Write constructor arguments; Arguments have a '_' in front of the name.
+    for (auto i = 0; i < fieldTypes.size; i++) {
+        result ~= fieldTypes[i];
+        result ~= " _";
+        result ~= fieldNames[i];
+        if (i < fieldTypes.size - 1)
+            result ~= ", ";
+    }
+    result ~= "){\n";
+    // Write constructor body
+    foreach (field; fieldNames) {
+        result ~= field;
+        result ~= " = _";
+        result ~= field;
+        result ~= ";\n";
+    }
+    result ~= '}';
+
+    // Close
+    result ~= "}\n";
+    return result.get();
+}
+
+// SECTION Boolean operator to string
+
+// TODO Remove when support for lazy arguments is added
 
 string boolOpToString(AstNode ast) {
     string op = ast.nodes[0].text;
@@ -556,6 +763,8 @@ string boolOpToString(AstNode ast) {
         op = "^";
     return "(" ~ createOutput(ast.nodes[1]) ~ op ~ createOutput(ast.nodes[2]) ~ ")";
 }
+
+// SECTION Operator call (+, -, *, /, &, %, |) for > 2 arguments
 
 string opcallToString(AstNode ast) {
     string op = szNameToHostName(ast.nodes[1].text);
@@ -570,6 +779,8 @@ string opcallToString(AstNode ast) {
     result ~= ")";
     return result.get();
 }
+
+// SECTION Main switch-table for string-creation of ast.
 
 string createOutput(AstNode ast) {
     if (isAtom(ast.tkn)) {
@@ -608,6 +819,8 @@ string createOutput(AstNode ast) {
                 return tLambdaToString(ast);
             case "return":
                 return returnToString(ast);
+            case "new":
+                return newToString(ast);
             case "and":
             case "or":
             case "xor":
@@ -617,7 +830,7 @@ string createOutput(AstNode ast) {
             case "comment":
                 return "";
             case "def-struct":
-                break; // TODO
+                return defStructToString(ast);
             case "struct":
                 break; // TODO
             case "cast":

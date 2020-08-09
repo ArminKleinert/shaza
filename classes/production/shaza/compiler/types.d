@@ -3,12 +3,19 @@ module compiler.types;
 import std.array;
 import std.conv;
 import shaza.buildins;
+import std.stdio;
+
+// SECTION Types
+
+// SUBSECT CompilerError
 
 class CompilerError : Error {
     public this(string msg, string file = __FILE__, size_t line = __LINE__) {
         super(msg, file, line);
     }
 }
+
+// SUBSECT Token
 
 enum TknType : byte {
     unknown,
@@ -37,10 +44,10 @@ enum TknType : byte {
 }
 
 struct Token {
-    int lineIdx;
-    int charIdx;
-    TknType type;
-    string text;
+    const int lineIdx;
+    const int charIdx;
+    const TknType type;
+    const string text;
 
     this(int lineIdx, int charIdx, TknType type, string text) {
         this.lineIdx = lineIdx;
@@ -48,12 +55,19 @@ struct Token {
         this.type = type;
         this.text = text;
     }
+
+    const string as_readable() @property {
+        import std.conv : to;
+
+        return to!string(this);
+    }
 }
 
+// SUBSECT Abstract Syntax Tree (AST)
+
 class AstNode {
-    Token tkn;
-    AstNode[] children;
-    int argc;
+    const Token tkn;
+    private AstNode[] children;
 
     this(Token tkn, AstNode[] children) {
         this.tkn = tkn;
@@ -70,6 +84,14 @@ class AstNode {
 
     TknType type() {
         return tkn.type;
+    }
+
+    size_t size() {
+        return children.length;
+    }
+
+    AstNode[] nodes() {
+        return children;
     }
 
     AstNode opOpAssign(string op)(AstNode other) if (op == "~") {
@@ -89,6 +111,9 @@ class AstNode {
     }
 }
 
+// SUBSECT Compiler-Context
+// Holds helperss for the tokenization phase and AST-Building
+
 class Context {
     Token[] tokens = [];
     AstNode ast = null;
@@ -100,8 +125,12 @@ class Context {
     bool nextEscaped = false;
     string currTknText = "";
     bool isInString = false;
-    bool isInSpecialExpression = false;
+    bool isInTypeLiteral = false;
 }
+
+// SECTION Helpers
+
+// SUBSECT Token type helpers
 
 bool isLiteral(Token tkn) {
     switch (tkn.type) {
@@ -118,6 +147,34 @@ bool isLiteral(Token tkn) {
     default:
         return false;
     }
+}
+
+bool allowImplicitReturn(string returnType, AstNode command) {
+    if (returnType == "void")
+        return false;
+    if (isAtom(command.tkn))
+        return true;
+    if (command.type != TknType.closedScope)
+        return false;
+
+    switch (command.nodes[0].text) {
+    case "return":
+    case "let":
+    case "t-let":
+    case "define":
+    case "ll":
+    case "if":
+    case "for":
+    case "foreach":
+    case "while":
+        return false;
+    default:
+        return true;
+    }
+}
+
+bool isAtom(Token tkn) {
+    return isLiteral(tkn) || tkn.type == TknType.symbol;
 }
 
 bool isOpener(Token tkn) {
@@ -153,6 +210,79 @@ bool isSimpleLiteral(Token tkn) {
     }
 }
 
+// SUBSECT AST type helper
+
+bool opensScope(AstNode node) {
+    if (node.type != TknType.closedScope)
+        return false;
+    if (node.size == 0)
+        return false;
+    if (node.type == TknType.root)
+        return true;
+
+    switch (node.nodes[0].text) {
+    case "t-let":
+    case "let":
+    case "loop":
+    case "define":
+        return true;
+    default:
+        return false;
+    }
+}
+
+// SUBSECT String conversion helpers
+
+string atomToString(AstNode ast) {
+    auto text = appender(ast.text);
+
+    if (ast.type == TknType.litBool) {
+        text = appender(ast.text == "#t" ? "true" : "false");
+    } else if (ast.type == TknType.litKeyword) {
+        text = appender("Keyword(");
+        text ~= ast.text;
+        text ~= ")";
+    }
+
+    return text.get();
+}
+
+string szNameToHostName(string szVarName) {
+    if (szVarName.size == 1)
+        return szVarName;
+    szVarName = szVarName.replace("-", "_");
+    szVarName = szVarName.replace("?", "_Q");
+    szVarName = szVarName.replace("!", "_E");
+    return szVarName;
+}
+
+string typeToString(AstNode ast) {
+    import core.exception;
+
+    try {
+        return typeToString(ast.text);
+    } catch (RangeError re) {
+        writeln(ast.toString());
+        throw re;
+    }
+}
+
+string typeToString(string litType) {
+    assert(litType.size > 2 && litType[0 .. 2] == "::");
+
+    litType = litType[2 .. $];
+    if (litType[0] == '"' && litType[litType.size - 1] == '"') {
+        litType = litType[1 .. $ - 1];
+    }
+    return litType;
+}
+
+// SUBSECT Other helpers
+
 string get(Appender!string ap) {
     return ap[];
+}
+
+size_t size(T)(T[] arr) {
+    return arr.length;
 }

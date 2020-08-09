@@ -26,3 +26,9 @@
 (comment
     Everything here is completely ignored.
     This works across lines.)
+
+(def-struct MyType ::int n)
+
+(def-struct GenericType (T) ::T entry)
+
+(def-struct EmptyType)
