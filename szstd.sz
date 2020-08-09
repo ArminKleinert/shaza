@@ -28,7 +28,6 @@
     This works across lines.)
 
 (def-struct MyType ::int n)
-
+(def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
 (def-struct GenericType (T) ::T entry)
-
 (def-struct EmptyType)
