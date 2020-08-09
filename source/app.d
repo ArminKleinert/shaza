@@ -97,7 +97,7 @@ Context closeToken(Context ctx) {
     ctx.currTknStartChar = ctx.currTknChar;
     ctx.nextEscaped = false;
     ctx.isInString = false;
-    ctx.isInSpecialExpression = false;
+    ctx.isInTypeLiteral = false;
     return ctx;
 }
 
@@ -115,21 +115,21 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
 
 Context tokenizeSubNextChar(Context ctx, char c) {
     if (c == '"') {
-        if (!ctx.isInSpecialExpression) {
+        if (!ctx.isInTypeLiteral) {
             ctx = closeToken(ctx);
         }
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
     } else if (c == ':' && ctx.currTknText == ":") {
-        ctx.isInSpecialExpression = true;
+        ctx.isInTypeLiteral = true;
         ctx.currTknText ~= c;
     } else if (c == ' ' || c == '\t' || c == '\n') {
         ctx = closeToken(ctx);
-    } else if (!ctx.isInSpecialExpression && (c == '(' || c == ')' || c == ']')) {
+    } else if (!ctx.isInTypeLiteral && (c == '(' || c == ')' || c == ']')) {
         ctx = closeToken(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
         ctx = closeToken(ctx);
-    } else if (!ctx.isInSpecialExpression && c == '[') {
+    } else if (!ctx.isInTypeLiteral && c == '[') {
         auto txt = ctx.currTknText;
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
