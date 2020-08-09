@@ -138,48 +138,6 @@ string callToString(AstNode ast) {
     return result.get();
 }
 
-string atomToString(AstNode ast) {
-    auto text = appender(ast.text);
-
-    if (ast.type == TknType.litBool) {
-        text = appender(ast.text == "#t" ? "true" : "false");
-    } else if (ast.type == TknType.litKeyword) {
-        text = appender("Keyword(");
-        text ~= ast.text;
-        text ~= ")";
-    }
-
-    return text.get();
-}
-
-string szNameToHostName(string szVarName) {
-    szVarName = szVarName.replace("-", "_");
-    szVarName = szVarName.replace("?", "_Q");
-    szVarName = szVarName.replace("!", "_E");
-    return szVarName;
-}
-
-string typeToString(AstNode ast) {
-    import core.exception;
-
-    try {
-        return typeToString(ast.text);
-    } catch (RangeError re) {
-        writeln(ast.toString());
-        throw re;
-    }
-}
-
-string typeToString(string litType) {
-    assert(litType.length > 2 && litType[0 .. 2] == "::");
-
-    litType = litType[2 .. $];
-    if (litType[0] == '"' && litType[litType.length - 1] == '"') {
-        litType = litType[1 .. $ - 1];
-    }
-    return litType;
-}
-
 string functionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= "(";
 
@@ -235,6 +193,7 @@ string generalFunctionBindingsToString(Appender!string result, AstNode[] binding
     return result.get();
 }
 
+/*
 string functionBodyToString(Appender!string result, string fnType,
         AstNode[] bindings, AstNode[] bodyNodes, bool withLineBreaks) {
     result ~= '{';
@@ -262,13 +221,9 @@ string functionBodyToString(Appender!string result, string fnType,
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
 
-    // If the last node in the body is
-    if (fnType != "void" && (lastStmt.type == TknType.closedScope
-            && lastStmt.nodes[0].text != "return" && lastStmt.nodes[0].text != "let"
-            && lastStmt.nodes[0].text != "define"
-            && lastStmt.nodes[0].text != "if" && lastStmt.nodes[0].text != "for"
-            && lastStmt.nodes[0].text != "foreach") || isLiteral(lastStmt.tkn))
-        result ~= "return ";
+    // Implicitly insert "return" if possible.
+    if (allowImplicitReturn(fnType, lastStmt)) {
+        result ~= "return ";}
 
     result ~= createOutput(lastStmt);
     insertSemicolon(result, lastStmt);
@@ -280,6 +235,7 @@ string functionBodyToString(Appender!string result, string fnType,
         result ~= '\n';
     return result.get();
 }
+*/
 
 string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
     result ~= "{\n";
@@ -304,15 +260,10 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
 
-    // If the last node in the body is
-    if (type != "void" && ((lastStmt.type == TknType.closedScope
-            && lastStmt.nodes[0].text != "return" && lastStmt.nodes[0].text != "let"
-            && lastStmt.nodes[0].text != "t-let"
-            && lastStmt.nodes[0].text != "define"
-            && lastStmt.nodes[0].text != "ll" && lastStmt.nodes[0].text != "if"
-            && lastStmt.nodes[0].text != "for" && lastStmt.nodes[0].text != "foreach"
-            && lastStmt.nodes[0].text != "while") || isLiteral(lastStmt.tkn)))
+    // Implicitly insert "return" if possible.
+    if (allowImplicitReturn(type, lastStmt)) {
         result ~= "return ";
+    }
 
     result ~= createOutput(lastStmt);
     insertSemicolon(result, lastStmt);
@@ -347,6 +298,7 @@ void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] 
         OutputContext.global.addFunc(name, type, genericTypes, args);
 }
 
+/*
 string etDefineToString(AstNode ast) {
     string typeText = typeToString(ast.nodes[1]);
     AstNode signature = ast.nodes[2];
@@ -374,7 +326,9 @@ string etDefineToString(AstNode ast) {
 
     return result.get();
 }
+*/
 
+/*
 string genDefineToString(AstNode ast) {
     string type = typeToString(ast.nodes[1]);
     AstNode[] generics = ast.nodes[2].nodes;
@@ -399,6 +353,7 @@ string genDefineToString(AstNode ast) {
     typedFunctionBindingsToString(result, bindings);
     return defineFnToString(result, type, bodyNodes);
 }
+*/
 
 string generalDefineToString(AstNode ast) {
     int nameIndex = 1; // Assume that the name symbol is at index 1
@@ -544,20 +499,6 @@ string letToString(AstNode ast, bool isExplicitType) {
     return result[];
 }
 
-string defineToString(AstNode ast) {
-    if (ast.nodes[1].type == TknType.closedScope) {
-        throw new CompilerError("Functions without explicit typing are not supported yet.");
-    }
-
-    auto result = appender!string("");
-    result ~= "auto ";
-    result ~= szNameToHostName(ast.nodes[1].text); // Variable name
-    result ~= " = ";
-    result ~= createOutput(ast.nodes[2]); // Value
-    result ~= ";\n";
-    return result.get();
-}
-
 string importHostToString(AstNode ast) {
     auto nodes = ast.nodes[1 .. $];
 
@@ -687,26 +628,12 @@ string ifToString(AstNode ast) {
 
 // FIXME
 string tLambdaToString(AstNode ast) {
-    auto type = typeToString(ast.nodes[1]);
-    auto bindings = ast.nodes[2].nodes;
-    auto bodyNodes = ast.nodes[3 .. $];
-    auto result = appender("(delegate ");
-    result ~= type;
-    typedFunctionBindingsToString(result, bindings);
-    defineFnToString(result, type, bodyNodes);
-    result ~= ")";
-    return result.get();
+    throw new CompilerError("t-lambda not implemented yet: " ~ ast.tkn.as_readable());
 }
 
 // FIXME
 string lambdaToString(AstNode ast) {
-    auto bindings = ast.nodes[1].nodes;
-    auto bodyNodes = ast.nodes[2 .. $];
-    auto result = appender("(delegate ");
-    functionBindingsToString(result, bindings);
-    defineFnToString(result, "", bodyNodes);
-    result ~= ")";
-    return result.get();
+    throw new CompilerError("lambda not implemented yet: " ~ ast.tkn.as_readable());
 }
 
 string returnToString(AstNode ast) {
@@ -721,11 +648,11 @@ string boolOpToString(AstNode ast) {
         op = "||";
     else if (op == "xor")
         op = "^";
-    return createOutput(ast.nodes[1]) ~ op ~ createOutput(ast.nodes[2]);
+    return "(" ~ createOutput(ast.nodes[1]) ~ op ~ createOutput(ast.nodes[2]) ~ ")";
 }
 
 string createOutput(AstNode ast) {
-    if (isLiteral(ast.tkn)) {
+    if (isAtom(ast.tkn)) {
         return atomToString(ast);
     }
 
@@ -739,13 +666,6 @@ string createOutput(AstNode ast) {
             switch (firstTkn.text) {
             case "define":
                 return generalDefineToString(ast);
-                //                return defineToString(ast);
-            case "et-define":
-                return generalDefineToString(ast);
-                //                return etDefineToString(ast);
-            case "gen-define":
-                return generalDefineToString(ast);
-                //                return genDefineToString(ast);
             case "define-macro":
                 break; // TODO
             case "define-tk-macro":

@@ -11,13 +11,13 @@ import shaza.std;
 Nullable!long toIntOrNull(string text) {
     Nullable!long result;
 
-    if (text == null || text.size == 0) {
+    if (text == null || text.length == 0) {
         return result;
     }
 
     int base = 10;
 
-    if (text.size > 1) {
+    if (text.length > 1) {
         if (text[0] == '+' || text[0] == '-') {
             text = text[1 .. $]; // Cut prefix
         }
@@ -61,7 +61,7 @@ Nullable!long toIntOrNull(string text) {
 Nullable!ulong toUIntOrNull(string text) {
     Nullable!ulong result;
 
-    if (text == null || text.size == 0) {
+    if (text == null || text.length == 0) {
         return result;
     }
     if (text[$ - 1] == 'u') {
@@ -79,7 +79,7 @@ Nullable!ulong toUIntOrNull(string text) {
 Nullable!double toFloatOrNull(string text) {
     Nullable!double result;
 
-    if (text == null || text.size == 0) {
+    if (text == null || text.length == 0) {
         return result;
     }
     if (text[$ - 1] == 'f') {
@@ -93,9 +93,11 @@ Nullable!double toFloatOrNull(string text) {
     return result;
 }
 
+/*
 size_t size(T)(T[] lst) {
     return lst.length;
 }
+*/
 
 bool contains(T)(T[] list, T o) {
     return indexof(list, o) != -1;

@@ -3,6 +3,7 @@ module compiler.types;
 import std.array;
 import std.conv;
 import shaza.buildins;
+import std.stdio;
 
 // SECTION Types
 
@@ -142,11 +143,38 @@ bool isLiteral(Token tkn) {
     case TknType.litMap:
     case TknType.litKeyword:
     case TknType.litType:
-    case TknType.symbol:
         return true;
     default:
         return false;
     }
+}
+
+bool allowImplicitReturn(string returnType, AstNode command) {
+    if (returnType == "void")
+        return false;
+    if (isAtom(command.tkn))
+        return true;
+    if (command.type != TknType.closedScope)
+        return false;
+
+    switch (command.nodes[0].text) {
+    case "return":
+    case "let":
+    case "t-let":
+    case "define":
+    case "ll":
+    case "if":
+    case "for":
+    case "foreach":
+    case "while":
+        return false;
+    default:
+        return true;
+    }
+}
+
+bool isAtom(Token tkn) {
+    return isLiteral(tkn) || tkn.type == TknType.symbol;
 }
 
 bool isOpener(Token tkn) {
@@ -182,8 +210,73 @@ bool isSimpleLiteral(Token tkn) {
     }
 }
 
+// SUBSECT AST type helper
+
+bool opensScope(AstNode node) {
+    if (node.type != TknType.closedScope)
+        return false;
+    if (node.size == 0)
+        return false;
+    switch (node.nodes[0].text) {
+    case "t-let":
+    case "let":
+    case "define":
+        return true;
+    default:
+        return false;
+    }
+}
+
+// SUBSECT String conversion helpers
+
+string atomToString(AstNode ast) {
+    auto text = appender(ast.text);
+
+    if (ast.type == TknType.litBool) {
+        text = appender(ast.text == "#t" ? "true" : "false");
+    } else if (ast.type == TknType.litKeyword) {
+        text = appender("Keyword(");
+        text ~= ast.text;
+        text ~= ")";
+    }
+
+    return text.get();
+}
+
+string szNameToHostName(string szVarName) {
+    szVarName = szVarName.replace("-", "_");
+    szVarName = szVarName.replace("?", "_Q");
+    szVarName = szVarName.replace("!", "_E");
+    return szVarName;
+}
+
+string typeToString(AstNode ast) {
+    import core.exception;
+
+    try {
+        return typeToString(ast.text);
+    } catch (RangeError re) {
+        writeln(ast.toString());
+        throw re;
+    }
+}
+
+string typeToString(string litType) {
+    assert(litType.size > 2 && litType[0 .. 2] == "::");
+
+    litType = litType[2 .. $];
+    if (litType[0] == '"' && litType[litType.size - 1] == '"') {
+        litType = litType[1 .. $ - 1];
+    }
+    return litType;
+}
+
 // SUBSECT Other helpers
 
 string get(Appender!string ap) {
     return ap[];
+}
+
+size_t size(T)(T[] arr) {
+    return arr.length;
 }
