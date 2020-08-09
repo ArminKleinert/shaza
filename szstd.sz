@@ -6,14 +6,20 @@
 (import-host "std.array")
 
 (define abc "def")
-(define foo (::int i) (llr i + 1))
+(define foo (::int i) (opcall + i 1))
 (define ::int bar () 1)
 (define (T) baz (::T arg) (writeln arg))
 
-(define ::N (N) inc (::N n) (llr n + 1))
-(define ::N (N) dec (::N n) (llr n - 1))
+(define ::N (N) inc (::N n) (opcall + n 1))
+(define ::N (N) dec (::N n) (opcall - n 1))
 
-(define ::T (T) applySelf (::T elem ::"delegate T (T e)" func) (func elem))
+(define ::T (T) applySelf (::T elem ::"T delegate (T e)" func) (func elem))
 (define ::T (T) applyIf
-  (::T elem ::T default ::"delegate ::bool (T e)" pred  ::"delegate ::T (T e)" func)
-  (if (pred elem) (return (func elem)) (return default)))
+  (::T elem ::T default1 ::"bool delegate (T e)" pred  ::"T delegate (T e)" func)
+  (if (pred elem) (return (func elem)) (return default1)))
+
+; Single line comment
+
+(comment
+    Everything here is completely ignored.
+    This works across lines.)

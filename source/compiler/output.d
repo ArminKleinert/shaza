@@ -651,6 +651,20 @@ string boolOpToString(AstNode ast) {
     return "(" ~ createOutput(ast.nodes[1]) ~ op ~ createOutput(ast.nodes[2]) ~ ")";
 }
 
+string opcallToString(AstNode ast) {
+    string op = szNameToHostName(ast.nodes[1].text);
+    auto result = appender("(");
+    for (size_t i = 2; i < ast.nodes.length - 1; i++) {
+        result ~= createOutput(ast.nodes[i]);
+        result ~= " ";
+        result ~= op;
+        result ~= " ";
+    }
+    result ~= createOutput(ast.nodes[ast.size - 1]);
+    result ~= ")";
+    return result.get();
+}
+
 string createOutput(AstNode ast) {
     if (isAtom(ast.tkn)) {
         return atomToString(ast);
@@ -692,6 +706,10 @@ string createOutput(AstNode ast) {
             case "or":
             case "xor":
                 return boolOpToString(ast);
+            case "opcall":
+                return opcallToString(ast);
+            case "comment":
+                return "";
             case "def-struct":
                 break; // TODO
             case "struct":

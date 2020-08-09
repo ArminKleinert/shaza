@@ -244,6 +244,7 @@ string atomToString(AstNode ast) {
 }
 
 string szNameToHostName(string szVarName) {
+    if (szVarName.size == 1) return szVarName;
     szVarName = szVarName.replace("-", "_");
     szVarName = szVarName.replace("?", "_Q");
     szVarName = szVarName.replace("!", "_E");
