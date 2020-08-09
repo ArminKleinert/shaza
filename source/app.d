@@ -11,6 +11,8 @@ import compiler.types;
 import compiler.ast;
 import compiler.output;
 
+// SECTION Literal identifiers
+
 bool isStringLiteral(string text) {
     return text.size >= 2 && text[0] == '"' && text[$ - 1] == '"' && text[$ - 2] != 92;
 }
@@ -26,7 +28,6 @@ bool isValidSymbolText(string text) {
 
 bool isTypeLiteral(string text) {
     return text.size >= 2 && text[0] == ':' && text[1] == ':';
-    // return text.size > 2 && text[0] == ':' && text[1] == ':' && isValidSymbolText(text[2 .. $]);
 }
 
 bool isKeywordLiteral(string text) {
@@ -37,54 +38,46 @@ bool isBoolLiteral(string text) {
     return text == "#t" || text == "#f";
 }
 
+// SUBSECT Token-type-table
+
 TknType tknTypeByText(string text) {
     if (!toIntOrNull(text).isNull()) {
         return TknType.litInt;
-    }
-    if (!toUIntOrNull(text).isNull()) {
+    } else if (!toUIntOrNull(text).isNull()) {
         return TknType.litUInt;
-    }
-    if (!toUIntOrNull(text).isNull()) {
+    } else if (!toUIntOrNull(text).isNull()) {
         return TknType.litUInt;
-    }
-    if (!toFloatOrNull(text).isNull()) {
+    } else if (!toFloatOrNull(text).isNull()) {
         return TknType.litFlt;
-    }
-    if (isBoolLiteral(text)) {
+    } else if (isBoolLiteral(text)) {
         return TknType.litBool;
-    }
-    if (isKeywordLiteral(text)) {
+    } else if (isKeywordLiteral(text)) {
         return TknType.litKeyword;
-    }
-    if (isTypeLiteral(text)) {
+    } else if (isTypeLiteral(text)) {
         return TknType.litType;
-    }
-    if (isValidSymbolText(text)) {
+    } else if (isValidSymbolText(text)) {
         return TknType.symbol;
-    }
-    if (isStringLiteral(text)) {
+    } else if (isStringLiteral(text)) {
         return TknType.litString;
-    }
-    if (text == "Set[" || text == "Map[" || text == "Lst[") {
+    } else if (text == "Set[" || text == "Map[" || text == "Lst[") {
         return TknType.lstTaggedOpen;
-    }
-    if (text == "[") {
+    } else if (text == "[") {
         return TknType.lstOpen;
-    }
-    if (text == "]") {
+    } else if (text == "]") {
         return TknType.lstClose;
-    }
-    if (text == "(") {
+    } else if (text == "(") {
         return TknType.scopeOpen;
-    }
-    if (text == ")") {
+    } else if (text == ")") {
         return TknType.scopeClose;
-    }
-    if (text == ";") {
+    } else if (text == ";") {
         return TknType.lnComment;
     }
     return TknType.unknown;
 }
+
+// SECTION Token-creation methods
+
+// SUBSECT Close token; Reset context
 
 Context closeToken(Context ctx) {
     if (ctx.currTknText.size > 0) {
@@ -100,6 +93,8 @@ Context closeToken(Context ctx) {
     ctx.isInTypeLiteral = false;
     return ctx;
 }
+
+// SUBSECT Create token
 
 Context tokenizeSubNextCharInString(Context ctx, char c) {
     ctx.currTknText = ctx.currTknText ~ c;
@@ -161,6 +156,8 @@ Context tokenize(Context ctx, string source) {
 
     return ctx;
 }
+
+// SECTION Main
 
 string parseFully(string script) {
     auto ctx = new Context();

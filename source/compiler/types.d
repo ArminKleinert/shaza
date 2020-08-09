@@ -4,11 +4,17 @@ import std.array;
 import std.conv;
 import shaza.buildins;
 
+// SECTION Types
+
+// SUBSECT CompilerError
+
 class CompilerError : Error {
     public this(string msg, string file = __FILE__, size_t line = __LINE__) {
         super(msg, file, line);
     }
 }
+
+// SUBSECT Token
 
 enum TknType : byte {
     unknown,
@@ -37,10 +43,10 @@ enum TknType : byte {
 }
 
 struct Token {
-    int lineIdx;
-    int charIdx;
-    TknType type;
-    string text;
+    const int lineIdx;
+    const int charIdx;
+    const TknType type;
+    const string text;
 
     this(int lineIdx, int charIdx, TknType type, string text) {
         this.lineIdx = lineIdx;
@@ -49,17 +55,18 @@ struct Token {
         this.text = text;
     }
 
-    string as_readable() @property {
+    const string as_readable() @property {
         import std.conv : to;
 
         return to!string(this);
     }
 }
 
+// SUBSECT Abstract Syntax Tree (AST)
+
 class AstNode {
-    Token tkn;
-    AstNode[] children;
-    int argc;
+    const Token tkn;
+    private AstNode[] children;
 
     this(Token tkn, AstNode[] children) {
         this.tkn = tkn;
@@ -76,6 +83,14 @@ class AstNode {
 
     TknType type() {
         return tkn.type;
+    }
+
+    size_t size() {
+        return children.length;
+    }
+
+    AstNode[] nodes() {
+        return children;
     }
 
     AstNode opOpAssign(string op)(AstNode other) if (op == "~") {
@@ -95,6 +110,9 @@ class AstNode {
     }
 }
 
+// SUBSECT Compiler-Context
+// Holds helperss for the tokenization phase and AST-Building
+
 class Context {
     Token[] tokens = [];
     AstNode ast = null;
@@ -109,6 +127,10 @@ class Context {
     bool isInTypeLiteral = false;
 }
 
+// SECTION Helpers
+
+// SUBSECT Token type helpers
+
 bool isLiteral(Token tkn) {
     switch (tkn.type) {
     case TknType.litInt:
@@ -120,6 +142,7 @@ bool isLiteral(Token tkn) {
     case TknType.litMap:
     case TknType.litKeyword:
     case TknType.litType:
+    case TknType.symbol:
         return true;
     default:
         return false;
@@ -158,6 +181,8 @@ bool isSimpleLiteral(Token tkn) {
         return false;
     }
 }
+
+// SUBSECT Other helpers
 
 string get(Appender!string ap) {
     return ap[];

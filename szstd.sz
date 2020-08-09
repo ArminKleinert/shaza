@@ -12,3 +12,8 @@
 
 (define ::N (N) inc (::N n) (llr n + 1))
 (define ::N (N) dec (::N n) (llr n - 1))
+
+(define ::T (T) applySelf (::T elem ::"delegate T (T e)" func) (func elem))
+(define ::T (T) applyIf
+  (::T elem ::T default ::"delegate ::bool (T e)" pred  ::"delegate ::T (T e)" func)
+  (if (pred elem) (return (func elem)) (return default)))

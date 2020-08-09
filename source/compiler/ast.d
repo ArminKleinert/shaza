@@ -11,7 +11,7 @@ import shaza.std;
 
 AstNode[] mergeTopElements(AstNode[] stack) {
     auto last = stack[$ - 1];
-    stack[$ - 2].children ~= stack[$ - 1];
+    stack[$ - 2] ~= stack[$ - 1];
     stack = stack[0 .. $ - 1];
     return stack;
 }
@@ -30,19 +30,7 @@ Context buildBasicAst(Context ctx) {
             continue;
         }
 
-        if (stack[$ - 1].type == TknType.litType && current.type == TknType.litString) {
-            stack[$ - 1].tkn.text ~= current.text;
-            stack = mergeTopElements(stack);
-            continue;
-        }
-
         switch (current.type) {
-        case TknType.litType:
-            stack ~= new AstNode(current);
-            if (!(current.text.length == 2 && ctx.tokens[tknIndex + 1].type == TknType.litString)) {
-                stack = mergeTopElements(stack);
-            }
-            break;
         case TknType.scopeOpen:
             stack ~= new AstNode(Token(current.lineIdx,
                     current.charIdx, TknType.closedScope, ""));
@@ -91,70 +79,10 @@ Context buildBasicAst(Context ctx) {
     }
 
     for (auto i = 1; i < stack.size(); i++) {
-        root.children ~= stack[i];
+        root ~= stack[i];
     }
 
     ctx.ast = root;
 
     return ctx;
-}
-
-// SECTION Conversion from AST to Cells
-
-bool isTypedMathOp(string text) {
-    return text == "+'" || text == "-'" || text == "*'" || text == "/'" || text == "%'"
-        || text == "<<'" || text == ">>'" || text == "bit-and'"
-        || text == "bit-or'" || text == "bit-xor'";
-}
-
-bool isMathOp(string text) {
-    return text == "+" || text == "-" || text == "*" || text == "/" || text == "%"
-        || text == "<<" || text == ">>" || text == "bit-and" || text == "bit-or" || text == "bit-xor";
-}
-
-bool isBoolOp(string text) {
-    return text == "and" || text == "or" || text == "xor" || text == "lsp-and"
-        || text == "lsp-or" || text == "lsp-xor";
-}
-
-bool isAtom(AstNode ast) {
-    auto type = ast.type;
-    auto types = [
-        TknType.litInt, TknType.litUInt, TknType.litBool, TknType.litString,
-        TknType.litKeyword, TknType.symbol, TknType.litFlt
-    ];
-    foreach (TknType e; types) {
-        if (type == e)
-            return true;
-    }
-    return false;
-}
-
-Cell parseAtom(AstNode node) {
-    import std.conv : to;
-
-    switch (node.type) {
-    case TknType.litInt:
-        return Cell.wrap(to!long(node.text));
-    case TknType.litUInt:
-        return Cell.wrap(to!ulong(node.text));
-    case TknType.litBool:
-        return Cell.wrap(node.text != "#f");
-    case TknType.litString:
-        return Cell.wrap(node.text[1 .. $ - 1]);
-    case TknType.litKeyword:
-        return Cell.wrap(Keyword(node.text));
-    case TknType.symbol:
-        return Cell.wrap(Symbol(node.text));
-    case TknType.litFlt:
-        return Cell.wrap(to!double(node.text));
-    default:
-        return null;
-    }
-}
-
-Cell convertAstToCells(AstNode ast) {
-    Cell root = Cell.wrap(null);
-
-    return root;
 }
