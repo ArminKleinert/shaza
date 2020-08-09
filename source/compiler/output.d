@@ -193,50 +193,6 @@ string generalFunctionBindingsToString(Appender!string result, AstNode[] binding
     return result.get();
 }
 
-/*
-string functionBodyToString(Appender!string result, string fnType,
-        AstNode[] bindings, AstNode[] bodyNodes, bool withLineBreaks) {
-    result ~= '{';
-    if (withLineBreaks)
-        result ~= '\n';
-
-    // If the body is empty, return the default value of the return-type
-    // or, if the type is void, leave an empty body
-    if (bodyNodes.length == 0) {
-        if (fnType == "void")
-            return result.get();
-        result ~= "return ";
-        result ~= fnType;
-        result ~= ".init;";
-        return result.get();
-    }
-
-    // Write all but the last statement
-    foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
-        result ~= createOutput(bodyNode);
-        insertSemicolon(result, bodyNode);
-        if (withLineBreaks)
-            result ~= '\n';
-    }
-
-    AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
-
-    // Implicitly insert "return" if possible.
-    if (allowImplicitReturn(fnType, lastStmt)) {
-        result ~= "return ";}
-
-    result ~= createOutput(lastStmt);
-    insertSemicolon(result, lastStmt);
-    if (withLineBreaks)
-        result ~= '\n';
-
-    result ~= '}';
-    if (withLineBreaks)
-        result ~= '\n';
-    return result.get();
-}
-*/
-
 string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
     result ~= "{\n";
 
@@ -297,63 +253,6 @@ void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] 
     if (OutputContext.global)
         OutputContext.global.addFunc(name, type, genericTypes, args);
 }
-
-/*
-string etDefineToString(AstNode ast) {
-    string typeText = typeToString(ast.nodes[1]);
-    AstNode signature = ast.nodes[2];
-
-    auto result = appender!string(typeText);
-    result ~= " ";
-
-    // The define seems to be defining a function
-    if (signature.type == TknType.closedScope) {
-        string name = signature.nodes[0].text;
-        result ~= szNameToHostName(name);
-        AstNode[] bindings = signature.nodes[1 .. $];
-        AstNode[] rest = ast.nodes[3 .. $];
-        typedFunctionBindingsToString(result, bindings);
-
-        addFunctionFromAst(name, typeText, [], bindings);
-
-        return defineFnToString(result, typeText, rest);
-    }
-
-    result ~= szNameToHostName(signature.text); // Name
-    result ~= " = ";
-    result ~= createOutput(ast.nodes[3]); // Value
-    result ~= ";\n";
-
-    return result.get();
-}
-*/
-
-/*
-string genDefineToString(AstNode ast) {
-    string type = typeToString(ast.nodes[1]);
-    AstNode[] generics = ast.nodes[2].nodes;
-    string name = ast.nodes[3].nodes[0].text;
-    AstNode[] bindings = ast.nodes[3].nodes[1 .. $];
-    AstNode[] bodyNodes = ast.nodes[4 .. $];
-
-    addFunctionFromAst(name, type, generics, bindings);
-
-    auto result = appender!string(type);
-    result ~= " ";
-    result ~= szNameToHostName(name);
-    result ~= "(";
-
-    for (int i = 0; i < generics.length; i++) {
-        result ~= generics[i].text; // Type
-        if (i < generics.length - 1)
-            result ~= ", ";
-    }
-
-    result ~= ")";
-    typedFunctionBindingsToString(result, bindings);
-    return defineFnToString(result, type, bodyNodes);
-}
-*/
 
 string generalDefineToString(AstNode ast) {
     int nameIndex = 1; // Assume that the name symbol is at index 1
@@ -612,17 +511,20 @@ string llToString(AstNode ast) {
 string ifToString(AstNode ast) {
     AstNode condition = ast.nodes[1];
     AstNode branchThen = ast.nodes[2];
-    AstNode branchElse = ast.nodes[3];
     auto result = appender("");
     result ~= "if(";
     result ~= createOutput(condition);
     result ~= ") {\n";
     result ~= createOutput(branchThen);
     insertSemicolon(result, branchThen);
-    result ~= "\n} else {\n";
+    result ~= "\n}";
+
+    if (ast.size == 4) {
+    AstNode branchElse = ast.nodes[3];
+    result ~=" else {\n";
     result ~= createOutput(branchElse);
     insertSemicolon(result, branchElse);
-    result ~= "\n}";
+    result ~= "\n}";}
     return result.get();
 }
 

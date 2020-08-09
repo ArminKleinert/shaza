@@ -217,9 +217,13 @@ bool opensScope(AstNode node) {
         return false;
     if (node.size == 0)
         return false;
+    if (node.type == TknType.root)
+        return true;
+
     switch (node.nodes[0].text) {
     case "t-let":
     case "let":
+    case "loop":
     case "define":
         return true;
     default:
@@ -244,7 +248,8 @@ string atomToString(AstNode ast) {
 }
 
 string szNameToHostName(string szVarName) {
-    if (szVarName.size == 1) return szVarName;
+    if (szVarName.size == 1)
+        return szVarName;
     szVarName = szVarName.replace("-", "_");
     szVarName = szVarName.replace("?", "_Q");
     szVarName = szVarName.replace("!", "_E");

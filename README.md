@@ -130,8 +130,8 @@ A byte further in the future:
 
 ## TODO List
 
-- Clean up code  
-- Implement lambdas, loop and recur  
+- Implement lambdas
+- Implement loop and recur  
 - Clean up code  
 - Implement tests.
 - Go down the "missing features" list.  
