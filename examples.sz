@@ -3,7 +3,6 @@
 
 (define abc "def")
 (define ::int defg 1000)
-;(define foo (::int i) ) ; FIXME Compiler thought this was a variable?
 (define ::int bar () 1)
 (define (T) baz (::T arg) (writeln arg))
 
@@ -33,16 +32,38 @@
 (def-struct GenericType (T) ::T entry)
 (def-struct EmptyType)
 
+; Test the if statement
 (define ::bool ifTest () {
     (if #t (return #t) (return #f)))
 
+; recur to function
 (define ::void infinite_loop ()
     (writeln "hey!")
     (recur))
 
+; recur to loop
 (define ::int finite_loop ()
     (loop (::int i 0
            v 1)
         (if (ge? i 10)
             (return i)
             (recur (inc i) 15))))
+
+; Set attribute "n" of object mt
+(define ::void setv_attr_test_1 (::MyType mt)
+    (setv! mt n 15))
+
+; This one is more of a side-effect of how symbols are parsed. Still nice.
+; Notice that this compiles to a simple assignment instead of an
+; attribute assignment.
+(define ::void setv_attr_test_2 (::MyType mt)
+    (setv! mt.n 15))
+
+; Set attribute "n" of object mt; The keyword is turned into a symbol
+(define ::void setv_attr_test_2 (::MyType mt)
+    (setv! mt :n 15))
+
+; Set attribute "n" of object mt; The string is unquoted.
+(define ::void setv_attr_test_2 (::MyType mt)
+    (setv! mt "n" 15))
+

@@ -166,6 +166,12 @@ string typestring(AstNode node) {
     return node.text;
 }
 
+string keywordToString(AstNode node) {
+    if (node.type != TknType.litKeyword)
+        throw new CompilerError("Expected symbol: " ~ node.tknstr);
+    return szNameToHostName(node.text[1 .. $]);
+}
+
 // SECTION Minor helpers
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
@@ -562,15 +568,38 @@ string listLiteralToString(AstNode ast) {
 
 // SECTION setv! (assignment) to string
 
+string simpleSetvToString(string name, AstNode newVal) {
+    return name ~ " = " ~ createOutput(newVal);
+}
+
+string attrSetvToString(string name, AstNode attr, AstNode newVal) {
+    expectType(attr, TknType.symbol, TknType.litKeyword, TknType.litString);
+
+    string s;
+    if (attr.type == TknType.litKeyword)
+        s = keywordToString(attr);
+    else if (attr.type == TknType.litString)
+        s = attr.text[1 .. $ - 1];
+    else
+        s = symbolToString(attr);
+
+    return name ~ "." ~ s ~ " = " ~ createOutput(newVal);
+}
+
 string setvToString(AstNode ast) {
-    if (ast.nodes.length != 3) {
-        throw new CompilerError("setv! requires exactly 2 arguments!");
+    if (ast.nodes.size < 3) {
+        throw new CompilerError("setv: Too few arguments. " ~ ast.tknstr());
     }
 
     auto result = appender("");
-    result ~= szNameToHostName(symbolToString(ast.nodes[1])); // Var name
-    result ~= " = ";
-    result ~= createOutput(ast.nodes[2]); // Value
+    expectType(ast.nodes[1], TknType.symbol);
+    auto varname = createOutput(ast.nodes[1]); // Var name
+
+    if (ast.nodes.size == 3) {
+        result ~= simpleSetvToString(varname, ast.nodes[2]);
+    } else if (ast.nodes.size == 4) {
+        result ~= attrSetvToString(varname, ast.nodes[2], ast.nodes[3]);
+    }
     insertSemicolon(result, ast);
     return result.get();
 }
@@ -993,11 +1022,16 @@ string createOutput(AstNode ast) {
     }
 
     if (ast.type == TknType.root) {
-        auto result = "";
+        auto rootTexts = appender!(string[])();
         foreach (AstNode child; ast.nodes) {
-            result ~= createOutput(child);
+            rootTexts ~= createOutput(child);
         }
-        return result;
+        rootTexts ~= OutputContext.global().globals;
+        auto result = appender("");
+        foreach (txt; rootTexts[]) {
+            result ~= txt;
+        }
+        return result.get();
     }
 
     return "";

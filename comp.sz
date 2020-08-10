@@ -1,0 +1,40 @@
+(module compiler)
+
+(def-struct Token
+  ::string text
+  ::string type
+  ::long line
+  ::long index)
+
+(define ::Token[] tokens [])
+(define ::long line 0)
+(define ::long chIndex 0)
+(define ::long start_line 0)
+(define ::long start_char 0)
+(define ::bool next_escaped #f)
+(define ::string curr_text "")
+(define ::bool is_in_string #f)
+(define ::bool is_in_type_literal #f)
+
+(define ::char quot_mark (ch "\""))
+
+(define ::bool is_string_literal (::string text)
+  (and (ge? (size text) 2)
+       (eql? (first text) quot_mark)
+       (eql? (last text) quot_mark)))
+
+(define ::bool is_valid_symbol (::string text)
+  (if (lt? (size text) 2)
+    (return false))
+  (loop (curr (first text) ::string rst)
+    (if (empty? rst)
+      (return true))
+    (if (contains "\";()[]{}#:" curr)
+      (return false)
+      (recur (first rst) (slice rst 1))))
+
+(define ::bool is_valid_number
+
+(define ::Token[] tokenize (::string text)
+  )
+

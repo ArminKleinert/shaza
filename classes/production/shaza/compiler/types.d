@@ -86,6 +86,10 @@ class AstNode {
         return tkn.type;
     }
 
+    string tknstr() {
+        return tkn.as_readable();
+    }
+
     size_t size() {
         return children.length;
     }
@@ -167,6 +171,8 @@ bool allowImplicitReturn(string returnType, AstNode command) {
     case "for":
     case "foreach":
     case "while":
+    case "loop":
+    case "recur":
         return false;
     default:
         return true;

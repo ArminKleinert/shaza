@@ -105,8 +105,8 @@ At the moment Shaza offers any type that D has.
 ## Missing features
 
 Near future:  
+- tail-recursion (right now, ``recur`` should be used)
 - ``lambda`` (ouch!)  
-- ``loop, recur``  
 - Operators with ``'``  
 - ``lsp-and, lsp-or, lsp-xor``  
 - Implicit return from ``if`` and loops.  
@@ -130,7 +130,8 @@ A byte further in the future:
 
 ## TODO List
 
-- Implement loop and recur  
+- Implement tail-recursion
+  and make compiler turn statements into expressions  
 - Implement lambdas  
 - Clean up code  
 - Implement tests.
