@@ -134,6 +134,7 @@ A byte further in the future:
 - Implement tail-recursion
   and make compiler turn statements into expressions  
 - Implement lambdas  
+- Implement type-guards for generics
 - Clean up code  
 - Implement tests.
 - Go down the "missing features" list.  

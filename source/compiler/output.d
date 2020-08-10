@@ -289,9 +289,9 @@ void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] 
 
 // SECTION define-instruction
 
-string generalDefineToString(AstNode ast) {
+string generalDefineToString(AstNode ast, bool forceFunctionDef) {
     int nameIndex = 1; // Assume that the name symbol is at index 1
-    bool isFunctionDef = false;
+    bool isFunctionDef = forceFunctionDef;
 
     // SUBSECT Try to get type.
     // If none is given, try again later.
@@ -343,12 +343,20 @@ string generalDefineToString(AstNode ast) {
     // SUBSECT Create output text for variables and return
 
     if (!isFunctionDef) {
+        string val;
+        if (ast.nodes.size == nameIndex + 1) {
+            assert(type != "auto");
+            val = type ~ ".init";
+        } else {
+            val = createOutput(ast.nodes[nameIndex + 1]);
+        }
+
         auto result = appender("");
         result ~= type;
         result ~= " ";
         result ~= name;
         result ~= " = ";
-        result ~= createOutput(ast.nodes[nameIndex + 1]); // Value
+        result ~= val; // Value
         result ~= ";\n";
         return result.get();
     }
@@ -367,9 +375,9 @@ string generalDefineToString(AstNode ast) {
     auto argNames = getVarNamesFromBindings(bindings);
 
     // Error if body is empty
-    if (bodyNodes.length == 0) {
-        throw new CompilerError("Empty function body: " ~ ast.tknstr);
-    }
+    //if (bodyNodes.length == 0) {
+    //    throw new CompilerError("Empty function body: " ~ ast.tknstr);
+    //}
 
     // Add function to globals
     addFunctionFromAst(name, type, generics, bindings);
@@ -409,7 +417,7 @@ string defineFnToString(Appender!string result, string type, string[] argNames, 
             return result.get();
         result ~= "return ";
         result ~= type;
-        result ~= ".init;";
+        result ~= ".init;\n}\n";
         return result.get();
     }
 
@@ -786,6 +794,45 @@ string recurToString(AstNode ast) {
     return result.get();
 }
 
+// SECTION conversions -> cast and to
+
+string conversionToString(AstNode ast) {
+    if (ast.size < 3) {
+        throw new CompilerError("to: Not enough arguments. " ~ ast.nodes[0].tknstr());
+    }
+    auto s = "to!" ~ typeToString(ast.nodes[1]);
+    return toOrCastToString(ast, s);
+}
+
+string castToString(AstNode ast) {
+    if (ast.size < 3) {
+        throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
+    }
+    auto s = "cast(" ~ typeToString(ast.nodes[1]) ~ ")";
+    return toOrCastToString(ast, s);
+}
+
+string toOrCastToString(AstNode ast, string start) {
+    if (ast.size < 3) {
+        throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
+    }
+    expectType(ast.nodes[1], TknType.litType);
+
+    auto result = appender(start);
+    result ~= "(";
+    result ~= createOutput(ast.nodes[2]);
+
+    if (ast.size > 3) {
+        foreach (arg; ast.nodes[3 .. $]) {
+            result ~= ", ";
+            result ~= createOutput(arg);
+        }
+    }
+
+    result ~= ")";
+    return result.get();
+}
+
 // SECTION Return
 
 string returnToString(AstNode ast) {
@@ -945,6 +992,12 @@ string opcallToString(AstNode ast) {
 // SECTION Main switch-table for string-creation of ast.
 
 string createOutput(AstNode ast) {
+    import std.conv;
+
+    auto s_to_i_with_base_test = to!int("12345", 16);
+    auto s_to_i_test = to!int("12345");
+    auto cast_f_i_test = cast(int)(1.5f);
+
     if (isAtom(ast.tkn)) {
         return atomToString(ast);
     }
@@ -958,7 +1011,9 @@ string createOutput(AstNode ast) {
         if (firstTkn.type == TknType.symbol) {
             switch (firstTkn.text) {
             case "define":
-                return generalDefineToString(ast);
+                return generalDefineToString(ast, false);
+            case "define-fn":
+                return generalDefineToString(ast, true);
             case "define-macro":
                 break; // TODO
             case "define-tk-macro":
@@ -987,6 +1042,10 @@ string createOutput(AstNode ast) {
                 return loopToString(ast);
             case "recur":
                 return recurToString(ast);
+            case "to":
+                return conversionToString(ast);
+            case "cast":
+                return castToString(ast);
             case "and":
             case "or":
             case "xor":

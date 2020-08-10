@@ -5,9 +5,10 @@
 (import-host "std.algorithm")
 (import-host "std.array")
 
+; SECTION Simple math
+
 (define ::N (N) inc (::N n) (llr n + 1))
 (define ::N (N) dec (::N n) (llr n - 1))
-
 (define ::Num (Num) add (::Num i0 ::Num i1) (opcall + i0 i1))
 (define ::Num (Num) plus (::Num i0 ::Num i1) (opcall + i0 i1))
 (define ::Num (Num) sub (::Num i0 ::Num i1) (opcall - i0 i1))
@@ -16,6 +17,8 @@
 (define ::Num (Num) div (::Num i0 ::Num i1) (opcall / i0 i1))
 (define ::Num (Num) mod (::Num i0 ::Num i1) (opcall % i0 i1))
 
+; SECTION Bit-ops
+
 (define ::Integral (Integral) (bit-and ::Integral i0 ::Integral i1)
     (opcall & i0 i1))
 (define ::Integral (Integral) (bit-or ::Integral i0 ::Integral i1)
@@ -23,11 +26,15 @@
 (define ::Integral (Integral) (bit-xor ::Integral i0 ::Integral i1)
     (opcall ^ i0 i1))
 
+; SECTION bool-ops
+
 (comment Not yet. Implement when lazy arguments are implemented.
     (define ::bool (and ::bool b0 ::bool b1) (llr b0 && b1))
     (define ::bool (or ::bool b0 ::bool b1) (llr b0 || b1))
     (define ::bool (not ::bool b0) (llr !b0))
 )
+
+; SECTION Comparisons and null-check
 
 (define ::bool (T) eql? (::T e0 ::T e1) (llr e0 == e1))
 (define ::bool (T) not_eql? (::T e0 ::T e1) (llr e0 != e1))
@@ -35,8 +42,14 @@
 (define ::bool (T) le? (::T e0 ::T e1) (llr e0 <= e1))
 (define ::bool (T) gt? (::T e0 ::T e1) (llr e0 > e1))
 (define ::bool (T) ge? (::T e0 ::T e1) (llr e0 >= e1))
-
 (define ::bool (T) nil? (::T e) (llr "e is null"))
+
+(define ::int (T) compare (::T e0 ::T e1)
+    (if (eql? e0 e1) (return 0)
+    (if (lt? e0 e1) (return -1)
+    (return 1))))
+
+; SECTION Concatenation and appending of arrays
 
 (define ::T[] (T) concat (::T[] coll0 ::T[] coll1) (llr coll0 ~ coll1))
 (define ::T[] (T) append (::T[] coll0 ::T value) (llr coll0 ~ value))
@@ -48,55 +61,99 @@
     (ll coll0 ~= value)
     coll0)
 
+; SECTION Attributes of and access to arrays
+
 (define ::size_t (T) size (::T[] coll) (llr "coll.length"))
+(define ::bool (T) empty? (::T[] coll) (eql? (size coll) 0))
+
 (define ::T (T) get (::T[] coll ::size_t index) (llr "coll[index]"))
 (define ::T (T) at (::T[] coll ::size_t index) (get coll index))
 (define ::T (T) first (::T[] coll) (get coll 0))
 (define ::T (T) second (::T[] coll) (get coll 1))
 (define ::T (T) last (::T[] coll) (get coll (dec (size coll))))
+(define ::T[] (T) rest (::T[] coll) (slice coll 1))
 
 (define ::T[] (T) slice (::T[] coll ::size_t start)
     (llr "coll[start .. $]"))
 (define ::T[] (T) slice (::T[] coll ::size_t start ::size_t end_offset)
     (llr "coll[start .. $ - end_offset]"))
 
-(comment
-    (define ::T[] (T) map (::"T delegate(T elem)" func ::T[] coll)
-        (t-let [::T[] outcoll []]
-        (reduce
-            (lambda (elem outcoll) (append outcoll (func elem)))
-            coll
-            outcoll)))
-)
+; SECTION Tests for an array having a specific attribute
 
-(comment
-    (define ::T1 (T T1) reduce (::"T1 delegate(T curr, T1 res)" func ::T[] coll ::T1 initVal)
-        (ll
-            "T1 output = initVal; foreach (current; coll) { output = func(current, output); } return output;"
-            ))
-)
-
-(define ::bool (T) contains (::T[] coll ::T value)
-    (loop (::T current ::T[] rest_)
+(define ::bool (T) contains? (::T[] coll ::T value)
+    (loop (::T current (first coll) ::T[] rest_ (rest coll))
         (if (eql? current value)
             (return true)
             (recur (first rest_) (rest coll)))))
 
-(define ::bool string_include? (::string s ::char c)
-    (contains s c))
+; Nicer-looking version of contains
+(define ::bool (T) in? (::T[] coll ::T val)
+    (contains? coll val))
 
 (define ::bool string_start_with? (::string s ::char c)
     (eql? (first s) c))
 
-(define ::char ch (::string s ::size_t pos)
-  (get s pos))
+(define ::bool (T) starts-with? (::T[] coll ::T e)
+    (eql? (first coll) e))
 
-(define ::char ch (::string s)
-  (first s))
+(define ::bool (T) starts-with? (::T[] coll ::T[] other)
+    (if (lt? (size coll) (size other))
+        (return false))
+    (loop (firstC (first coll)
+           firstO (first other)
+           restC (rest coll)
+           restO (rest other))
+      (if (not_eql? firstC firstO) (return false)
+      (if (empty? restO) (return true)
+      (recur (first restC) (first restO) (rest restC) (rest restO))
+      )))))
 
-(define ::bool string_end_with? (::string s ::char c)
-    (eql? (last s) c))
+(define ::bool (T) ends-with? (::T[] coll ::T e)
+    (eql? (last coll) e))
+
+(define ::bool (T) ends-with? (::T[] coll ::T[] other)
+    (if (lt? (size coll) (size other))
+        (return false)
+        (let (slice-idx (sub (size col) (size other))
+              sliced (slice coll slice-idx))
+            (return (starts-with? sliced other)))))
+
+; SECTION Type convertions
 
 (define ::string (T) to_s (::T e) (llr "to!string(" e ")"))
 
+(define ::bool can-convert-to-integral? (::string s ::int base)
+    (ll "try { to!long(text, base); return true;"
+        "} catch (ConvException ce) { return false; }"))
 
+(define ::bool can-convert-to-integral? (::string s)
+    (can-convert-to-integral? s 10))
+
+(define ::bool can-convert-to-unsigned? (::string s ::int base)
+    (ll "try { to!ulong(text, base); return true;"
+        "} catch (ConvException ce) { return false; }"))
+
+(define ::bool can-convert-to-unsigned? (::string s)
+    (can-convert-to-unsigned? s 10))
+
+(define ::bool can-convert-to-float? (::string s ::int base)
+    (ll "try { to!double(text, base); return true;"
+        "} catch (ConvException ce) { return false; }"))
+
+(define ::long to-int (::string s ::int base)
+    (llr "to!int(s, base)"))
+
+(define ::long to-uint (::string s ::int base)
+    (llr "to!uint(s, base)"))
+
+(define ::long to-long (::string s ::int base)
+    (llr "to!long(s, base)"))
+
+(define ::long to-ulong (::string s ::int base)
+    (llr "to!ulong(s, base)"))
+
+(define ::long to-float (::string s)
+    (llr "to!double(s)"))
+
+(define ::long to-double (::string s)
+    (llr "to!double(s)"))
