@@ -30,3 +30,10 @@
 (define ::void infinite_loop ()
     (writeln "hey!")
     (recur))
+
+(define ::void finite_loop ()
+    (loop (::int i 0
+           v 1)
+        (if (ge? i 10)
+            (return i)
+            (recur ))))

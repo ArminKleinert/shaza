@@ -127,7 +127,7 @@ class OutputContext {
     string newLabel() {
         string name = "jumplbl" ~ to!string(jumpLabelStack.size + 1);
         jumpLabelStack ~= name;
-        return name~":\n";
+        return name ~ ":\n";
     }
 
     string getLastJumpLabel() {
@@ -143,20 +143,21 @@ class OutputContext {
 
 string symbolToString(AstNode node) {
     if (node.type != TknType.symbol)
-        throw new CompilerError("Expected symbol: " ~ node.tkn.as_readable());
+        throw new CompilerError("Expected symbol: " ~ node.tknstr);
     return node.text;
 }
 
 string typestring(AstNode node) {
     if (node.type != TknType.symbol)
-        throw new CompilerError("Expected type: " ~ node.tkn.as_readable());
+        throw new CompilerError("Expected type: " ~ node.tknstr);
     return node.text;
 }
 
 // SECTION Minor helpers
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
-    if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '}')
+    if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '{'
+            && result[][$ - 1] != '}')
         result ~= ';';
     return result;
 }
@@ -164,17 +165,19 @@ Appender!string insertSemicolon(Appender!string result, AstNode node) {
 // SUBSECT Do nested search for "recur" in nodes.
 
 bool nodeContainsRecur(AstNode node) {
-    if (node.type == TknType.symbol && node.text == "recur"){
+    if (node.type == TknType.symbol && node.text == "recur") {
         return true;
     }
     return nodesContainRecur(node.nodes);
 }
 
 bool nodesContainRecur(AstNode[] astNodes) {
-    if (astNodes.size == 0) return false;
+    if (astNodes.size == 0)
+        return false;
 
-    foreach(node; astNodes) {
-        if (nodeContainsRecur(node)) return true;
+    foreach (node; astNodes) {
+        if (nodeContainsRecur(node))
+            return true;
     }
 
     return false;
@@ -196,42 +199,6 @@ string callArgsToString(AstNode[] args) {
     result ~= ')';
     return result.get();
 }
-
-// FIXME Remove?
-/*
-string functionBindingsToString(Appender!string result, AstNode[] bindings) {
-    result ~= "(";
-
-    // Write function argument list
-    for (int i = 0; i < bindings.length; i++) {
-        result ~= szNameToHostName(symbolToString(bindings[i])); // Name
-        if (i < bindings.length - 1)
-            result ~= ", ";
-    }
-
-    result ~= ")";
-    return result.get();
-}
-*/
-
-// FIXME Remove?
-/*
-string typedFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
-    result ~= "(";
-
-    // Write function argument list
-    for (int i = 0; i < bindings.length; i += 2) {
-        result ~= typeToString(bindings[i]);
-        result ~= " ";
-        result ~= szNameToHostName(symbolToString(bindings[i + 1])); // Name
-        if (i < bindings.length - 2)
-            result ~= ", ";
-    }
-
-    result ~= ")";
-    return result.get();
-}
-*/
 
 // SECTION Generate text for function bindings.
 
@@ -364,7 +331,7 @@ string generalDefineToString(AstNode ast) {
 
     // Error if body is empty
     if (bodyNodes.length == 0) {
-        throw new CompilerError("Empty function body: " ~ ast.tkn.as_readable());
+        throw new CompilerError("Empty function body: " ~ ast.tknstr);
     }
 
     // Add function to globals
@@ -410,7 +377,7 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
     }
 
     // Add jump-label
-    bool doAddLabel =nodesContainRecur(bodyNodes);
+    bool doAddLabel = nodesContainRecur(bodyNodes);
     if (doAddLabel)
         result ~= OutputContext.global.newLabel();
 
@@ -418,7 +385,8 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(bodyNode);
         insertSemicolon(result, bodyNode);
-        result ~= '\n';}
+        result ~= '\n';
+    }
 
     AstNode lastStmt = bodyNodes[bodyNodes.length - 1];
 
@@ -432,7 +400,7 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
 
     // Pop jump label
     if (doAddLabel)
-    OutputContext.global.removeLastLabel();
+        OutputContext.global.removeLastLabel();
 
     result ~= "\n}\n";
     return result.get();
@@ -655,41 +623,75 @@ string ifToString(AstNode ast) {
 
 // FIXME
 string tLambdaToString(AstNode ast) {
-    throw new CompilerError("t-lambda not implemented yet: " ~ ast.tkn.as_readable());
+    throw new CompilerError("t-lambda not implemented yet: " ~ ast.tknstr);
 }
 
 // FIXME
 string lambdaToString(AstNode ast) {
-    throw new CompilerError("lambda not implemented yet: " ~ ast.tkn.as_readable());
+    throw new CompilerError("lambda not implemented yet: " ~ ast.tknstr);
 }
 
 // SECTION loop
 
 string loopToString(AstNode ast) {
-    // TODO Verification
-    // TODO assert bindings is closedScope
-    // TODO assert body not empty
+    // SUBSECT Error checking
+
+    if (ast.size < 3) {
+        throw new CompilerError("Loop: not enough arguments. " ~ ast.nodes[0].tknstr);
+    }
+    if (ast.nodes[1].type != TknType.closedScope) {
+        throw new CompilerError("Loop: First argument must be a scope. " ~ ast.nodes[1].tknstr());
+    }
+
+    // SUBSECT Retrieve bindings and body
 
     AstNode[] bindings = ast.nodes[1].nodes;
-    AstNode[] bodyNodes = ast.nodes[2..$];
+    AstNode[] bodyNodes = ast.nodes[2 .. $];
+
+    // SUBSECT Write bindings to result
 
     auto result = appender("");
-    // TODO Generate variable definition
 
-    // Add label
+    for (auto i = 0; i < bindings.size; i += 2) {
+        if (bindings[i].type == TknType.litType) {
+            result ~= typeToString(bindings[i]);
+            i++;
+        } else {
+            result ~= "auto"; // If no type is given, insert "auto"
+        }
+        result ~= ' ';
+
+        // SUBSECT Write variable name
+        if (bindings[i].type != TknType.symbol) {
+            throw new CompilerError("Loop: Variable name must be symbol: " ~ bindings[i].tknstr());
+        }
+        result ~= symbolToString(bindings[i]);
+        result ~= ' ';
+
+        // SUBSECT Write value of variable
+        if (bindings.size <= i + 1) {
+            throw new CompilerError("Loop: Value for variable expected: " ~ bindings[i].tknstr());
+        }
+        result ~= createOutput(bindings[i + 1]);
+        insertSemicolon(result, bindings[i + 1]);
+        result ~= '\n';
+    }
+
+    // SUBSECT Add jump-label
     bool doAddLabel = nodesContainRecur(bodyNodes);
-if (doAddLabel)    result ~= OutputContext.global.newLabel();
+    if (doAddLabel)
+        result ~= OutputContext.global.newLabel();
 
-    // Generate body
+    // SUBSECT Generate body
     foreach (node; bodyNodes) {
         result ~= createOutput(node);
         insertSemicolon(result, node);
         result ~= '\n';
     }
 
+    // SUBSECT Remove label and return
     if (doAddLabel)
-    OutputContext.global.removeLastLabel();
-
+        OutputContext.global.removeLastLabel();
     return result.get();
 }
 
@@ -698,7 +700,7 @@ if (doAddLabel)    result ~= OutputContext.global.newLabel();
 string recurToString(AstNode ast) {
     // TODO verification
 
-    AstNode[] bindings = ast.nodes[1..$];
+    AstNode[] bindings = ast.nodes[1 .. $];
     // TODO Set variables to new bindings here
 
     auto result = appender("");
@@ -721,12 +723,11 @@ string returnToString(AstNode ast) {
 
 string newToString(AstNode ast) {
     if (ast.nodes.length < 2) {
-        throw new CompilerError("new requires at least one parameter. " ~ ast.tkn.as_readable());
+        throw new CompilerError("new requires at least one parameter. " ~ ast.tknstr);
     }
 
     if (ast.nodes[1].type != TknType.litType) {
-        throw new CompilerError(
-                "new: First parameter must be type literal. " ~ ast.nodes[1].tkn.as_readable());
+        throw new CompilerError("new: First parameter must be type literal. " ~ ast.nodes[1].tknstr);
     }
 
     return "new " ~ createOutput(ast.nodes[1]) ~ callArgsToString(ast.nodes[2 .. $]) ~ ";";
@@ -740,7 +741,7 @@ string defStructToString(AstNode ast) {
 
     if (ast.size < 2) {
         auto msg = "def-struct: Not enough parameters. ";
-        throw new CompilerError(msg ~ ast.tkn.as_readable());
+        throw new CompilerError(msg ~ ast.tknstr);
     }
 
     // SUBSECT Get type name
@@ -749,7 +750,7 @@ string defStructToString(AstNode ast) {
 
     if (typeNode.type != TknType.symbol) {
         auto msg = "def-struct: First argument must be a symbol. ";
-        throw new CompilerError(msg ~ typeNode.tkn.as_readable());
+        throw new CompilerError(msg ~ typeNode.tknstr);
     }
 
     // SUBSECT find generics (if given) and fields
@@ -770,7 +771,7 @@ string defStructToString(AstNode ast) {
 
     if (attrList.size % 2 != 0) {
         auto msg = "def-struct: fields must be a sequence of types and symbols.";
-        throw new CompilerError(msg ~ typeNode.tkn.as_readable());
+        throw new CompilerError(msg ~ typeNode.tknstr);
     }
 
     // SUBSECT Retrieve field types and field names
