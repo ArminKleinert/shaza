@@ -118,6 +118,8 @@ Near future:
 
 A byte further in the future:  
 - Unit-tests  
+- type-guards on generics  
+- Modifiers on functions and vars (private, const, etc.)
 - Lazy argument evaluation  
 - Automatic type induction for functions  
 - ``define-macro, define-tk-macro``  
@@ -134,7 +136,6 @@ A byte further in the future:
 - Implement tail-recursion
   and make compiler turn statements into expressions  
 - Implement lambdas  
-- Implement type-guards for generics
 - Clean up code  
 - Implement tests.
 - Go down the "missing features" list.  

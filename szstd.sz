@@ -5,6 +5,17 @@
 (import-host "std.algorithm")
 (import-host "std.array")
 
+; SECTION Global vars
+
+(define ::int default-int)
+(define ::uint default-uint)
+(define ::long default-long)
+(define ::ulong default-ulong)
+(define ::bool default-bool)
+(define ::float default-float)
+(define ::double default-double)
+(define ::string default-string "")
+
 ; SECTION Simple math
 
 (define ::N (N) inc (::N n) (llr n + 1))
