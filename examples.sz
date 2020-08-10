@@ -68,3 +68,8 @@
 (define ::void setv_attr_test_4 (::MyType mt)
     (setv! mt "n" 15))
 
+; Tests for character literals
+(define chtest1 \tab)
+(define chtest2 \space)
+(define chtest3 \newline)
+(define chtest4 \z)

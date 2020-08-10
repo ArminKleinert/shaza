@@ -50,6 +50,7 @@
 
 (define ::size_t (T) size (::T[] coll) (llr "coll.length"))
 (define ::T (T) get (::T[] coll ::size_t index) (llr "coll[index]"))
+(define ::T (T) at (::T[] coll ::size_t index) (get coll index))
 (define ::T (T) first (::T[] coll) (get coll 0))
 (define ::T (T) second (::T[] coll) (get coll 1))
 (define ::T (T) last (::T[] coll) (get coll (dec (size coll))))

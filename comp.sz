@@ -17,6 +17,8 @@
 (define ::bool is_in_type_literal #f)
 
 (define ::char quot_mark (ch "\""))
+(define ::char minus_sign (ch "+"))
+(define ::char plus_sign (ch "+"))
 
 (define ::bool is_string_literal (::string text)
   (and (ge? (size text) 2)
@@ -33,7 +35,9 @@
       (return false)
       (recur (first rst) (slice rst 1))))
 
-(define ::bool is_valid_number
+(define ::bool is_valid_number (::string text)
+    (let (start_idx 0)
+        (if (eql? (first text) ))
 
 (define ::Token[] tokenize (::string text)
   )

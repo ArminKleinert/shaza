@@ -25,6 +25,7 @@ enum TknType : byte {
     litFlt,
     litBool,
     litString,
+    litChar,
     litList,
     litMap,
     litKeyword,
@@ -147,6 +148,7 @@ bool isLiteral(Token tkn) {
     case TknType.litMap:
     case TknType.litKeyword:
     case TknType.litType:
+    case TknType.litChar:
         return true;
     default:
         return false;
@@ -248,6 +250,15 @@ string atomToString(AstNode ast) {
         text = appender("Keyword(");
         text ~= ast.text;
         text ~= ")";
+    } else if (ast.type == TknType.litChar) {
+        writeln(ast);
+        if (ast.text == "\\space")
+            return "' '";
+        if (ast.text == "\\newline")
+            return "'\\n'";
+        if (ast.text == "\\tab")
+            return "'\\t'";
+        return "'" ~ ast.text[1] ~ "'";
     }
 
     return text.get();

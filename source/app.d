@@ -38,6 +38,13 @@ bool isBoolLiteral(string text) {
     return text == "#t" || text == "#f";
 }
 
+bool isCharLiteral(string text) {
+    if (text.size < 2)
+        return false;
+    return text == "\\space" || text == "\\newline" || text == "\\tab"
+        || (text[0] == "\\"[0] && text.size == 2);
+}
+
 // SUBSECT Token-type-table
 
 TknType tknTypeByText(string text) {
@@ -55,6 +62,8 @@ TknType tknTypeByText(string text) {
         return TknType.litKeyword;
     } else if (isTypeLiteral(text)) {
         return TknType.litType;
+    } else if (isCharLiteral(text)) {
+        return TknType.litChar;
     } else if (isValidSymbolText(text)) {
         return TknType.symbol;
     } else if (isStringLiteral(text)) {
