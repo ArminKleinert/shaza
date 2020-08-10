@@ -117,6 +117,7 @@ Near future:
 - ``bytesize, alloc, free, pointerto``  
 
 A byte further in the future:  
+- Unit-tests  
 - Lazy argument evaluation  
 - Automatic type induction for functions  
 - ``define-macro, define-tk-macro``  
