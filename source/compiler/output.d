@@ -342,7 +342,7 @@ string generalDefineToString(AstNode ast) {
         result ~= " ";
         result ~= name;
         result ~= " = ";
-        result ~= createOutput(ast.nodes[2]); // Value
+        result ~= createOutput(ast.nodes[nameIndex + 1]); // Value
         result ~= ";\n";
         return result.get();
     }

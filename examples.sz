@@ -2,7 +2,7 @@
 (import-host "std.stdio")
 
 (define abc "def")
-(define ::int abc 1000)
+(define ::int defg 1000)
 ;(define foo (::int i) ) ; FIXME Compiler thought this was a variable?
 (define ::int bar () 1)
 (define (T) baz (::T arg) (writeln arg))
@@ -21,9 +21,6 @@
 (define ::T (T) applyIf
   (::T elem ::T default1 ::"bool delegate (T e)" pred  ::"T delegate (T e)" func)
   (if (pred elem) (return (func elem)) (return default1)))
-
-; A trick: ::" " (important whitespace) can be used to make a define with no type.
-;(define ::" " abc "defg") ; FIXME Gave output "abc = abc"???
 
 ; Single line comment
 
