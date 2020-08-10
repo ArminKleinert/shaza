@@ -3,7 +3,7 @@
 
 (define abc "def")
 (define ::int abc 1000)
-(define foo (::int i) )
+;(define foo (::int i) ) ; FIXME Compiler thought this was a variable?
 (define ::int bar () 1)
 (define (T) baz (::T arg) (writeln arg))
 
