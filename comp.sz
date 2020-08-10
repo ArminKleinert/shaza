@@ -9,21 +9,21 @@
 (define ::Token[] tokens [])
 (define ::long line 0)
 (define ::long chIndex 0)
-(define ::long start_line 0)
-(define ::long start_char 0)
-(define ::bool next_escaped #f)
-(define ::string curr_text "")
-(define ::bool is_in_string #f)
-(define ::bool is_in_type_literal #f)
+(define ::long start-line 0)
+(define ::long start-char 0)
+(define ::bool next-escaped #f)
+(define ::string curr-text "")
+(define ::bool is-in-string #f)
+(define ::bool is-in-type-literal #f)
 
-(define ::char quot_mark (ch "\""))
+(define ::char quot-mark (ch "\""))
 
-(define ::bool is_string_literal (::string text)
+(define ::bool is-string-literal (::string text)
   (and (ge? (size text) 2)
-       (eql? (first text) quot_mark)
-       (eql? (last text) quot_mark)))
+       (eql? (first text) quot-mark)
+       (eql? (last text) quot-mark)))
 
-(define ::bool is_valid_symbol (::string text)
+(define ::bool is-valid-symbol (::string text)
   (if (lt? (size text) 2)
     (return false))
   (loop (curr (first text) ::string rst)
@@ -33,9 +33,17 @@
       (return false)
       (recur (first rst) (slice rst 1))))
 
-(define ::bool is_valid_number (::string text)
-    (let (start_idx 0)
-        (if (eql? (first text) \+))
+(define ::bool is-valid-integral? (::string text)
+    (llr "canConvert!long(e)")))
+
+(define ::bool is-valid-unsigned? (::string text)
+    (llr "canConvert!ulong(e)")))
+
+(define ::bool is-valid-float? (::string text)
+    (llr "canConvert!double(e)")))
+
+(define is-valid-number? (::string text)
+    (and (is-valid-integral? text) (is-valid-float? text)))
 
 (define ::Token[] tokenize (::string text)
   )

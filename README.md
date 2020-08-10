@@ -133,9 +133,9 @@ A byte further in the future:
 
 ## TODO List
 
+- Implement lambdas  
 - Implement tail-recursion
   and make compiler turn statements into expressions  
-- Implement lambdas  
 - Clean up code  
 - Implement tests.
 - Go down the "missing features" list.  

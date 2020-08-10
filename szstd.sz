@@ -133,38 +133,15 @@
 
 (define ::string (T) to_s (::T e) (llr "to!string(" e ")"))
 
-(define ::bool can-convert-to-integral? (::string s ::int base)
-    (ll "try { to!long(text, base); return true;"
-        "} catch (ConvException ce) { return false; }"))
+(ll "bool canConvert(toType, fromType)(fromType e) {
+import std.conv;
+try { to!toType(e); return true;
+} catch(ConvException ce) { return false; }}")
 
-(define ::bool can-convert-to-integral? (::string s)
-    (can-convert-to-integral? s 10))
-
-(define ::bool can-convert-to-unsigned? (::string s ::int base)
-    (ll "try { to!ulong(text, base); return true;"
-        "} catch (ConvException ce) { return false; }"))
-
-(define ::bool can-convert-to-unsigned? (::string s)
-    (can-convert-to-unsigned? s 10))
-
-(define ::bool can-convert-to-float? (::string s ::int base)
-    (ll "try { to!double(text, base); return true;"
-        "} catch (ConvException ce) { return false; }"))
-
-(define ::long to-int (::string s ::int base)
-    (llr "to!int(s, base)"))
-
-(define ::long to-uint (::string s ::int base)
-    (llr "to!uint(s, base)"))
-
-(define ::long to-long (::string s ::int base)
-    (llr "to!long(s, base)"))
-
-(define ::long to-ulong (::string s ::int base)
-    (llr "to!ulong(s, base)"))
-
-(define ::long to-float (::string s)
-    (llr "to!double(s)"))
-
-(define ::long to-double (::string s)
-    (llr "to!double(s)"))
+; TODO All of the below should be implemented as a macro in the future.
+(define ::bool (T) to-int-valid? (::T e) (llr "canConvert!int(e)"))
+(define ::bool (T) to-uint-valid? (::T e) (llr "canConvert!uint(e)"))
+(define ::bool (T) to-long-valid? (::T e) (llr "canConvert!long(e)"))
+(define ::bool (T) to-ulong-valid? (::T e) (llr "canConvert!ulong(e)"))
+(define ::bool (T) to-float-valid? (::T e) (llr "canConvert!float(e)"))
+(define ::bool (T) to-double-valid? (::T e) (llr "canConvert!double(e)"))
