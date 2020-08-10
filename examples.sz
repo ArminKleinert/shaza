@@ -42,6 +42,7 @@
     (recur))
 
 ; recur to loop
+; FIXME For some reason, the compiler inserts a ; at the end here. Find out why.
 (define ::int finite_loop ()
     (loop (::int i 0
            v 1)
@@ -60,10 +61,10 @@
     (setv! mt.n 15))
 
 ; Set attribute "n" of object mt; The keyword is turned into a symbol
-(define ::void setv_attr_test_2 (::MyType mt)
+(define ::void setv_attr_test_3 (::MyType mt)
     (setv! mt :n 15))
 
 ; Set attribute "n" of object mt; The string is unquoted.
-(define ::void setv_attr_test_2 (::MyType mt)
+(define ::void setv_attr_test_4 (::MyType mt)
     (setv! mt "n" 15))
 
