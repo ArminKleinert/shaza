@@ -30,13 +30,25 @@ struct FunctionDecl {
     }
 }
 
+// SECTION Class for Jumplabels with information about related variable-names
+
+class Jumplabel {
+    const string text;
+    const immutable(string)[] vars;
+
+    this(string _text, string[] _vars) {
+        text = _text;
+        vars = _vars.dup;
+    }
+}
+
 // SECTION Class for a global context holding information about registered functions
 
 class OutputContext {
     private string[] globals;
     private FunctionDecl[] _functions;
     private static FunctionDecl NO_FUNCTION;
-    private string[] jumpLabelStack;
+    private Jumplabel[] jumpLabelStack;
 
     private __gshared OutputContext _global;
 
@@ -124,13 +136,14 @@ class OutputContext {
         return NO_FUNCTION;
     }
 
-    string newLabel() {
+    string newLabel(string[] varnames) {
         string name = "jumplbl" ~ to!string(jumpLabelStack.size + 1);
-        jumpLabelStack ~= name;
+        Jumplabel lbl = new Jumplabel(name, varnames);
+        jumpLabelStack ~= lbl;
         return name ~ ":\n";
     }
 
-    string getLastJumpLabel() {
+    Jumplabel getLastJumpLabel() {
         return jumpLabelStack[jumpLabelStack.size - 1];
     }
 
@@ -144,7 +157,7 @@ class OutputContext {
 string symbolToString(AstNode node) {
     if (node.type != TknType.symbol)
         throw new CompilerError("Expected symbol: " ~ node.tknstr);
-    return node.text;
+    return szNameToHostName(node.text);
 }
 
 string typestring(AstNode node) {
@@ -176,6 +189,10 @@ bool nodesContainRecur(AstNode[] astNodes) {
         return false;
 
     foreach (node; astNodes) {
+        if (node.type == TknType.closedScope && node.size > 0
+                && (node.nodes[0].text == "loop" || node.nodes[0].text == "define")) {
+            return false;
+        }
         if (nodeContainsRecur(node))
             return true;
     }
@@ -203,6 +220,18 @@ string callArgsToString(AstNode[] args) {
 // SECTION Generate text for function bindings.
 
 static const string SHAZA_PARENT_TYPE = "Object";
+
+string[] getVarNamesFromBindings(AstNode[] bindings) {
+    string[] names;
+
+    for (int i = 0; i < bindings.length; i++) {
+        if (bindings[i].type == TknType.symbol) {
+            names ~= szNameToHostName(symbolToString(bindings[i]));
+        }
+    }
+
+    return names;
+}
 
 string generalFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
     result ~= "(";
@@ -243,6 +272,7 @@ void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] 
 
     string[] args;
 
+    // FIXME Update because sometimes the types are now optional
     for (int i = 0; i < bindings.length; i += 2) { // +2 skips name
         args ~= typeToString(bindings[i]);
     }
@@ -328,6 +358,7 @@ string generalDefineToString(AstNode ast) {
 
     AstNode[] bindings = ast.nodes[nameIndex + 1].nodes;
     AstNode[] bodyNodes = ast.nodes[nameIndex + 2 .. $];
+    auto argNames = getVarNamesFromBindings(bindings);
 
     // Error if body is empty
     if (bodyNodes.length == 0) {
@@ -357,12 +388,12 @@ string generalDefineToString(AstNode ast) {
     // SUBSECT Write rest of arguments and body and return
 
     generalFunctionBindingsToString(result, bindings);
-    return defineFnToString(result, type, bodyNodes);
+    return defineFnToString(result, type, argNames, bodyNodes);
 }
 
 // SUBSECT Helper for bindings and body of the define-instruction
 
-string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes) {
+string defineFnToString(Appender!string result, string type, string[] argNames, AstNode[] bodyNodes) {
     result ~= "{\n";
 
     // If the body is empty, return the default value of the return-type
@@ -378,8 +409,9 @@ string defineFnToString(Appender!string result, string type, AstNode[] bodyNodes
 
     // Add jump-label
     bool doAddLabel = nodesContainRecur(bodyNodes);
-    if (doAddLabel)
-        result ~= OutputContext.global.newLabel();
+    if (doAddLabel) {
+        result ~= OutputContext.global.newLabel(argNames);
+    }
 
     // Write all but the last statement
     foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
@@ -647,12 +679,14 @@ string loopToString(AstNode ast) {
 
     AstNode[] bindings = ast.nodes[1].nodes;
     AstNode[] bodyNodes = ast.nodes[2 .. $];
+    string[] argNames = getVarNamesFromBindings(bindings);
 
     // SUBSECT Write bindings to result
 
     auto result = appender("");
 
     for (auto i = 0; i < bindings.size; i += 2) {
+        // Type
         if (bindings[i].type == TknType.litType) {
             result ~= typeToString(bindings[i]);
             i++;
@@ -661,14 +695,14 @@ string loopToString(AstNode ast) {
         }
         result ~= ' ';
 
-        // SUBSECT Write variable name
+        // Write variable name
         if (bindings[i].type != TknType.symbol) {
             throw new CompilerError("Loop: Variable name must be symbol: " ~ bindings[i].tknstr());
         }
         result ~= symbolToString(bindings[i]);
-        result ~= ' ';
+        result ~= " = ";
 
-        // SUBSECT Write value of variable
+        // Write value of variable
         if (bindings.size <= i + 1) {
             throw new CompilerError("Loop: Value for variable expected: " ~ bindings[i].tknstr());
         }
@@ -680,7 +714,7 @@ string loopToString(AstNode ast) {
     // SUBSECT Add jump-label
     bool doAddLabel = nodesContainRecur(bodyNodes);
     if (doAddLabel)
-        result ~= OutputContext.global.newLabel();
+        result ~= OutputContext.global.newLabel(argNames);
 
     // SUBSECT Generate body
     foreach (node; bodyNodes) {
@@ -701,14 +735,24 @@ string recurToString(AstNode ast) {
     // TODO verification
 
     AstNode[] bindings = ast.nodes[1 .. $];
-    // TODO Set variables to new bindings here
+    auto lastLabel = OutputContext.global.getLastJumpLabel();
+
+    if (bindings.size != lastLabel.vars.size) {
+        throw new CompilerError("Too many or too few bindings" ~ ast.nodes[0].tknstr());
+    }
 
     auto result = appender("");
 
-    // TODO Add text of setting variables here.
+    for (auto i = 0; i < lastLabel.vars.size; i++) {
+        result ~= lastLabel.vars[i];
+        result ~= " = ";
+        result ~= createOutput(bindings[i]);
+        insertSemicolon(result, bindings[i]);
+        result ~= '\n';
+    }
 
     result ~= "goto ";
-    result ~= OutputContext.global.getLastJumpLabel();
+    result ~= lastLabel.text;
     result ~= ';';
     return result.get();
 }
@@ -814,8 +858,7 @@ string defStructToString(AstNode ast) {
     // SUBSECT Write constructor
 
     // Name
-    result ~= symbolToString(typeNode);
-    result ~= '(';
+    result ~= "this(";
     // Write constructor arguments; Arguments have a '_' in front of the name.
     for (auto i = 0; i < fieldTypes.size; i++) {
         result ~= fieldTypes[i];

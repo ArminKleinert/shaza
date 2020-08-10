@@ -1,9 +1,18 @@
 (import-host "std.string")
+(import-host "std.stdio")
 
 (define abc "def")
-(define foo (::int i) (opcall + i 1))
+(define ::int abc 1000)
+(define foo (::int i) )
 (define ::int bar () 1)
 (define (T) baz (::T arg) (writeln arg))
+
+(define ::bool (T) eql? (::T o0 ::T o1) (llr o0 == o1))
+(define ::bool (T) not_eql? (::T o0 ::T o1) (llr o0 != o1))
+(define ::bool (T) lt? (::T o0 ::T o1) (llr o0 < o1))
+(define ::bool (T) le? (::T o0 ::T o1) (llr o0 <= o1))
+(define ::bool (T) gt? (::T o0 ::T o1) (llr o0 > o1))
+(define ::bool (T) ge? (::T o0 ::T o1) (llr o0 >= o1))
 
 (define ::N (N) inc (::N n) (opcall + n 1))
 (define ::N (N) dec (::N n) (opcall - n 1))
@@ -14,7 +23,7 @@
   (if (pred elem) (return (func elem)) (return default1)))
 
 ; A trick: ::" " (important whitespace) can be used to make a define with no type.
-(define ::" " abc "defg")
+;(define ::" " abc "defg") ; FIXME Gave output "abc = abc"???
 
 ; Single line comment
 
@@ -27,13 +36,16 @@
 (def-struct GenericType (T) ::T entry)
 (def-struct EmptyType)
 
+(define ::bool ifTest () {
+    (if #t (return #t) (return #f)))
+
 (define ::void infinite_loop ()
     (writeln "hey!")
     (recur))
 
-(define ::void finite_loop ()
+(define ::int finite_loop ()
     (loop (::int i 0
            v 1)
         (if (ge? i 10)
             (return i)
-            (recur ))))
+            (recur (inc i) 15))))

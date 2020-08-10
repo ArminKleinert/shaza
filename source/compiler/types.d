@@ -171,6 +171,8 @@ bool allowImplicitReturn(string returnType, AstNode command) {
     case "for":
     case "foreach":
     case "while":
+    case "loop":
+    case "recur":
         return false;
     default:
         return true;
