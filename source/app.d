@@ -185,5 +185,6 @@ void main() {
     auto ctx = new Context();
     ctx = tokenize(ctx, txt);
     ctx = buildBasicAst(ctx);
-    writeln(createOutput(ctx.ast));
+    auto output = createOutput(ctx.ast);
+    writeln(output);
 }

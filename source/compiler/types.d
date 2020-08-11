@@ -251,7 +251,6 @@ string atomToString(AstNode ast) {
         text ~= ast.text;
         text ~= ")";
     } else if (ast.type == TknType.litChar) {
-        writeln(ast);
         if (ast.text == "\\space")
             return "' '";
         if (ast.text == "\\newline")

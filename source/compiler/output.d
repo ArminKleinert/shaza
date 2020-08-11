@@ -13,20 +13,66 @@ import compiler.ast;
 import shaza.buildins;
 import shaza.std;
 
+// SECTION class for meta-info about functions
+
+class FnMeta {
+    const string exportName;
+    const string visibility;
+    const immutable(string)[] aliases;
+    const immutable(string)[] generics;
+
+    this(string exportName, string visibility, in string[] aliases, in string[] generics) {
+        this.exportName = exportName;
+        this.visibility = visibility;
+        this.aliases = aliases.dup;
+        this.generics = generics.dup;
+    }
+
+    this(string exportName, string[] generics) {
+        this.exportName = exportName;
+        this.generics = generics.dup;
+        aliases = [];
+        visibility = "public";
+    }
+}
+
 // SECTION Struct for info about function declarations
 
-struct FunctionDecl {
+class FunctionDecl {
+    const FnMeta meta;
     const string name;
     const string returnType;
-    const immutable(string)[] genericTypes;
     const immutable(string)[] argTypes;
 
-    this(string name, string returnType, const immutable(string)[] genericTypes,
-            const immutable(string)[] argTypes) {
+    this(FnMeta meta, string name, string returnType, const immutable(string)[] argTypes) {
+        this.meta = meta;
         this.name = name;
         this.returnType = returnType;
-        this.genericTypes = genericTypes;
         this.argTypes = argTypes;
+    }
+
+    immutable(string)[] generics() {
+        if (meta is null)
+            return [];
+        return meta.generics;
+    }
+
+    string exportName() {
+        if (meta is null || meta.exportName.size == 0)
+            return szNameToHostName(name);
+        return meta.exportName;
+    }
+
+    string visibility() {
+        if (meta is null)
+            return "public";
+        return meta.visibility;
+    }
+
+    immutable(string)[] aliases() {
+        if (meta is null)
+            return [];
+        return meta.aliases;
     }
 }
 
@@ -47,14 +93,9 @@ class Jumplabel {
 class OutputContext {
     private string[] globals;
     private FunctionDecl[] _functions;
-    private static FunctionDecl NO_FUNCTION;
     private Jumplabel[] jumpLabelStack;
 
     private __gshared OutputContext _global;
-
-    static this() {
-        NO_FUNCTION = FunctionDecl(null, null, null, null);
-    }
 
     this() {
         globals = [];
@@ -67,23 +108,17 @@ class OutputContext {
         return _global;
     }
 
-    public void addFunc(string name, string returnType, string[] genericTypes, string[] argTypes) {
+    public FunctionDecl addFunc(FnMeta meta, string name, string returnType, string[] argTypes) {
         immutable(string)[] args = argTypes.dup;
-        immutable(string)[] gens = genericTypes.dup;
-        _functions ~= FunctionDecl(name, returnType, gens, args);
+        auto fd = new FunctionDecl(meta, name, returnType, args);
+        _functions ~= fd;
+        return fd;
     }
 
-    public void addFunc(string name, string returnType, string[] argTypes) {
-        immutable(string)[] args = argTypes.dup;
-        _functions ~= FunctionDecl(name, returnType, [], args);
-    }
-
-    public void addFunc(string name, string returnType) {
-        _functions ~= FunctionDecl(name, returnType, [], []);
-    }
-
-    public void addScope(Token orig,) {
-
+    public FunctionDecl addFunc(FnMeta meta, string name, string returnType) {
+        auto fd = new FunctionDecl(meta, name, returnType, []);
+        _functions ~= fd;
+        return fd;
     }
 
     public string[] functions() {
@@ -110,7 +145,7 @@ class OutputContext {
             current ~= ' ';
             current ~= fn.name;
             current ~= '(';
-            current ~= to!string(fn.genericTypes)[1 .. $ - 1];
+            current ~= to!string(fn.generics)[1 .. $ - 1];
             current ~= ")(";
             current ~= to!string(fn.argTypes)[1 .. $ - 1];
             current ~= ')';
@@ -133,7 +168,7 @@ class OutputContext {
             if (fn.name == name)
                 return fn;
         }
-        return NO_FUNCTION;
+        return null;
     }
 
     string newLabel(string[] varnames) {
@@ -209,7 +244,24 @@ bool nodesContainRecur(AstNode[] astNodes) {
 // SECTION Fucntion call to string
 
 string callToString(AstNode ast) {
-    return symbolToString(ast.nodes[0]) ~ callArgsToString(ast.nodes[1 .. $]);
+    if (ast.size == 0) {
+        throw new CompilerError("Unexpected empty scope. " ~ ast.tknstr());
+    }
+
+    string callingName;
+    if (ast.nodes[0].type == TknType.symbol) {
+        if (FunctionDecl fn = OutputContext.global.findFn(ast.nodes[0].text))
+            callingName = fn.meta.exportName;
+        else
+            callingName = symbolToString(ast.nodes[0]);
+    } else {
+        // Ok, if we are not using a name to call a function,
+        // it might be a lambda definition.. Just trust the user
+        // what could go wrong :D
+        callingName = createOutput(ast.nodes[0]);
+    }
+
+    return callingName ~ callArgsToString(ast.nodes[1 .. $]);
 }
 
 string callArgsToString(AstNode[] args) {
@@ -264,18 +316,12 @@ string generalFunctionBindingsToString(Appender!string result, AstNode[] binding
 
 // SECTION Add function to globally visible functions (May be used for type induction)
 
-void addFunctionFromAst(string name, AstNode typeNode, AstNode[] generics, AstNode[] bindings) {
+FunctionDecl addFunctionFromAst(FnMeta meta, string name, AstNode typeNode, AstNode[] bindings) {
     string type = typestring(typeNode);
-    addFunctionFromAst(name, type, generics, bindings);
+    return addFunctionFromAst(meta, name, type, bindings);
 }
 
-void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] bindings) {
-    string[] genericTypes;
-
-    for (int i = 0; i < generics.length; i++) {
-        genericTypes ~= symbolToString(generics[i]); // Type
-    }
-
+FunctionDecl addFunctionFromAst(FnMeta meta, string name, string type, AstNode[] bindings) {
     string[] args;
 
     // FIXME Update because sometimes the types are now optional
@@ -283,13 +329,12 @@ void addFunctionFromAst(string name, string type, AstNode[] generics, AstNode[] 
         args ~= typeToString(bindings[i]);
     }
 
-    if (OutputContext.global)
-        OutputContext.global.addFunc(name, type, genericTypes, args);
+    return OutputContext.global.addFunc(meta, name, type, args);
 }
 
 // SECTION define-instruction
 
-string generalDefineToString(AstNode ast, bool forceFunctionDef) {
+string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
     int nameIndex = 1; // Assume that the name symbol is at index 1
     bool isFunctionDef = forceFunctionDef;
 
@@ -303,10 +348,19 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
 
     // SUBSECT Generics
 
-    AstNode[] generics = []; // None if not given
+    string[] generics = []; // None if not given
     if (ast.nodes[nameIndex].type == TknType.closedScope) {
         isFunctionDef = true;
-        generics = ast.nodes[nameIndex].nodes;
+
+        if (meta !is null) {
+            stderr.writeln("Generics ignored because meta is given. " ~ ast.nodes[0].tknstr());
+        } else {
+            auto genericsNodes = ast.nodes[nameIndex].nodes;
+            foreach (node; genericsNodes) {
+                generics ~= szNameToHostName(node.text);
+            }
+        }
+
         nameIndex++;
     }
 
@@ -314,11 +368,11 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
 
     AstNode nameNode = ast.nodes[nameIndex];
     if (nameNode.type != TknType.symbol) {
-        string msg = "Token " ~ nameNode.tkn.as_readable;
+        string msg = "Token " ~ nameNode.tknstr();
         msg ~= " not allowed as a variable/function name. Token must be a symbol!";
         throw new CompilerError(msg);
     }
-    string name = symbolToString(nameNode);
+    string name = nameNode.text;
 
     // SUBSECT Check if this is a function declaration
 
@@ -343,6 +397,10 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
     // SUBSECT Create output text for variables and return
 
     if (!isFunctionDef) {
+        if (meta !is null) {
+            stderr.writeln("Metadata ignored. " ~ ast.nodes[0].tknstr());
+        }
+
         string val;
         if (ast.nodes.size == nameIndex + 1) {
             assert(type != "auto");
@@ -354,7 +412,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
         auto result = appender("");
         result ~= type;
         result ~= " ";
-        result ~= name;
+        result ~= symbolToString(nameNode);
         result ~= " = ";
         result ~= val; // Value
         result ~= ";\n";
@@ -374,35 +432,47 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
     AstNode[] bodyNodes = ast.nodes[nameIndex + 2 .. $];
     auto argNames = getVarNamesFromBindings(bindings);
 
-    // Error if body is empty
-    //if (bodyNodes.length == 0) {
-    //    throw new CompilerError("Empty function body: " ~ ast.tknstr);
-    //}
-
     // Add function to globals
-    addFunctionFromAst(name, type, generics, bindings);
+    if (meta is null)
+        meta = new FnMeta(szNameToHostName(name), generics);
+    auto fndeclaration = addFunctionFromAst(meta, name, type, bindings);
 
     // SUBSECT Write name and (if given) generic types.
 
-    auto result = appender!string(type);
-    result ~= " ";
-    result ~= szNameToHostName(name);
+    auto result = appender("");
+    if (meta.visibility != "public") {
+        result ~= fndeclaration.visibility;
+        result ~= ' ';
+    }
+    result ~= type;
+    result ~= ' ';
+    result ~= fndeclaration.exportName;
 
     // If the function has generic arguments.
-    if (generics.length > 0) {
-        result ~= "(";
-        for (int i = 0; i < generics.length; i++) {
-            result ~= symbolToString(generics[i]); // Type
-            if (i < generics.length - 1)
+    if (fndeclaration.generics.length > 0) {
+        result ~= '(';
+        for (int i = 0; i < fndeclaration.generics.length; i++) {
+            result ~= fndeclaration.generics[i]; // Type
+            if (i < fndeclaration.generics.length - 1)
                 result ~= ", ";
         }
-        result ~= ")";
+        result ~= ')';
     }
 
     // SUBSECT Write rest of arguments and body and return
 
     generalFunctionBindingsToString(result, bindings);
-    return defineFnToString(result, type, argNames, bodyNodes);
+    defineFnToString(result, type, argNames, bodyNodes);
+
+    foreach (aliasName; fndeclaration.aliases) {
+        result ~= "alias ";
+        result ~= aliasName;
+        result ~= "=";
+        result ~= fndeclaration.exportName;
+        result ~= ";\n";
+    }
+
+    return result.get();
 }
 
 // SUBSECT Helper for body of the define-instruction
@@ -973,21 +1043,6 @@ string defStructToString(AstNode ast) {
     return result.get();
 }
 
-// SECTION Boolean operator to string
-
-// TODO Remove when support for lazy arguments is added
-
-string boolOpToString(AstNode ast) {
-    string op = ast.nodes[0].text;
-    if (op == "and")
-        op = "&&";
-    else if (op == "or")
-        op = "||";
-    else if (op == "xor")
-        op = "^";
-    return "(" ~ createOutput(ast.nodes[1]) ~ op ~ createOutput(ast.nodes[2]) ~ ")";
-}
-
 // SECTION Operator call (+, -, *, /, &, %, |) for > 2 arguments
 
 string opcallToString(AstNode ast) {
@@ -1002,6 +1057,72 @@ string opcallToString(AstNode ast) {
     result ~= createOutput(ast.nodes[ast.size - 1]);
     result ~= ")";
     return result.get();
+}
+
+// SECTION Parse "meta" instruction
+
+string parseMetaGetString(AstNode ast) {
+    if (ast.size < 3) {
+        throw new CompilerError("meta: Too few arguments. " ~ ast.nodes[0].tknstr());
+    }
+
+    auto attribs = ast.nodes[1];
+    auto wrapped = ast.nodes[2];
+
+    if (wrapped.nodes.size < 2 && wrapped.nodes[0].text != "define"
+            && wrapped.nodes[0].text != "define-fn") {
+        string msg = "meta can only be used on function definitions. Otherwise, it is ignored. ";
+        stderr.writeln(msg ~ ast.nodes[0].tknstr());
+        return createOutput(wrapped);
+    }
+
+    // Crash if attribute list is invalid
+    expectType(attribs, TknType.closedScope);
+
+    // SUBSECT Parse attributes
+
+    // Default values
+    string visibility = "public";
+    string[] generics = [];
+    string[] aliases = [];
+    string exportName = null;
+
+    // Currently accepted options are :generics, :visibility, :aliases, :export-as
+    for (auto i = 0; i < attribs.size; i++) {
+        expectType(attribs.nodes[i], TknType.litKeyword);
+        if (attribs.nodes[i].text == ":generics") {
+            i++;
+            expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
+            foreach (genNode; attribs.nodes[i].nodes) {
+                expectType(genNode, TknType.symbol);
+                generics ~= symbolToString(genNode);
+            }
+        } else if (attribs.nodes[i].text == ":visibility") {
+            i++;
+            expectType(attribs.nodes[i], TknType.litKeyword);
+            visibility = keywordToString(attribs.nodes[i]);
+        } else if (attribs.nodes[i].text == ":aliases") {
+            i++;
+            expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
+            foreach (aliasNode; attribs.nodes[i].nodes) {
+                expectType(aliasNode, TknType.symbol);
+                aliases ~= symbolToString(aliasNode);
+            }
+        } else if (attribs.nodes[i].text == ":export-as") {
+            i++;
+            expectType(attribs.nodes[i], TknType.litString);
+            exportName = attribs.nodes[i].text[1 .. $ - 1];
+        } else {
+            stderr.writeln("Unknown meta-option. " ~ attribs.nodes[i].tknstr());
+        }
+    }
+
+    // SUBSECT Create and parse function
+
+    auto meta = new FnMeta(exportName, visibility, aliases, generics);
+    auto forceIsFn = wrapped.nodes[0].text == "define-fn";
+
+    return generalDefineToString(wrapped, forceIsFn, meta);
 }
 
 // SECTION Main switch-table for string-creation of ast.
@@ -1026,9 +1147,9 @@ string createOutput(AstNode ast) {
         if (firstTkn.type == TknType.symbol) {
             switch (firstTkn.text) {
             case "define":
-                return generalDefineToString(ast, false);
+                return generalDefineToString(ast, false, null);
             case "define-fn":
-                return generalDefineToString(ast, true);
+                return generalDefineToString(ast, true, null);
             case "define-macro":
                 break; // TODO
             case "define-tk-macro":
@@ -1059,10 +1180,6 @@ string createOutput(AstNode ast) {
                 return conversionToString(ast);
             case "cast":
                 return castToString(ast);
-            case "and":
-            case "or":
-            case "xor":
-                return boolOpToString(ast);
             case "opcall":
                 return opcallToString(ast);
             case "comment":
@@ -1085,12 +1202,13 @@ string createOutput(AstNode ast) {
                 break; // TODO
             case "unquote":
                 break; // TODO
+            case "meta":
+                return parseMetaGetString(ast);
             default:
-                return callToString(ast);
+                break;
             }
-        } else {
-            writeln("Error? " ~ to!string(ast));
         }
+        return callToString(ast);
     }
 
     if (ast.type == TknType.root) {

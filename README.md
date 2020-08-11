@@ -83,21 +83,6 @@ Equivalents are available for the other operators too:
 ``bit-or bit-or'`` Bitwise or  
 ``bit-xor bit-xor'`` Bitwise xor  
 
-## Boolean operations
-
-Boolean operations are available in two forms: The "normal" version and a 
-"lispy" version (with prefix ``lsp-``). The former treats #f, nil and 0 as false.
-The latter treats any value that is not #f or nil as false and anything else as true. 
-
-``and lsp-and``  
-``or lsp-or``  
-``xor lsp-xor``  
-
-An important thing to note is that the lispy-version returns the last checked 
-value instead of just #t or #f:  
-``(or #f 7)`` => #t  
-``(lsp-or #f 7)`` => 7  
-
 ## Types
 
 At the moment Shaza offers any type that D has.
@@ -109,7 +94,6 @@ Near future:
 - ``lambda`` with automatic type induction  
 - tail-recursion (right now, ``recur`` should be used)
 - Operators with ``'``  
-- ``lsp-and, lsp-or, lsp-xor``  
 - Implicit return from ``if``, ``let`` and loops.  
 - ``struct``  
 - ``define-ns`` (This has not proven necessary yet)  

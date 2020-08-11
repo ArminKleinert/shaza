@@ -110,7 +110,7 @@
 ; Lambda tests
 (define d (lambda ::int (::int i) (inc i))) ; Assign lambda to a variable
 (define ::int call-lambda (::int:delegate(int) l) (l 1)) ; Take lambda as an argument
-(define call-call-lambda () (writeln (call-lambda (lambda ::int (::int i) (inc i))))) ; Call function with a lambda
+(define ::void call-call-lambda () (writeln (call-lambda (lambda ::int (::int i) (inc i))))) ; Call function with a lambda
 
 ; Lazy argument test
 (define ::int give_int_and_print(::int i) (writeln i) i)
@@ -126,4 +126,7 @@
 (define ::int[] int-array []) ; Square brackets are ok
 (define ::int* int-pointer null) ; Star is ok
 
-
+; Simple function with meta info about generics
+(meta
+  (:generics [T])
+  (define ::void baz2 (::T arg) (writeln arg)))
