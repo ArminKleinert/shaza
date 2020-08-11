@@ -129,4 +129,19 @@
 ; Simple function with meta info about generics
 (meta
   (:generics [T])
-  (define ::void baz2 (::T arg) (writeln arg)))
+  (define ::void meta-test-0 (::T arg) (writeln arg)))
+
+(meta
+  (:generics [T1 T2])
+  (define ::void meta-test-1 (::T1 arg) (writeln arg)))
+
+(meta (:generics [T] :aliases [none? nil? null?])
+  (define ::bool is-nil? (::T o) (llr "o is null")))
+(define ::void call-alias () (none? 15))
+
+(meta (:visibility :private)
+  (define ::void hidden-fn () (writeln)))
+
+(meta (:export-as "awesomeness")
+  (define ::int not-so-awesome () 41))
+(define ::void call-awesome () (writeln (awesomeness)))

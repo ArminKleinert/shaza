@@ -93,6 +93,7 @@ class Jumplabel {
 class OutputContext {
     private string[] globals;
     private FunctionDecl[] _functions;
+    private FunctionDecl[string] aliasedFunctions;
     private Jumplabel[] jumpLabelStack;
 
     private __gshared OutputContext _global;
@@ -110,13 +111,16 @@ class OutputContext {
 
     public FunctionDecl addFunc(FnMeta meta, string name, string returnType, string[] argTypes) {
         immutable(string)[] args = argTypes.dup;
-        auto fd = new FunctionDecl(meta, name, returnType, args);
-        _functions ~= fd;
-        return fd;
+        return addFunc(new FunctionDecl(meta, name, returnType, args));
     }
 
     public FunctionDecl addFunc(FnMeta meta, string name, string returnType) {
-        auto fd = new FunctionDecl(meta, name, returnType, []);
+        return addFunc(new FunctionDecl(meta, name, returnType, []));
+    }
+
+    private FunctionDecl addFunc(FunctionDecl fd) {
+        foreach (al; fd.aliases)
+            aliasedFunctions[al] = fd;
         _functions ~= fd;
         return fd;
     }
@@ -167,6 +171,9 @@ class OutputContext {
         foreach (fn; _functions) {
             if (fn.name == name)
                 return fn;
+        }
+        if (name in aliasedFunctions) {
+            return aliasedFunctions[name];
         }
         return null;
     }
@@ -250,8 +257,11 @@ string callToString(AstNode ast) {
 
     string callingName;
     if (ast.nodes[0].type == TknType.symbol) {
+        if (ast.nodes[0].text == "none?") {
+            writeln(OutputContext.global.aliasedFunctions);
+        }
         if (FunctionDecl fn = OutputContext.global.findFn(ast.nodes[0].text))
-            callingName = fn.meta.exportName;
+            callingName = fn.exportName;
         else
             callingName = symbolToString(ast.nodes[0]);
     } else {
@@ -291,8 +301,8 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
     return names;
 }
 
-string generalFunctionBindingsToString(Appender!string result, AstNode[] bindings) {
-    result ~= "(";
+string generalFunctionBindingsToString(AstNode[] bindings) {
+    auto result = appender("(");
 
     // Write function argument list
     for (int i = 0; i < bindings.length; i++) {
@@ -461,8 +471,9 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
     // SUBSECT Write rest of arguments and body and return
 
-    generalFunctionBindingsToString(result, bindings);
-    defineFnToString(result, type, argNames, bodyNodes);
+    result ~= generalFunctionBindingsToString(bindings);
+    result ~= defineFnToString(type, argNames, bodyNodes);
+    result ~= '\n';
 
     foreach (aliasName; fndeclaration.aliases) {
         result ~= "alias ";
@@ -477,8 +488,8 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
 // SUBSECT Helper for body of the define-instruction
 
-string defineFnToString(Appender!string result, string type, string[] argNames, AstNode[] bodyNodes) {
-    result ~= "{\n";
+string defineFnToString(string type, string[] argNames, AstNode[] bodyNodes) {
+    auto result = appender("{\n");
 
     // If the body is empty, return the default value of the return-type
     // or, if the type is void, leave an empty body
@@ -781,8 +792,9 @@ string lambdaToString(AstNode ast) {
 
     auto result = appender("delegate ");
     result ~= typeToString(returnType);
-    generalFunctionBindingsToString(result, bindings);
-    return defineFnToString(result, typeToString(returnType), bindingArgNames, bodyNodes);
+    result ~= generalFunctionBindingsToString(bindings);
+    result ~= defineFnToString(typeToString(returnType), bindingArgNames, bodyNodes);
+    return result.get();
 }
 
 // SECTION loop
@@ -1106,7 +1118,7 @@ string parseMetaGetString(AstNode ast) {
             expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
             foreach (aliasNode; attribs.nodes[i].nodes) {
                 expectType(aliasNode, TknType.symbol);
-                aliases ~= symbolToString(aliasNode);
+                aliases ~= aliasNode.text;
             }
         } else if (attribs.nodes[i].text == ":export-as") {
             i++;
