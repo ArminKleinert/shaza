@@ -144,4 +144,5 @@
 
 (meta (:export-as "awesomeness")
   (define ::int not-so-awesome () 41))
-(define ::void call-awesome () (writeln (awesomeness)))
+(define ::void call-awesome-1 () (writeln (awesomeness)))
+(define ::void call-awesome-2 () (writeln (not-so-awesome)))
