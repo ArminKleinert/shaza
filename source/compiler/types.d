@@ -270,6 +270,12 @@ string szNameToHostName(string szVarName) {
     szVarName = szVarName.replace("-", "_");
     szVarName = szVarName.replace("?", "_Q");
     szVarName = szVarName.replace("!", "_E");
+    szVarName = szVarName.replace("+", "_ADD");
+    szVarName = szVarName.replace("-", "_SUB");
+    szVarName = szVarName.replace("*", "_MUL");
+    szVarName = szVarName.replace("/", "_DIV");
+    szVarName = szVarName.replace("%", "_MOD");
+    szVarName = szVarName.replace("'", "_SQUOTE");
     return szVarName;
 }
 
@@ -287,9 +293,13 @@ string typeToString(AstNode ast) {
 string typeToString(string litType) {
     assert(litType.size > 2 && litType[0 .. 2] == "::");
 
+    import std.array;
+
     litType = litType[2 .. $];
     if (litType[0] == '"' && litType[litType.size - 1] == '"') {
         litType = litType[1 .. $ - 1];
+    } else {
+        litType = litType.replace(":", " ");
     }
     return litType;
 }

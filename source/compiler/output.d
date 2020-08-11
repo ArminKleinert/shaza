@@ -405,7 +405,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef) {
     return defineFnToString(result, type, argNames, bodyNodes);
 }
 
-// SUBSECT Helper for bindings and body of the define-instruction
+// SUBSECT Helper for body of the define-instruction
 
 string defineFnToString(Appender!string result, string type, string[] argNames, AstNode[] bodyNodes) {
     result ~= "{\n";
@@ -448,7 +448,7 @@ string defineFnToString(Appender!string result, string type, string[] argNames, 
     if (doAddLabel)
         OutputContext.global.removeLastLabel();
 
-    result ~= "\n}\n";
+    result ~= "\n}";
     return result.get();
 }
 
@@ -691,13 +691,28 @@ string ifToString(AstNode ast) {
 // SECTION Lambdas
 
 // FIXME
-string tLambdaToString(AstNode ast) {
-    throw new CompilerError("t-lambda not implemented yet: " ~ ast.tknstr);
-}
-
-// FIXME
 string lambdaToString(AstNode ast) {
-    throw new CompilerError("lambda not implemented yet: " ~ ast.tknstr);
+    if (ast.size < 4) {
+        throw new CompilerError("lambda: Not enough arguments. " ~ ast.nodes[0].tknstr());
+    }
+    if (ast.nodes[1].type != TknType.litType) {
+        string msg = "Lambda without explicit return type not supported yet. ";
+        throw new CompilerError(msg ~ ast.nodes[0].tknstr());
+    }
+    if (ast.nodes[2].type != TknType.closedScope) {
+        string msg = "Lambda argument must given in brackets. " ~ ast.nodes[0].tknstr();
+        throw new CompilerError(msg);
+    }
+
+    AstNode returnType = ast.nodes[1];
+    AstNode[] bindings = ast.nodes[2].nodes;
+    string[] bindingArgNames = getVarNamesFromBindings(bindings);
+    AstNode[] bodyNodes = ast.nodes[3 .. $];
+
+    auto result = appender("delegate ");
+    result ~= typeToString(returnType);
+    generalFunctionBindingsToString(result, bindings);
+    return defineFnToString(result, typeToString(returnType), bindingArgNames, bodyNodes);
 }
 
 // SECTION loop
@@ -1032,8 +1047,6 @@ string createOutput(AstNode ast) {
                 return ifToString(ast);
             case "lambda":
                 return lambdaToString(ast);
-            case "t-lambda":
-                return tLambdaToString(ast);
             case "return":
                 return returnToString(ast);
             case "new":
@@ -1088,7 +1101,7 @@ string createOutput(AstNode ast) {
         rootTexts ~= OutputContext.global().globals;
         auto result = appender("");
         foreach (txt; rootTexts[]) {
-            result ~= txt;
+            result ~= txt ~ "\n";
         }
         return result.get();
     }

@@ -105,13 +105,13 @@ At the moment Shaza offers any type that D has.
 ## Missing features
 
 Near future:  
+- ``lambda`` with automatic type induction  
 - tail-recursion (right now, ``recur`` should be used)
-- ``lambda`` (ouch!)  
 - Operators with ``'``  
 - ``lsp-and, lsp-or, lsp-xor``  
-- Implicit return from ``if`` and loops.  
+- Implicit return from ``if``, ``let`` and loops.  
 - ``struct``  
-- ``define-ns`` (This has not proven necessary yet)
+- ``define-ns`` (This has not proven necessary yet)  
 - ``import-sz``  
 - ``bit-cast``  
 - ``bytesize, alloc, free, pointerto``  
@@ -120,7 +120,6 @@ A byte further in the future:
 - Unit-tests  
 - type-guards on generics  
 - Modifiers on functions and vars (private, const, etc.)
-- Lazy argument evaluation  
 - Automatic type induction for functions  
 - ``define-macro, define-tk-macro``  
 - ``coll`` (This has not proven necessary yet)  
@@ -133,8 +132,7 @@ A byte further in the future:
 
 ## TODO List
 
-- Implement lambdas  
-- Implement tail-recursion
+- Implement tail-recursion  
   and make compiler turn statements into expressions  
 - Clean up code  
 - Implement tests.

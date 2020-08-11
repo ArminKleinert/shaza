@@ -25,6 +25,7 @@ enum TknType : byte {
     litFlt,
     litBool,
     litString,
+    litChar,
     litList,
     litMap,
     litKeyword,
@@ -147,6 +148,7 @@ bool isLiteral(Token tkn) {
     case TknType.litMap:
     case TknType.litKeyword:
     case TknType.litType:
+    case TknType.litChar:
         return true;
     default:
         return false;
@@ -248,6 +250,15 @@ string atomToString(AstNode ast) {
         text = appender("Keyword(");
         text ~= ast.text;
         text ~= ")";
+    } else if (ast.type == TknType.litChar) {
+        writeln(ast);
+        if (ast.text == "\\space")
+            return "' '";
+        if (ast.text == "\\newline")
+            return "'\\n'";
+        if (ast.text == "\\tab")
+            return "'\\t'";
+        return "'" ~ ast.text[1] ~ "'";
     }
 
     return text.get();
@@ -283,9 +294,30 @@ string typeToString(string litType) {
     return litType;
 }
 
+void expectType(AstNode node, TknType type) {
+    if (node.type != type) {
+        string msg = "Expected " ~ type ~ " but got " ~ node.tknstr();
+        throw new CompilerError(msg);
+    }
+}
+
+void expectType(AstNode node, TknType t1, TknType t2) {
+    if (node.type != t1 && node.type != t2) {
+        string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " but got " ~ node.tknstr();
+        throw new CompilerError(msg);
+    }
+}
+
+void expectType(AstNode node, TknType t1, TknType t2, TknType t3) {
+    if (node.type != t1 && node.type != t2 && node.type != t3) {
+        string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " or " ~ t3;
+        throw new CompilerError(msg ~ " but got " ~ node.tknstr());
+    }
+}
+
 // SUBSECT Other helpers
 
-string get(Appender!string ap) {
+T get(T)(Appender!T ap) {
     return ap[];
 }
 

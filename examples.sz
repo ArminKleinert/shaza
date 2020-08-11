@@ -106,3 +106,22 @@
 
 ; Tests for the cast-function
 (define cast-f-i-test (cast ::int 1.5f))
+
+; Lambda tests
+(define d (lambda ::int (::int i) (inc i))) ; Assign lambda to a variable
+(define ::int call-lambda (::int:delegate(int) l) (l 1)) ; Take lambda as an argument
+(define call-call-lambda () (writeln (call-lambda (lambda ::int (::int i) (inc i))))) ; Call function with a lambda
+
+; Lazy argument test
+(define ::int give_int_and_print(::int i) (writeln i) i)
+(define ::bool or_ (::lazy:int i ::lazy:int j) (llr i || j))
+(define ::void docall ()
+    (or_ (give_int_and_print 0) (give_int_and_print 1)) ; prints 0 and 1
+    (or_ (give_int_and_print 5) (give_int_and_print 9))) ; prints only 5
+
+; New type syntax test
+(define ::static:int static-i-0 0)
+(define ::"static int" static-i-1 0) ; Same code as the  above
+(define ::immutable(int) immutable-i 0) ; Brackets are ok
+(define ::int[] int-array []) ; Square brackets are ok
+(define ::int* int-pointer null) ; Star is ok
