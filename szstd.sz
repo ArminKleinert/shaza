@@ -18,15 +18,15 @@
 
 ; SECTION Simple math
 
-(define ::N (N) inc (::N n) (llr n + 1))
-(define ::N (N) dec (::N n) (llr n - 1))
-(define ::Num (Num) add (::Num i0 ::Num i1) (opcall + i0 i1))
-(define ::Num (Num) plus (::Num i0 ::Num i1) (opcall + i0 i1))
-(define ::Num (Num) sub (::Num i0 ::Num i1) (opcall - i0 i1))
-(define ::Num (Num) minus (::Num i0 ::Num i1) (opcall + i0 i1))
-(define ::Num (Num) mul (::Num i0 ::Num i1) (opcall * i0 i1))
-(define ::Num (Num) div (::Num i0 ::Num i1) (opcall / i0 i1))
-(define ::Num (Num) mod (::Num i0 ::Num i1) (opcall % i0 i1))
+(define ::N inc (::N n) (llr n + 1))
+(define ::N dec (::N n) (llr n - 1))
+(define ::N add (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::N plus (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::N sub (::Num i0 ::Num i1) (opcall - i0 i1))
+(define ::N minus (::Num i0 ::Num i1) (opcall + i0 i1))
+(define ::N mul (::Num i0 ::Num i1) (opcall * i0 i1))
+(define ::N div (::Num i0 ::Num i1) (opcall / i0 i1))
+(define ::N mod (::Num i0 ::Num i1) (opcall % i0 i1))
 
 ; SECTION Bit-ops
 

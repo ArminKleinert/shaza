@@ -146,3 +146,15 @@
   (define ::int not-so-awesome () 41))
 (define ::void call-awesome-1 () (writeln (awesomeness)))
 (define ::void call-awesome-2 () (writeln (not-so-awesome)))
+
+(meta
+  (:generics [Num] :visibility :private :returns :string)
+  ; Automatically adds generic class Num, visibility private and return type Num
+  (define num-fn-1 (::Num i0 ::Num i1) (opcall ~ "" i0 "" i1))
+  ; Same here
+  (define num-fn-2 (::Num i0 ::Num i1) (opcall ~ "" i0 "" i1))
+  ; private and uses generic type Num, but returns string
+  (define ::Num num-fn-3 (::Num i0 ::Num i1) (opcall + i0 i1))
+  ; Same visibility and return type, but different generics.
+  (define (N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1)))
+
