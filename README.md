@@ -105,6 +105,7 @@ At the moment Shaza offers any type that D has.
 ## Missing features
 
 Near future:  
+- ``alias``
 - ``lambda`` with automatic type induction  
 - tail-recursion (right now, ``recur`` should be used)
 - Operators with ``'``  
@@ -115,6 +116,7 @@ Near future:
 - ``import-sz``  
 - ``bit-cast``  
 - ``bytesize, alloc, free, pointerto``  
+- Lazy sequences
 
 A byte further in the future:  
 - Unit-tests  
@@ -150,7 +152,7 @@ A byte further in the future:
 
 ```
 ; A eager map-function using a generic type T.
-(define ::T[] (T) map (::"delegate T(T elem)" func ::T[] seq)
+(define ::T[] (T) map (::delegate:T(T) func ::T[] seq)
     (let (::T[] result [])
         (reduce
             (lambda (elem res) (append res (func elem)))

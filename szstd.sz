@@ -129,6 +129,26 @@
               sliced (slice coll slice-idx))
             (return (starts-with? sliced other)))))
 
+; SECTION List operations
+
+(define ::T[] (T) map (::delegate:T(T) func ::T[] coll)
+    (loop (::T[] result []
+           ::T[] _rest coll)
+        (if (empty? coll)
+            (return result)
+            (recur (append result (func (first _rest)))
+                   (rest coll)))))
+
+(define ::TOUT (TOUT, TIN) reduce (::delegate:TOUT(TIN, TOUT) func ::T[] coll ::TOUT initval)
+    (loop (::TOUT result initVal
+           ::T[] _rest coll)
+        (if (empty? coll)
+            (return result)
+            (recur (func (first _rest) result)
+                   (rest coll)))))
+
+; TODO filter, remove
+
 ; SECTION Type convertions
 
 (define ::string (T) to_s (::T e) (llr "to!string(" e ")"))
