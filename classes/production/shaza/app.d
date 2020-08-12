@@ -11,6 +11,15 @@ import compiler.types;
 import compiler.ast;
 import compiler.output;
 
+// Helper, delete when possible
+int idxOf(string text, char c) {
+    for (auto i = 0; i < text.size; i++) {
+        if (text[i] == c)
+            return i;
+    }
+    return -1;
+}
+
 // SECTION Literal identifiers
 
 bool isStringLiteral(string text) {
@@ -43,6 +52,43 @@ bool isCharLiteral(string text) {
         return false;
     return text == "\\space" || text == "\\newline" || text == "\\tab"
         || (text[0] == "\\"[0] && text.size == 2);
+}
+
+bool isValidTypeLiteral(string text) {
+    // Handle bracket
+    auto idx_of_ob = text.idxOf('(');
+    auto idx_of_cb = text.idxOf(')');
+    if (idx_of_ob >= 0 && idx_of_ob > idx_of_cb)
+        return false;
+
+    // Handle curly brace
+    auto idx_of_ocb = text.idxOf('{');
+    auto idx_of_ccb = text.idxOf('}');
+    if (idx_of_ocb >= 0 && idx_of_ocb > idx_of_ccb)
+        return false;
+
+    // Handle square brackets
+    auto idx_of_osb = text.idxOf('[');
+    auto idx_of_csb = text.idxOf(']');
+    if (idx_of_osb >= 0 && idx_of_osb > idx_of_csb)
+        return false;
+
+    // When a closing bracket, closing curly brace or square
+    // brace is at the end, we are find also.
+    auto last_text_idx = text.size - 1;
+    if (idx_of_ob < 0 && idx_of_cb >= 0 && idx_of_cb != last_text_idx)
+        return false;
+    if (idx_of_ocb < 0 && idx_of_ccb >= 0 && idx_of_ccb != last_text_idx)
+        return false;
+    if (idx_of_osb < 0 && idx_of_csb >= 0 && idx_of_csb != last_text_idx)
+        return false;
+
+    return true;
+}
+
+bool lastCharMustBeSeperated(string text) {
+    return (text[$ - 1] == ')' && !text.canFind('(')) || (text[$ - 1] == ']'
+            && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
 }
 
 // SUBSECT Token-type-table
@@ -89,9 +135,29 @@ TknType tknTypeByText(string text) {
 // SUBSECT Close token; Reset context
 
 Context closeToken(Context ctx) {
-    if (ctx.currTknText.size > 0) {
+    auto txt = ctx.currTknText;
+    if (ctx.isInTypeLiteral) {
+        if (!isValidTypeLiteral(txt)) {
+            auto tknTextForErrors = Token(ctx.currTknStartLine,
+                    ctx.currTknStartChar, TknType.litType, txt).as_readable();
+            throw new CompilerError("Illegal type literal: " ~ tknTextForErrors);
+        } else if (lastCharMustBeSeperated(txt)) {
+            auto tkntxt = txt[0 .. $ - 1];
+            auto type = tknTypeByText(tkntxt);
+            auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, tkntxt);
+            ctx.tokens ~= tkn;
+
+            tkntxt = "" ~ txt[$ - 1];
+            type = tknTypeByText(tkntxt);
+            auto tkn2 = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, tkntxt);
+            ctx.tokens ~= tkn2;
+
+            txt = ""; // Skip normal closing of token!
+        }
+    }
+    if (txt.size > 0) {
         auto type = tknTypeByText(ctx.currTknText);
-        auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, ctx.currTknText);
+        auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, txt);
         ctx.tokens ~= tkn;
     }
     ctx.currTknText = "";
@@ -128,6 +194,11 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         ctx.isInTypeLiteral = true;
         ctx.currTknText ~= c;
     } else if (c == ' ' || c == '\t' || c == '\n') {
+        ctx = closeToken(ctx);
+    } else if ((c == ']' && !ctx.currTknText.canFind('[')) || (c == ')'
+            && !ctx.currTknText.canFind('(')) || (c == '}' && !ctx.currTknText.canFind('{'))) {
+        ctx = closeToken(ctx);
+        ctx.currTknText = ctx.currTknText ~ c;
         ctx = closeToken(ctx);
     } else if (!ctx.isInTypeLiteral && (c == '(' || c == ')' || c == ']')) {
         ctx = closeToken(ctx);
@@ -172,7 +243,6 @@ string parseFully(string script) {
     auto ctx = new Context();
     ctx = tokenize(ctx, script);
     ctx = buildBasicAst(ctx);
-    writeln("HERE");
     return createOutput(ctx.ast);
 }
 
@@ -180,12 +250,5 @@ void main() {
     import std.file;
 
     string txt = readText("./examples.sz");
-    //    writeln(parseFully(txt));
-    //string txt = "(define abc 0)";
-    auto ctx = new Context();
-    ctx = tokenize(ctx, txt);
-    ctx = buildBasicAst(ctx);
-    writeln(createOutput(ctx.ast));
-
-    writeln(delegate int(int i) { return i + 1; }(10));
+    writeln(parseFully(txt));
 }

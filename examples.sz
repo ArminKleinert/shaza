@@ -11,7 +11,7 @@
 (define ::int bar () 1)
 
 ; Simple generic void-function
-(define (T) baz (::T arg) (writeln arg))
+(define (::T) baz (::T arg) (writeln arg))
 
 ; Testing implicit return
 (define ::bool implicit-return-0 () 1)
@@ -128,14 +128,14 @@
 
 ; Simple function with meta info about generics
 (meta
-  (:generics [T])
+  (:generics [::T])
   (define ::void meta-test-0 (::T arg) (writeln arg)))
 
 (meta
-  (:generics [T1 T2])
+  (:generics [::T1 ::T2])
   (define ::void meta-test-1 (::T1 arg) (writeln arg)))
 
-(meta (:generics [T] :aliases [none? nil? null?])
+(meta (:generics [::T] :aliases [none? nil? null?])
   (define ::bool is-nil? (::T o) (llr "o is null")))
 (define ::void call-alias () (none? 15))
 
@@ -148,7 +148,7 @@
 (define ::void call-awesome-2 () (writeln (not-so-awesome)))
 
 (meta
-  (:generics [Num] :visibility :private :returns :string)
+  (:generics [::Num] :visibility :private :returns ::string)
   ; Automatically adds generic class Num, visibility private and return type Num
   (define num-fn-1 (::Num i0 ::Num i1) (opcall ~ "" i0 "" i1))
   ; Same here
@@ -156,8 +156,8 @@
   ; private and uses generic type Num, but returns string
   (define ::Num num-fn-3 (::Num i0 ::Num i1) (opcall + i0 i1))
   ; Same visibility and return type, but different generics.
-  (define (N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1))
+  (define (::N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1))
   ; Function with meta which changes the return-type
-  (meta (:returns :int)
+  (meta (:returns ::int)
     (define num-fn-5 (::N i0) (llr "to!int(i0);")))
 

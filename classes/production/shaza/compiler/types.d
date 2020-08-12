@@ -251,7 +251,6 @@ string atomToString(AstNode ast) {
         text ~= ast.text;
         text ~= ")";
     } else if (ast.type == TknType.litChar) {
-        writeln(ast);
         if (ast.text == "\\space")
             return "' '";
         if (ast.text == "\\newline")
@@ -269,7 +268,10 @@ string szNameToHostName(string szVarName) {
         return szVarName;
     szVarName = szVarName.replace("-", "_");
     szVarName = szVarName.replace("?", "_Q");
-    szVarName = szVarName.replace("!", "_E");
+    if (szVarName[$ - 1] == '?')
+        szVarName = szVarName[0 .. $ - 2] ~ "_Q";
+    else if (szVarName[$ - 1] == '!')
+        szVarName = szVarName[0 .. $ - 2] ~ "_E";
     return szVarName;
 }
 
@@ -287,9 +289,13 @@ string typeToString(AstNode ast) {
 string typeToString(string litType) {
     assert(litType.size > 2 && litType[0 .. 2] == "::");
 
+    import std.array;
+
     litType = litType[2 .. $];
     if (litType[0] == '"' && litType[litType.size - 1] == '"') {
         litType = litType[1 .. $ - 1];
+    } else {
+        litType = litType.replace(":", " ");
     }
     return litType;
 }

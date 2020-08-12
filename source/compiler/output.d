@@ -403,7 +403,10 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
         auto genericsNodes = ast.nodes[nameIndex].nodes;
         foreach (node; genericsNodes) {
-            generics ~= szNameToHostName(node.text);
+            if (node.type != TknType.litType) {
+                throw new CompilerError("Expected type: " ~ node.tknstr());
+            }
+            generics ~= typeToString(node.text);
         }
 
         nameIndex++;
@@ -443,7 +446,8 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
     if (!isFunctionDef) {
         if (meta !is null) {
-            stderr.writeln("Metadata ignored because here a variable is defined. " ~ ast.nodes[0].tknstr());
+            stderr.writeln(
+                    "Metadata ignored because here a variable is defined. " ~ ast.nodes[0].tknstr());
         }
 
         string val;
@@ -677,13 +681,14 @@ string importHostToString(AstNode ast) {
 
 // SECTION List literal to string
 
+// TODO Check
 string listLiteralToString(AstNode ast) {
     if (ast.nodes.length == 0)
         return "[]"; // Empty list
 
     auto result = appender!string("[");
     for (int i = 0; i < ast.nodes.length; i++) {
-        result ~= symbolToString(ast.nodes[i]);
+        result ~= szNameToHostName(ast.nodes[i].text);
         if (i < ast.nodes[i].nodes.length - 1)
             result ~= ",";
     }
@@ -1140,8 +1145,8 @@ string parseMetaGetString(AstNode ast, FnMeta parentMeta) {
             i++;
             expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
             foreach (genNode; attribs.nodes[i].nodes) {
-                expectType(genNode, TknType.symbol);
-                generics ~= symbolToString(genNode);
+                expectType(genNode, TknType.litType);
+                generics ~= typeToString(genNode);
             }
         } else if (attribs.nodes[i].text == ":visibility") {
             i++;
@@ -1149,8 +1154,8 @@ string parseMetaGetString(AstNode ast, FnMeta parentMeta) {
             visibility = keywordToString(attribs.nodes[i]);
         } else if (attribs.nodes[i].text == ":returns") {
             i++;
-            expectType(attribs.nodes[i], TknType.litKeyword);
-            returnType = keywordToString(attribs.nodes[i]);
+            expectType(attribs.nodes[i], TknType.litType);
+            returnType = typeToString(attribs.nodes[i]);
         } else if (attribs.nodes[i].text == ":aliases") {
             i++;
             if (wrapped.size > 1) {

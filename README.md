@@ -189,12 +189,12 @@ is not yet important)
 
 ```
 ; A eager map-function using a generic type T.
-(define ::T[] (T) map (::delegate:T(T) func ::T[] seq)
+(define ::T[] (::T) map (::delegate:T(T) func ::T[] seq)
     (let (::T[] result [])
         (reduce
             (lambda (elem res) (append res (func elem)))
             result seq)))
 
 ; Check if an element is nil using the llr command.
-(define ::bool (T) nil? (T elem) (llr elem " is null"))
+(define ::bool (::T) nil? (T elem) (llr elem " is null"))
 ```
