@@ -95,6 +95,11 @@
 (define ::T (T) last (::T[] coll) (get coll (dec (size coll))))
 (define ::T[] (T) rest (::T[] coll) (slice coll 1))
 
+(define ::T[] (T) resized (::T[] coll ::size_t newsize)
+  (let (cc (coll-clone coll))
+    (ll "cc.length = newsize;")
+    cc))
+
 (define :T[] (T) coll-clone (::T[] coll)
   (concat (ll "seq_of!T" coll)))
 
@@ -114,7 +119,7 @@
 (define ::bool (T) contains? (::T[] coll ::T value)
   (loop (::T current (first coll) ::T[] rest_ (rest coll))
     (if (eql? current value)
-      (return true)
+      (return #t)
       (recur (first rest_) (rest coll)))))
 
 ; Nicer-looking version of contains
@@ -129,13 +134,13 @@
 
 (define ::bool (T) starts-with? (::T[] coll ::T[] other)
   (if (lt? (size coll) (size other))
-    (return false))
+    (return #f))
   (loop (firstC (first coll)
        firstO (first other)
        restC (rest coll)
        restO (rest other))
-    (if (not_eql? firstC firstO) (return false)
-    (if (empty? restO) (return true)
+    (if (not_eql? firstC firstO) (return #f)
+    (if (empty? restO) (return #t)
     (recur (first restC) (first restO) (rest restC) (rest restO))
     )))))
 
@@ -144,7 +149,7 @@
 
 (define ::bool (T) ends-with? (::T[] coll ::T[] other)
   (if (lt? (size coll) (size other))
-    (return false)
+    (return #f)
     (let (slice-idx (sub (size col) (size other))
         sliced (slice coll slice-idx))
       (return (starts-with? sliced other)))))
@@ -188,21 +193,17 @@
         (recur (append result (first _rest)) (rest _rest))
         (recur result (rest _rest))))))
 
-(comment
-def bin_search(key, seq):
-    if len(seq) > 1:
-        m = len(seq) // 2
-        if seq[m] == key:
-            return True
-        elif key < seq[m]:
-            return bin_search(key, seq[0:m])
-        else:
-            return bin_search(key, seq[(m + 1):])
-    elif len(seq) == 1:
-        return seq[0] == key
-    else:
-        return False
-)
+(define ::bool (T) bin-search (::T[] seq ::T key)
+  (if (gt? (size seq) 1)
+    (let (m (div (size seq) 2))
+      (if (eql? (get seq m) key)
+        (return #t)
+        (if (lt? key (get seq m))
+          (return (bin-search (slice seq 0 m) key))
+          (return (bin-search (slice seq (inc m)) key)))))
+    (if (eql? (size seq) 1)
+      (return (eql? (first seq) key))
+      (return #f))))
 
 (define ::T[] (T) insertionsort (::T[] coll)
   (let (::T[] acc [])
@@ -220,7 +221,6 @@ def bin_search(key, seq):
       (prepend elem coll)
       (prepend (first coll)
                (isort-insert elem (rest coll))))))
-
 
 
 
