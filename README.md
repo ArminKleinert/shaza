@@ -131,7 +131,8 @@ functions in that block.
 ## Missing features
 
 Near future:  
-- ``alias``
+- ``alias`` command  
+- Make a check for `:export-as` to verify that the name is valid
 - ``lambda`` with automatic type induction  
 - tail-recursion (right now, ``recur`` should be used)
 - Operators with ``'``  
