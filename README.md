@@ -113,7 +113,7 @@ to the given string by the compiler. Only supported for single functions.
 
 Not implemented:
 - ``:checked-calls #t/#f`` Makes sure the functions can only call functions 
-created in Shaza, but no D-functions.  
+created in Shaza, but no D-functions. `#f` is redundant.  
 - ``:pure #t/#f`` Ensures the compiler that the functions are functionally pure
 or not. The value `#f` is redundant.  
 - ``:parameters [...]`` Sets the list of parameters for all functions in scope.
@@ -133,6 +133,8 @@ functions in that block.
 Near future:  
 - ``alias`` command  
 - Make a check for `:export-as` to verify that the name is valid  
+- Make compiler check all function names and meta before the actual 
+output of functions!  
 - Make compiler print a lot of errors rather than quitting immediately  
 - ``lambda`` with automatic type induction  
 - tail-recursion (right now, ``recur`` should be used)
@@ -154,7 +156,8 @@ A byte further in the future:
 - ``coll`` (This has not proven necessary yet)  
 - ``quote, pseudo-quote, unquote``
   (Shaza is transpiled to D at the moment, so doing these is hard.)  
-- ``call-extern`` (Shaza can call any D-function directly, so this is not yet important)  
+- ``call-extern`` (Shaza can call any D-function directly, so this 
+is not yet important)  
 - ``rt-import-sz``  
 - ``rt-import-dll``  
 - Variadic arguments  
