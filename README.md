@@ -127,6 +127,9 @@ functions in that block.
 `#t` is redundant.  
 - ``:member-of <type>`` Makes the functions methods of the given type.  
 - ``:lazy #t/#f`` Makes the functions work lazily or eagerly. `#f` is redundant.
+- ``:memoize #t/#f`` Turns on memoization. `#f` is redundant except
+if `:pure` is `#t`, in which case the compiler might otherwise try to memoize.  
+- ``:doc <string>`` Sets documentation.
 
 ## Missing features
 

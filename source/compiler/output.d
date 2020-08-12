@@ -35,8 +35,19 @@ class FnMeta {
         this.exportName = exportName;
         this.generics = generics.dup;
         aliases = [];
-        visibility = "public";
+        visibility = "";
         this.returnType = returnType;
+    }
+
+    FnMeta combineWith(FnMeta other) {
+        if (other is null)
+            return this;
+
+        return new FnMeta((other.exportName) ? other.exportName : exportName,
+                other.visibility.size > 0 ? other.visibility : visibility,
+                other.aliases.size > 0 ? other.aliases : aliases, other.generics.size > 0
+                ? other.generics : generics, other.returnType != returnType
+                ? other.returnType : returnType);
     }
 }
 
@@ -432,7 +443,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
     if (!isFunctionDef) {
         if (meta !is null) {
-            stderr.writeln("Metadata ignored. " ~ ast.nodes[0].tknstr());
+            stderr.writeln("Metadata ignored because here a variable is defined. " ~ ast.nodes[0].tknstr());
         }
 
         string val;
@@ -474,7 +485,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
     // SUBSECT Write name and (if given) generic types.
 
     auto result = appender("");
-    if (meta.visibility != "public") {
+    if (meta.visibility != "") {
         result ~= fndeclaration.visibility;
         result ~= ' ';
     }
@@ -1099,6 +1110,10 @@ string opcallToString(AstNode ast) {
 // SECTION Parse "meta" instruction
 
 string parseMetaGetString(AstNode ast) {
+    return parseMetaGetString(ast, null);
+}
+
+string parseMetaGetString(AstNode ast, FnMeta parentMeta) {
     if (ast.size < 3) {
         throw new CompilerError("meta: Too few arguments. " ~ ast.nodes[0].tknstr());
     }
@@ -1112,7 +1127,7 @@ string parseMetaGetString(AstNode ast) {
     // SUBSECT Parse attributes
 
     // Default values
-    string visibility = "public";
+    string visibility = "";
     string[] generics = [];
     string[] aliases = [];
     string exportName = null;
@@ -1165,15 +1180,21 @@ string parseMetaGetString(AstNode ast) {
     // SUBSECT Create and parse function
 
     auto meta = new FnMeta(exportName, visibility, aliases, generics, returnType);
+    if (parentMeta !is null) {
+        meta = parentMeta.combineWith(meta);
+    }
+
     auto result = appender("");
 
     foreach (c; wrapped) {
-        auto forceIsFn = c.text == "define-fn";
-        if (c.nodes[0].text != "define" && c.nodes[0].text != "define-fn") {
+        if (c.nodes[0].text == "meta") {
+            result ~= parseMetaGetString(c, meta);
+        } else if (c.nodes[0].text != "define" && c.nodes[0].text != "define-fn") {
             string msg = "meta can only be used on function definitions. Otherwise, it is ignored. ";
             stderr.writeln(msg ~ ast.nodes[0].tknstr());
             result ~= createOutput(c);
         } else {
+            auto forceIsFn = c.text == "define-fn";
             result ~= generalDefineToString(c, forceIsFn, meta);
         }
     }

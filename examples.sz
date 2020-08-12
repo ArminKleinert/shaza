@@ -156,5 +156,8 @@
   ; private and uses generic type Num, but returns string
   (define ::Num num-fn-3 (::Num i0 ::Num i1) (opcall + i0 i1))
   ; Same visibility and return type, but different generics.
-  (define (N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1)))
+  (define (N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1))
+  ; Function with meta which changes the return-type
+  (meta (:returns :int)
+    (define num-fn-5 (::N i0) (llr "to!int(i0);")))
 

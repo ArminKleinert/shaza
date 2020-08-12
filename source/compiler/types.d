@@ -268,13 +268,10 @@ string szNameToHostName(string szVarName) {
         return szVarName;
     szVarName = szVarName.replace("-", "_");
     szVarName = szVarName.replace("?", "_Q");
-    szVarName = szVarName.replace("!", "_E");
-    szVarName = szVarName.replace("+", "_ADD");
-    szVarName = szVarName.replace("-", "_SUB");
-    szVarName = szVarName.replace("*", "_MUL");
-    szVarName = szVarName.replace("/", "_DIV");
-    szVarName = szVarName.replace("%", "_MOD");
-    szVarName = szVarName.replace("'", "_SQUOTE");
+    if (szVarName[$ - 1] == '?')
+        szVarName = szVarName[0 .. $ - 2] ~ "_Q";
+    else if (szVarName[$ - 1] == '!')
+        szVarName = szVarName[0 .. $ - 2] ~ "_E";
     return szVarName;
 }
 
