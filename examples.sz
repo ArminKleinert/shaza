@@ -159,5 +159,22 @@
   (define (::N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1))
   ; Function with meta which changes the return-type
   (meta (:returns ::int)
-    (define num-fn-5 (::N i0) (llr "to!int(i0);")))
+    (define num-fn-5 (::N i0) (llr "to!int(i0);"))))
+
+; FIXME Why does the compiler mark these as private???
+(meta (:generics [::N] :returns ::N)
+  (meta (:export-as "plus")
+    (define + (::N i0 ::N i1) (opcall + i0 i1)))
+  (meta (:export-as "sub")
+    (define - (::N i0 ::N i1) (opcall - i0 i1)))
+  (meta (:export-as "mul")
+    (define * (::N i0 ::N i1) (opcall * i0 i1)))
+  (meta (:export-as "div")
+    (define / (::N i0 ::N i1) (opcall / i0 i1)))
+  (meta (:export-as "mod")
+    (define % (::N i0 ::N i1) (opcall % i0 i1)))
+  (meta (:export-as "inc")
+    (define ++ (::N n) (+ n 1)))
+  (meta (:export-as "dec")
+    (define -- (::N n) (- n 1))))
 

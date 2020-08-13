@@ -46,7 +46,7 @@ class FnMeta {
         return new FnMeta((other.exportName) ? other.exportName : exportName,
                 other.visibility.size > 0 ? other.visibility : visibility,
                 other.aliases.size > 0 ? other.aliases : aliases, other.generics.size > 0
-                ? other.generics : generics, other.returnType != returnType
+                ? other.generics : generics, other.returnType.size > 0
                 ? other.returnType : returnType);
     }
 }
@@ -446,6 +446,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
 
     if (!isFunctionDef) {
         if (meta !is null) {
+            // TODO Enable meta for variables
             stderr.writeln(
                     "Metadata ignored because here a variable is defined. " ~ ast.nodes[0].tknstr());
         }
@@ -489,7 +490,7 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
     // SUBSECT Write name and (if given) generic types.
 
     auto result = appender("");
-    if (meta.visibility != "") {
+    if (fndeclaration.visibility != "") {
         result ~= fndeclaration.visibility;
         result ~= ' ';
     }
