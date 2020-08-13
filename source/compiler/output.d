@@ -332,7 +332,7 @@ string[] getVarNamesFromLoopBindings(AstNode[] bindings) {
             i++;
         }
         if (i >= bindings.length) {
-            throw new CompilerError("Expected more bindings after " ~ bindings[$-1].tknstr());
+            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
             names ~= szNameToHostName(symbolToString(bindings[i]));
@@ -351,7 +351,7 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
             i++;
         }
         if (i >= bindings.length) {
-            throw new CompilerError("Expected more bindings after " ~ bindings[$-1].tknstr());
+            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
             names ~= szNameToHostName(symbolToString(bindings[i]));
@@ -610,8 +610,10 @@ string letBindingsToString(AstNode[] bindings) {
     for (int i = 0; i < bindings.length; i += 2) {
         if (bindings[i].type == TknType.litType) {
             result ~= typeToString(bindings[i]);
-        i++;} else {
-        result ~= "auto ";}
+            i++;
+        } else {
+            result ~= "auto ";
+        }
         result ~= szNameToHostName(symbolToString(bindings[i + 0])); // Name
         result ~= " = ";
         result ~= createOutput(bindings[i + 1]); // Value
@@ -624,7 +626,8 @@ string letToString(AstNode ast, bool isExplicitType) {
     if (ast.nodes.length < 2)
         throw new CompilerError("let or t-let: Too few arguments. " ~ ast.nodes[0].tknstr());
     if (ast.nodes[1].type != TknType.closedList)
-        throw new CompilerError("let or t-let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
+        throw new CompilerError(
+                "let or t-let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
 
     AstNode[] bindings = ast.nodes[1].nodes;
     AstNode[] bodyNodes = ast.nodes[2 .. $];
@@ -927,7 +930,7 @@ string recurToString(AstNode ast) {
     auto lastLabel = OutputContext.global.getLastJumpLabel();
 
     if (bindings.size != lastLabel.vars.size) {
-        writefln("%s %s %s" , bindings.size , lastLabel.vars.size, lastLabel.vars);
+        writefln("%s %s %s", bindings.size, lastLabel.vars.size, lastLabel.vars);
         throw new CompilerError("Too many or too few bindings" ~ ast.nodes[0].tknstr());
     }
 
@@ -1253,8 +1256,8 @@ string createOutput(AstNode ast) {
                 break; // TODO
             case "let":
                 return letToString(ast, false);
-//            case "t-let":
-//                return letToString(ast, true);
+                //            case "t-let":
+                //                return letToString(ast, true);
             case "setv!":
                 return setvToString(ast);
             case "ll":
