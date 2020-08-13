@@ -252,8 +252,12 @@ string keywordToString(AstNode node) {
 // SECTION Minor helpers
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
-    if (result[][$ - 1] != ';' && node.text != "ll" && result[][$ - 1] != '{'
-            && result[][$ - 1] != '}')
+    writeln(node.tknstr());
+    bool allow = result[][$ - 1] != ';' && result[][$ - 1] != '{' && result[][$ - 1] != '}';
+    if (node.type == TknType.closedScope && node.size > 0) {
+        allow = allow && node.nodes[0].text != "ll" && node.nodes[0].text != "loop";
+    }
+    if (allow)
         result ~= ';';
     return result;
 }
@@ -544,13 +548,16 @@ string generalDefineToString(AstNode ast, bool forceFunctionDef, FnMeta meta) {
     result ~= defineFnToString(type, argNames, bodyNodes);
     result ~= '\n';
 
+    /*
     foreach (aliasName; fndeclaration.aliases) {
+        if (isValidDIdentifier(szNameToHostName(aliasName))){
         result ~= "alias ";
-        result ~= aliasName;
+        result ~= szNameToHostName(aliasName);
         result ~= "=";
         result ~= fndeclaration.exportName;
         result ~= ";\n";
-    }
+    }}
+    */
 
     return result.get();
 }
@@ -604,12 +611,12 @@ string defineFnToString(string type, string[] argNames, AstNode[] bodyNodes) {
 
 // SECTION let-instruction
 
-// FIXME Make accept optional types!
 string letBindingsToString(AstNode[] bindings) {
     auto result = appender!string("");
     for (int i = 0; i < bindings.length; i += 2) {
         if (bindings[i].type == TknType.litType) {
             result ~= typeToString(bindings[i]);
+            result ~= ' ';
             i++;
         } else {
             result ~= "auto ";
@@ -622,12 +629,11 @@ string letBindingsToString(AstNode[] bindings) {
     return result.get();
 }
 
-string letToString(AstNode ast, bool isExplicitType) {
+string letToString(AstNode ast) {
     if (ast.nodes.length < 2)
-        throw new CompilerError("let or t-let: Too few arguments. " ~ ast.nodes[0].tknstr());
-    if (ast.nodes[1].type != TknType.closedList)
-        throw new CompilerError(
-                "let or t-let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
+        throw new CompilerError("let: Too few arguments. " ~ ast.nodes[0].tknstr());
+    if (ast.nodes[1].type != TknType.closedList && ast.nodes[1].type != TknType.closedScope)
+        throw new CompilerError("let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
 
     AstNode[] bindings = ast.nodes[1].nodes;
     AstNode[] bodyNodes = ast.nodes[2 .. $];
@@ -705,8 +711,8 @@ string listLiteralToString(AstNode ast) {
 
     auto result = appender!string("[");
     for (int i = 0; i < ast.nodes.length; i++) {
-        result ~= szNameToHostName(ast.nodes[i].text);
-        if (i < ast.nodes[i].nodes.length - 1)
+        result ~= createOutput(ast.nodes[i]);
+        if (i < ast.nodes.length - 1)
             result ~= ",";
     }
     result ~= "]";
@@ -829,7 +835,6 @@ string ifToString(AstNode ast) {
 
 // SECTION Lambdas
 
-// FIXME
 string lambdaToString(AstNode ast) {
     if (ast.size < 4) {
         throw new CompilerError("lambda: Not enough arguments. " ~ ast.nodes[0].tknstr());
@@ -909,11 +914,13 @@ string loopToString(AstNode ast) {
         result ~= OutputContext.global.newLabel(argNames);
 
     // SUBSECT Generate body
-    foreach (node; bodyNodes) {
+    foreach (node; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(node);
         insertSemicolon(result, node);
         result ~= '\n';
     }
+    result ~= createOutput(bodyNodes[$ - 1]);
+    insertSemicolon(result, bodyNodes[$ - 1]);
 
     // SUBSECT Remove label and return
     if (doAddLabel)
@@ -1239,6 +1246,7 @@ string createOutput(AstNode ast) {
     }
 
     if (ast.type == TknType.closedTaggedList || ast.type == TknType.closedList) {
+        writeln(ast);
         return listLiteralToString(ast);
     }
 
@@ -1255,9 +1263,7 @@ string createOutput(AstNode ast) {
             case "define-tk-macro":
                 break; // TODO
             case "let":
-                return letToString(ast, false);
-                //            case "t-let":
-                //                return letToString(ast, true);
+                return letToString(ast);
             case "setv!":
                 return setvToString(ast);
             case "ll":

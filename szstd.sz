@@ -47,7 +47,7 @@
     (define ~ (::Int i0) (opcall ~ i0)))
   (meta (:export-as "shift_left" :aliases [shl])
     (define << (::Int i0) (opcall ~ i0)))
-  (meta (:export-as "bit_negate" :aliases [shr])
+  (meta (:export-as "shift_right" :aliases [shr])
     (define >> (::Int i0) (opcall ~ i0)))
 )
 
@@ -114,7 +114,7 @@
 
 (meta (:generics [::T] :returns ::T[])
 
-(define seq-of () (let [::T[] res []] (return res)))
+(define seq-of () (let (::T[] res []) (return res)))
 
 (define ::size_t size (::T[] coll) (llr "coll.length"))
 (define ::bool empty? (::T[] coll) (eql? (size coll) 0))
@@ -128,7 +128,7 @@
 (define rest (::T[] coll) (slice coll 1))
 
 (define resized (::T[] coll ::size_t newsize)
-  (let [cc (coll-clone coll)]
+  (let (cc (coll-clone coll))
     (ll "cc.length = newsize;")
     cc))
 
@@ -179,8 +179,8 @@
 (define ends-with? (::T[] coll ::T[] other)
   (if (lt? (size coll) (size other))
     (return #f)
-    (let [slice-idx (- (size col) (size other))
-        sliced (slice coll slice-idx)]
+    (let (slice-idx (- (size coll) (size other))
+        sliced (slice coll slice-idx))
       (return (starts-with? sliced other)))))
 )
 
@@ -195,7 +195,7 @@
       (return result)
       (recur (append result elem) (-- i)))))
 
-(define map (::delegate:T(T) func ::T[] coll)
+(define map (::T:delegate(T) func ::T[] coll)
   (loop (::T[] result []
          ::T[] _rest coll)
     (if (empty? _rest)
@@ -204,7 +204,7 @@
            (rest _rest)))))
 
 (meta (:generics [::T ::TOUT])
-(define ::TOUT reduce (::delegate:TOUT(T,TOUT) func ::T[] coll ::TOUT initval)
+(define ::TOUT reduce (::TOUT:delegate(T,TOUT) func ::T[] coll ::TOUT initval)
   (loop (::TOUT result initVal
          ::T[] _rest coll)
     (if (empty? _rest)
@@ -212,7 +212,7 @@
       (recur (func (first _rest) result)
             (rest _rest))))))
 
-(define remove (::delegate:bool(T) pred ::T[] coll)
+(define remove (::bool:delegate(T) pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
     (if (empty? _rest)
@@ -221,7 +221,7 @@
         (recur result (rest _rest))
         (recur (append result (first _rest)) (rest _rest))))))
 
-(define filter (::delegate:bool(T) pred ::T[] coll)
+(define filter (::bool:delegate(T) pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
     (if (empty? _rest)
@@ -232,7 +232,7 @@
 
 (define bin-search (::T[] seq ::T key)
   (if (gt? (size seq) 1)
-    (let [m (/ (size seq) 2)]
+    (let (m (/ (size seq) 2))
       (if (eql? (get seq m) key)
         (return #t)
         (if (lt? key (get seq m))
@@ -244,7 +244,7 @@
 
 (meta (:aliases [sort])
 (define insertionsort (::T[] coll)
-  (let [::T[] acc []]
+  (let (::T[] acc [])
     (isort-acc coll acc))))
     
 (meta (:visibility :private)
@@ -268,7 +268,7 @@
 (define q-sort (::T[] coll)
   (if (empty? coll)
     (return coll)
-    (let [piv (first coll)]
+    (let (piv (first coll))
       (return
         (qs-append
           (filter (lambda ::T (::T x) (<= x piv)) coll)

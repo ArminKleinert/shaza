@@ -38,6 +38,12 @@
     Everything here is completely ignored.
     This works across lines.)
 
+(define ::void let-example ()
+    (let (::int i 10 ; int
+          j 11 ; auto
+          abc "") ; auto
+        (writefln "%s %s %s" i j abc)))
+
 ; Test type-definitions
 (def-struct MyType ::int n)
 (def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
@@ -48,32 +54,33 @@
 (define ::bool if-test ()
     (if #t (return #t) (return #f)))
 
-; recur to function
-(define ::void recur-test ()
-    (writeln "hey!")
-    (recur))
-
-; recur to loop
-; FIXME For some reason, the compiler inserts a ; at the end here. Find out why.
-(define ::int loop-recur-test ()
-    (loop (::int i 0
-           v 1)
-        (if (ge? i 10)
-            (return i)
-            (recur (inc i) 15))))
-
 ; Test tail-recursion
 ; TODO Implement
-(define ::int tail-recur (::int n ::int res)
+(define ::int tail-recur-test (::int n ::int res)
     (if (le? n 1)
         (return 1)
         (return (tail-recur-test (dec n) res))))
 
+(comment
+
 ; Statement as expression
-; Treat if as expression and allow for implicit return
 ; TODO Implement
+; Treat if as expression and allow for implicit return
 (define ::int if-as-expression (::int n)
     (if (lt? n 0) (sub 0 n) n))
+
+; TODO Implement
+; This loop doesn't do much, but hopefully I can turn it into an expression one day.
+(define ::int loop-as-expression (::int n)
+    (loop () 1))
+
+; TODO Implement
+; Same for let
+(define ::int let-as-expression (::int n)
+    (let (a 1 b 1) (llr "a+b")))
+
+)
+
 
 ; Set attribute "n" of object mt
 (define ::void setv_attr_test_1 (::MyType mt)
@@ -137,7 +144,7 @@
 
 (meta (:generics [::T] :aliases [none? nil? null?])
   (define ::bool is-nil? (::T o) (llr "o is null")))
-(define ::void call-alias () (none? 15))
+(define ::void call-alias () (none? ""))
 
 (meta (:visibility :private)
   (define ::void hidden-fn () (writeln)))
@@ -161,6 +168,7 @@
   (meta (:returns ::int)
     (define num-fn-5 (::N i0) (llr "to!int(i0);"))))
 
+; Test export names and validity of symbols as names
 (meta (:generics [::N] :returns ::N)
   (meta (:export-as "plus")
     (define + (::N i0 ::N i1) (opcall + i0 i1)))
@@ -177,3 +185,19 @@
   (meta (:export-as "dec")
     (define -- (::N n) (- n 1))))
 
+; Implicit return on list
+(define ::string[] returnAList ()
+    ["a" "b" "c"])
+
+; recur to function
+(define ::void recur-test ()
+    (writeln "hey!")
+    (recur))
+
+; recur to loop
+(define ::int loop-recur-test ()
+    (loop (::int i 0
+           v 1)
+        (if (llr i < 10)
+            (return i)
+            (recur (inc i) 15))))
