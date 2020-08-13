@@ -249,6 +249,6 @@ string parseFully(string script) {
 void main() {
     import std.file;
 
-    string txt = readText("./examples.sz");
+    string txt = readText("./szstd.sz");
     writeln(parseFully(txt));
 }

@@ -161,7 +161,6 @@
   (meta (:returns ::int)
     (define num-fn-5 (::N i0) (llr "to!int(i0);"))))
 
-; FIXME Why does the compiler mark these as private???
 (meta (:generics [::N] :returns ::N)
   (meta (:export-as "plus")
     (define + (::N i0 ::N i1) (opcall + i0 i1)))
