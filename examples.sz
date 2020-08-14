@@ -47,7 +47,7 @@
 ; Test type-definitions
 (def-struct MyType ::int n)
 (def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
-(def-struct GenericType (T) ::T entry)
+(def-struct GenericType (::T) ::T entry)
 (def-struct EmptyType)
 
 ; Test the if statement
@@ -201,3 +201,9 @@
         (if (llr i < 10)
             (return i)
             (recur (inc i) 15))))
+
+; Multiple declarations with the same :export-as
+(meta (:export-as "and")
+  (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
+  (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2))
+)

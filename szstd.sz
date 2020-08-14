@@ -55,9 +55,15 @@
 
 (meta (:returns ::bool)
   (meta (:export-as "and")
-    (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1)))
+    (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
+    (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2)))
   (meta (:export-as "or")
-    (define || (::lazy:bool b0 ::lazy:bool b1) (llr b0 || b1)))
+    (define || (::lazy:bool b0 ::lazy:bool b1) (llr b0 || b1))
+    (define || (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b1) (llr b0 || b1 || b2))
+    (define || (::lazy:bool[] bs])
+      (if (= (size bs) 0) (return false))
+      (if (= (size bs) 1) (return (first bs)))
+      (loop (_r bs) (if (first _r) (return true) (recur (rest bs))))))
   (define not (::bool b0) (llr !b0)))
 
 ; SECTION Comparisons and null-check
@@ -195,6 +201,13 @@
       (return result)
       (recur (append result elem) (-- i)))))
 
+(define repeatedly (::T:delegate() func ::size_t times)
+  (loop (::T[] result []
+         i 0)
+    (if (>= i times)
+      (return result)
+      (recur (append result (func)) (++ i)))))
+
 (define map (::T:delegate(T) func ::T[] coll)
   (loop (::T[] result []
          ::T[] _rest coll)
@@ -203,9 +216,9 @@
       (recur (append result (func (first _rest)))
            (rest _rest)))))
 
-(meta (:generics [::T ::TOUT])
-(define ::TOUT reduce (::TOUT:delegate(T,TOUT) func ::T[] coll ::TOUT initval)
-  (loop (::TOUT result initVal
+(meta (:generics [::T ::T1])
+(define ::T1 reduce (::T1:delegate(T,T1) func ::T[] coll ::T1 initval)
+  (loop (::T1 result initVal
          ::T[] _rest coll)
     (if (empty? _rest)
       (return result)
@@ -221,6 +234,9 @@
         (recur result (rest _rest))
         (recur (append result (first _rest)) (rest _rest))))))
 
+(define remove (::T[] coll ::T elem)
+  (remove (lambda ::bool (::T v) (= v elem))))
+
 (define filter (::bool:delegate(T) pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
@@ -229,6 +245,42 @@
       (if (pred (first _rest))
         (recur (append result (first _rest)) (rest _rest))
         (recur result (rest _rest))))))
+
+(define all? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return true)
+       (if (not (pred (first _rest)))
+         (return #f)
+         (recur result (rest _rest))))))
+
+(define none? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return true)
+       (if (pred (first _rest))
+         (return #f)
+         (recur result (rest _rest))))))
+
+(define any? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return false)
+       (if (pred (first _rest))
+         (return #t)
+         (recur result (rest _rest))))))
+
+(meta (:aliases [uniq distinct])
+(define uniques (::T[] coll)
+  (if (< (size coll) 2) (return coll))
+  (loop (::T[] sorted (sort coll)
+         ::T prev (first sorted)
+         ::T[] result [prev])
+    (if (empty? sorted)
+      (return result)
+      (if (= prev (first sorted))
+        (recur (rest sorted) prev result)
+        (recur (rest sorted) (first sorted) (append result prev)))))))
 
 (define bin-search (::T[] seq ::T key)
   (if (gt? (size seq) 1)
@@ -261,7 +313,8 @@
         (prepend (first coll)
                 (isort-insert elem (rest coll))))))
 
-  (define qs-append (::T[] c0 ::T e ::T[] c1) (append (append c0 e) c1))
+  (define qs-append (::T[] c0 ::T e ::T[] c1)
+    (append (append c0 e) c1))
   )
 
 (meta (:export-as "quicksort")
@@ -274,8 +327,65 @@
           (filter (lambda ::T (::T x) (<= x piv)) coll)
           piv)
           (filter (lambda ::T (::T x) (> x piv)) coll))))))
+
+(define ::T min (::T[] coll)
+  (if (= (size coll) 0) (return (llr "T.init")))
+  (if (= (size coll) 1) (return (first coll)))
+  (loop (::T[] c (rest coll)
+         ::T res (first coll))
+    (if (empty? c) (return res)
+    (if (< (first c) res)
+      (recur (rest c) (first c))
+      (recur (rest c) res)))))
+
+(define ::T max (::T[] coll)
+  (if (= (size coll) 0) (return (llr "T.init")))
+  (if (= (size coll) 1) (return (first coll)))
+  (loop (::T[] c (rest coll)
+         ::T res (first coll))
+    (if (empty? c) (return res)
+    (if (> (first c) res)
+      (recur (rest c) (first c))
+      (recur (rest c) res)))))
+
+(meta (:visibility :private)
+  (define ::I[] (::I) ph-sort (::I[] coll)
+    (if (empty? coll) (return coll))
+    (let (minimum (min coll)
+          maximum (max coll)
+          collsize (inc (- maximum minimum))
+          ::I[] holes (repeated (llr "I.init") collsize)
+          ::I[] output (repeated (llr "I.init") (size coll))
+      (loop (i 0
+             hindex (- (at coll i) minimum))
+        (assoc! holes hindex (inc (holes hindex)))
+        (if (< i (size coll))
+          (recur (inc i) (- (at coll (inc i)) minimum))))
+
+      (loop (i 0  count 0)
+        (if (< count collsize)
+          (let ()
+            (loop ()
+              (if (> (at holes count) 0)
+                (let ()
+                  (assoc! holes count (dec (at holes count)))
+                  (assoc! coll i (+ count minimum))
+                  (setv! i (inc i))
+                  (recur))))
+            (recur i (inc count)))))
+
+      (return coll)))))
 )
 
+(define ::byte pidgeonhole-sort (::byte[] coll) (ph-sort coll))
+(define ::short pidgeonhole-sort (::short[] coll) (ph-sort coll))
+(define ::int pidgeonhole-sort (::int[] coll) (ph-sort coll))
+(define ::long pidgeonhole-sort (::long[] coll) (ph-sort coll))
+(define ::ubyte pidgeonhole-sort (::ubyte[] coll) (ph-sort coll))
+(define ::ushort pidgeonhole-sort (::ushort[] coll) (ph-sort coll))
+(define ::uint pidgeonhole-sort (::uint[] coll) (ph-sort coll))
+(define ::ulong pidgeonhole-sort (::ulong[] coll) (ph-sort coll))
+(define ::size_t pidgeonhole-sort (::size_t[] coll) (ph-sort coll))
 
 
 

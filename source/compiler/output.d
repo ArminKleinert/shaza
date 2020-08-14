@@ -1076,7 +1076,7 @@ string defStructToString(AstNode ast) {
     if (generics !is null) {
         result ~= "(";
         for (int i = 0; i < generics.size; i++) {
-            result ~= symbolToString(generics.nodes[i]);
+            result ~= typeToString(generics.nodes[i]);
             if (i < generics.size - 1)
                 result ~= ", ";
         }
@@ -1116,8 +1116,28 @@ string defStructToString(AstNode ast) {
     }
     result ~= '}';
 
-    // Close
+    // Close class
     result ~= "}\n";
+
+    // SUBSECT Write setters
+
+    for (auto i = 0; i < fieldNames.size; i++) {
+        result ~= symbolToString(typeNode);
+        result ~= " with_" ~ szNameToHostName(fieldNames[i]);
+        result ~= '(' ~ fieldTypes[i] ~ ' ' ~ szNameToHostName(fieldNames[i]);
+        result ~= "){\n";
+        result ~= "return new " ~ symbolToString(typeNode);
+        result ~= "(";
+
+        for (auto j = 0; j < fieldNames.size; j++) {
+            result ~= szNameToHostName(fieldNames[j]);
+            if (j < fieldNames.size - 1)
+                result ~= ", ";
+        }
+
+        result ~= ");\n}\n";
+    }
+
     return result.get();
 }
 
@@ -1183,25 +1203,25 @@ string parseMetaGetString(AstNode ast, FnMeta parentMeta) {
             returnType = typeToString(attribs.nodes[i]);
         } else if (attribs.nodes[i].text == ":aliases") {
             i++;
-            if (wrapped.size > 1) {
-                stderr.writeln(
-                        ":aliases only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
-            } else {
-                expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
-                foreach (aliasNode; attribs.nodes[i].nodes) {
-                    expectType(aliasNode, TknType.symbol);
-                    aliases ~= aliasNode.text;
-                }
+            //if (wrapped.size > 1) {
+            //    stderr.writeln(
+            //            ":aliases only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
+            //} else {
+            expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
+            foreach (aliasNode; attribs.nodes[i].nodes) {
+                expectType(aliasNode, TknType.symbol);
+                aliases ~= aliasNode.text;
             }
+            //}
         } else if (attribs.nodes[i].text == ":export-as") {
             i++;
-            if (wrapped.size > 1) {
-                stderr.writeln(
-                        ":export-as only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
-            } else {
-                expectType(attribs.nodes[i], TknType.litString);
-                exportName = attribs.nodes[i].text[1 .. $ - 1];
-            }
+            //if (wrapped.size > 1) {
+            //    stderr.writeln(
+            //            ":export-as only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
+            //} else {
+            expectType(attribs.nodes[i], TknType.litString);
+            exportName = attribs.nodes[i].text[1 .. $ - 1];
+            //}
         } else {
             stderr.writeln("Unknown meta-option. " ~ attribs.nodes[i].tknstr());
         }

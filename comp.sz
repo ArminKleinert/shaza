@@ -2,15 +2,49 @@
 
 (def-struct Token
   ::string text
-  ::string type
-  ::long line
-  ::long index)
+  ::Keyword type
+  ::size_t line
+  ::size_t index)
+
+(def-struct Node
+  ::string text
+  ::Keyword type
+  ::size_t line
+  ::size_t index
+  ::Node[] children)
+
+(comment TokenTypes:
+    :unknown
+    :root
+    :lit-int
+    :lit-uint
+    :lit-flt
+    :lit-bool
+    :lit-string
+    :lit-char
+    :lit-list
+    :lit-map
+    :lit-keyword
+    :lit-type
+    :symbol
+    :buildin-fn-call
+    :buildin-macro-call
+    :scope-open
+    :scope-close
+    :lst-open
+    :lst-tagged-open
+    :lst-close
+    :closed-scope
+    :closed-tagged-list
+    :closed-list
+    :ln-comment
+)
 
 (define ::Token[] tokens [])
-(define ::long line 0)
-(define ::long chIndex 0)
-(define ::long start-line 0)
-(define ::long start-char 0)
+(define ::size_t line 0)
+(define ::size_t chIndex 0)
+(define ::size_t start-line 0)
+(define ::size_t start-char 0)
 (define ::bool next-escaped #f)
 (define ::string curr-text "")
 (define ::bool is-in-string #f)
@@ -18,32 +52,105 @@
 
 (define ::char quot-mark (ch "\""))
 
-(define ::bool is-string-literal (::string text)
-  (and (ge? (size text) 2)
-       (eql? (first text) quot-mark)
-       (eql? (last text) quot-mark)))
+(meta (:returns ::bool)
 
-(define ::bool is-valid-symbol (::string text)
-  (if (lt? (size text) 2)
+(define is-string-literal? (::string text)
+  (and (>= (size text) 2)
+       (= (first text) quot-mark)
+       (= (last text) quot-mark)))
+
+(define is-valid-symbol? (::string text)
+  (if (< (size text) 2)
     (return false))
   (loop (curr (first text) ::string rst)
     (if (empty? rst)
       (return true))
-    (if (contains "\";()[]{}#:" curr)
+    (if (in? "\";()[]{}#:" curr)
       (return false)
-      (recur (first rst) (slice rst 1))))
+      (recur (first rst) (slice rst 1)))))
 
-(define ::bool is-valid-integral? (::string text)
-    (llr "canConvert!long(e)")))
+(define is-valid-integral? (::string text)
+    (to-long-valid? text))))
 
-(define ::bool is-valid-unsigned? (::string text)
-    (llr "canConvert!ulong(e)")))
+(define is-valid-unsigned? (::string text)
+    (to-ulong-valid? text))
 
-(define ::bool is-valid-float? (::string text)
-    (llr "canConvert!double(e)")))
+(define is-valid-float? (::string text)
+    (to-double-valid? text))
 
 (define is-valid-number? (::string text)
     (and (is-valid-integral? text) (is-valid-float? text)))
+
+(define is-type-literal? (::string text)
+    (starts-with? text "::"))
+
+(define is-keyword-literal? (::string text)
+    (and (>= (size text) 2) (= (first text) \:) (is-valid-symbol? (rest text))))
+
+(define is-bool-literal? (::string text)
+    (in? ["#t" "#f"] text))
+
+(define is-char-literal? (::string text)
+    (and (not-empty? text)
+      (or (in? ["\\space" "\\newline" "\\tab"] text)
+          (and (= (first text) (first "\\")) (= (size text) 2)))))
+
+(define is-type-literal? (::string text)
+    (let [idx-of-ob  (index-of text (first "("))
+          idx-of-cb  (index-of text (first ")"))
+          idx-of-ocb (index-of text (first "{"))
+          idx-of-ccb (index-of text (first "}"))
+          idx-of-osb (index-of text (first "["))
+          idx-of-csb (index-of text (first "]"))
+          ]
+      (not
+        (or
+          [
+         )
+)
+
+
+bool isValidTypeLiteral(string text) {
+    // Handle bracket
+    auto idx_of_ob = text.idxOf('(');
+    auto idx_of_cb = text.idxOf(')');
+    if (idx_of_ob >= 0 && idx_of_ob > idx_of_cb)
+        return false;
+
+    // Handle curly brace
+    auto idx_of_ocb = text.idxOf('{');
+    auto idx_of_ccb = text.idxOf('}');
+    if (idx_of_ocb >= 0 && idx_of_ocb > idx_of_ccb)
+        return false;
+
+    // Handle square brackets
+    auto idx_of_osb = text.idxOf('[');
+    auto idx_of_csb = text.idxOf(']');
+    if (idx_of_osb >= 0 && idx_of_osb > idx_of_csb)
+        return false;
+
+    // When a closing bracket, closing curly brace or square
+    // brace is at the end, we are find also.
+    auto last_text_idx = text.size - 1;
+    if (idx_of_ob < 0 && idx_of_cb >= 0 && idx_of_cb != last_text_idx)
+        return false;
+    if (idx_of_ocb < 0 && idx_of_ccb >= 0 && idx_of_ccb != last_text_idx)
+        return false;
+    if (idx_of_osb < 0 && idx_of_csb >= 0 && idx_of_csb != last_text_idx)
+        return false;
+
+    return true;
+}
+
+bool lastCharMustBeSeperated(string text) {
+    return (text[$ - 1] == ')' && !text.canFind('(')) || (text[$ - 1] == ']'
+            && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
+}
+
+
+
+
+
 
 (define ::Token[] tokenize (::string text)
   )
