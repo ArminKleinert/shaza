@@ -170,13 +170,11 @@
 (define starts-with? (::T[] coll ::T[] other)
   (if (lt? (size coll) (size other))
     (return #f))
-  (loop (firstC (first coll)
-       firstO (first other)
-       restC (rest coll)
-       restO (rest other))
-    (if (not_eql? firstC firstO) (return #f)
-    (if (empty? restO) (return #t)
-    (recur (first restC) (first restO) (rest restC) (rest restO))
+  (loop (_coll0 (rest coll)
+         _coll1 (rest other))
+    (if (not_eql? (first _coll0) (first _coll1)) (return #f)
+    (if (empty? _coll1) (return #t)
+    (recur (rest _coll0) (rest _coll1))
     ))))
 
 (define ends-with? (::T[] coll ::T e)
@@ -198,7 +196,7 @@
   (loop (::T[] result []
          i times)
     (if (<= i 0)
-      (return result)
+;;       (return result)
       (recur (append result elem) (-- i)))))
 
 (define repeatedly (::T:delegate() func ::size_t times)
@@ -281,6 +279,11 @@
       (if (= prev (first sorted))
         (recur (rest sorted) prev result)
         (recur (rest sorted) (first sorted) (append result prev)))))))
+
+(define sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
 
 (define bin-search (::T[] seq ::T key)
   (if (gt? (size seq) 1)
@@ -407,3 +410,54 @@ try { to!toType(e); return true;
   (define to-float-valid? (::T e) (llr "canConvert!float(e)"))
   (define to-double-valid? (::T e) (llr "canConvert!double(e)"))
 )
+
+(define ::long[] divisors (::long l)
+  (loop (::long res []
+         n (>> l 1))
+    (if (= n 0) (return res)
+    (if (= (% l n) 0) 
+        (recur (append res n) (dec n))
+        (recur res (dec n))))))
+
+(define ::long sum-of-divisors (::long l)
+  (loop (::long res 0 n (/ l 2))
+    (if (= n 0) (return res)
+    (if (= (% l n) 0) 
+      (recur (+ res n) (dec n))
+      (recur res (dec n))))))
+
+(define ::long sum-of-divisors-1 (::long l)
+  (sum (divisors l)))
+
+(define ::T (T) fib (::T _n)
+  (loop (n _n
+         a 1
+         b 0)
+    (if (= n 0)
+      (return b)
+      (recur (dec n) (+ a b) a))))
+
+(define ::double approx-euler (::long l)
+    (/ 1 (fib l)))
+
+(comment
+- Tokenization as always
+- Build AST
+- Traverse top-level AST for functions/variables (define, define-fn), structs (def-struct), meta (meta), shaza-imports (sz-import) and macros (def-macro)
+  - For meta, do usual parsing for meta and functions, but write no output; Save info in global
+  - For functions, save in global, write no output
+  - For macros, save in global, write to separate file
+  - For structs, save in global
+  - For import, read, tokenize and build AST, then put AST where the import was
+- Run macro-file on AST (leave macros out?) (-> Output???)
+- Find function calls. If a function is specified to take varargs, put those into a typed list.
+- Parse as usual
+- Write output
+- Run
+
+FIXME-List
+- Currently, only one function can be saved under the same name (it still works but might be a problem later)
+)
+
+
+

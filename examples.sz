@@ -203,7 +203,7 @@
             (recur (inc i) 15))))
 
 ; Multiple declarations with the same :export-as
-(meta (:export-as "and")
+(meta (:returns ::bool :export-as "and")
   (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
   (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2))
 )
