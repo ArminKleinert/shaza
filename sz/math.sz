@@ -1,0 +1,59 @@
+(module math)
+
+(import-sz sz/stdlib)
+
+(meta (:generics [::T])
+(define ::T sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
+
+(define ::T min (::T[] coll)
+  (if (= (size coll) 0) (return (llr "T.init")))
+  (if (= (size coll) 1) (return (first coll)))
+  (loop (::T[] c (rest coll)
+         ::T res (first coll))
+    (if (empty? c) (return res)
+    (if (< (first c) res)
+      (recur (rest c) (first c))
+      (recur (rest c) res)))))
+
+(define ::T max (::T[] coll)
+  (if (= (size coll) 0) (return (llr "T.init")))
+  (if (= (size coll) 1) (return (first coll)))
+  (loop (::T[] c (rest coll)
+         ::T res (first coll))
+    (if (empty? c) (return res)
+    (if (> (first c) res)
+      (recur (rest c) (first c))
+      (recur (rest c) res)))))
+
+(define ::T (::T) fib (::T _n)
+  (loop (n _n
+         a 1
+         b 0)
+    (if (= n 0)
+      (return b)
+      (recur (dec n) (+ a b) a))))
+)
+
+(define ::long[] divisors (::long l)
+  (loop (::long[] res []
+         n (>> l (ll "1L")))
+    (if (= n 0) (return res)
+    (if (= (% l n) 0)
+        (recur (append res n) (dec n))
+        (recur res (dec n))))))
+
+(define ::long sum-of-divisors (::long l)
+  (loop (::long res 0 n (/ l 2))
+    (if (= n 0) (return res)
+    (if (= (% l n) 0)
+      (recur (+ res n) (dec n))
+      (recur res (dec n))))))
+
+(define ::long sum-of-divisors-1 (::long l)
+  (sum (divisors l)))
+
+(define ::double approx-euler (::long l)
+    (/ 1.0 (fib l)))

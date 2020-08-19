@@ -120,6 +120,7 @@ class Jumplabel {
 
 class OutputContext {
     private string[] globals;
+    private string[] modules;
     private FunctionDecl[] _functions;
     private FunctionDecl[string] aliasedFunctions;
     private Jumplabel[] jumpLabelStack;
@@ -129,6 +130,7 @@ class OutputContext {
     this() {
         globals = [];
         _functions = [];
+        modules = [];
     }
 
     public static OutputContext global() {
@@ -221,11 +223,28 @@ class OutputContext {
     }
 
     Jumplabel getLastJumpLabel() {
-        return jumpLabelStack[jumpLabelStack.size - 1];
+        if (jumpLabelStack.size > 0) {
+            return jumpLabelStack[jumpLabelStack.size - 1];
+        } else {
+            return null;
+        }
     }
 
     void removeLastLabel() {
-        jumpLabelStack = jumpLabelStack[0 .. $ - 1];
+        if (jumpLabelStack.size > 0) {
+            jumpLabelStack = jumpLabelStack[0 .. $ - 1];
+        }
+    }
+
+    bool addModule(string modulename) {
+        if (hasImported(modulename))
+            return false;
+        modules ~= modulename;
+        return true;
+    }
+
+    bool hasImported(string modulename) {
+        return canFind(modules, modulename);
     }
 }
 
@@ -252,7 +271,6 @@ string keywordToString(AstNode node) {
 // SECTION Minor helpers
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
-    writeln(node.tknstr());
     bool allow = result[][$ - 1] != ';' && result[][$ - 1] != '{' && result[][$ - 1] != '}';
     if (node.type == TknType.closedScope && node.size > 0) {
         allow = allow && node.nodes[0].text != "ll" && node.nodes[0].text != "loop";
@@ -655,6 +673,23 @@ string letToString(AstNode ast) {
     return result[];
 }
 
+// SECTION module
+
+string moduleToString(AstNode ast) {
+    if (ast.nodes.length < 2)
+        throw new CompilerError("module: Too few arguments. " ~ ast.nodes[0].tknstr());
+    if (ast.nodes[1].type != TknType.symbol)
+        throw new CompilerError("module: Name has to be a symbol. " ~ ast.nodes[1].tknstr());
+
+    string modulename = ast.nodes[1].symbolToString();
+
+    // Module already exists. It was probably imported.
+    if (!OutputContext.global.addModule(modulename))
+        return null;
+
+    return "module " ~ modulename ~ ";\n";
+}
+
 // SECTION import-host
 
 string importHostToString(AstNode ast) {
@@ -700,6 +735,44 @@ string importHostToString(AstNode ast) {
         // Too many arguments
         throw new CompilerError("import-host: Too many arguments.");
     }
+}
+
+// SECTION import-sz
+
+string importShazaToString(AstNode ast) {
+    if (ast.size < 2)
+        stderr.writeln("No file to import: " ~ ast.nodes[0].tknstr() ~ "; Ignoring...");
+
+    auto node = ast.nodes[1];
+    auto fname = "";
+
+    if (node.type == TknType.litString) {
+        fname = node.tkn.text[1 .. $ - 1];
+    } else if (node.type == TknType.symbol) {
+        fname = "./" ~ node.tkn.text ~ ".sz";
+    } else {
+        stderr.writeln("Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");
+        return "";
+    }
+
+    import std.file : exists, readText;
+
+    if (!exists(fname)) {
+        throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
+    }
+
+    string result;
+
+    import compiler.types : Context;
+    import compiler.tokenizer : tokenize;
+    import compiler.ast : buildBasicAst;
+
+    auto ctx = new Context();
+    ctx = tokenize(ctx, readText(fname));
+    ctx = buildBasicAst(ctx);
+    result = createOutput(ctx.ast);
+
+    return result;
 }
 
 // SECTION List literal to string
@@ -936,9 +1009,13 @@ string recurToString(AstNode ast) {
     AstNode[] bindings = ast.nodes[1 .. $];
     auto lastLabel = OutputContext.global.getLastJumpLabel();
 
+    if (lastLabel is null) {
+        throw new CompilerError("recur: No bounding loop or function.");
+    }
+
     if (bindings.size != lastLabel.vars.size) {
         writefln("%s %s %s", bindings.size, lastLabel.vars.size, lastLabel.vars);
-        throw new CompilerError("Too many or too few bindings" ~ ast.nodes[0].tknstr());
+        throw new CompilerError("recur: Too many or too few bindings. " ~ ast.nodes[0].tknstr());
     }
 
     auto result = appender("");
@@ -1257,16 +1334,11 @@ string parseMetaGetString(AstNode ast, FnMeta parentMeta) {
 string createOutput(AstNode ast) {
     import std.conv;
 
-    auto s_to_i_with_base_test = to!int("12345", 16);
-    auto s_to_i_test = to!int("12345");
-    auto cast_f_i_test = cast(int)(1.5f);
-
     if (isAtom(ast.tkn)) {
         return atomToString(ast);
     }
 
     if (ast.type == TknType.closedTaggedList || ast.type == TknType.closedList) {
-        writeln(ast);
         return listLiteralToString(ast);
     }
 
@@ -1274,6 +1346,10 @@ string createOutput(AstNode ast) {
         Token firstTkn = ast.nodes[0].tkn;
         if (firstTkn.type == TknType.symbol) {
             switch (firstTkn.text) {
+            case "module":
+                // Only 1 module declaration per file is allowed and it must be the very first token!
+                stderr.writeln("Ignoring unexpected module declaration: " ~ ast.nodes[0].tknstr());
+                break;
             case "define":
                 return generalDefineToString(ast, false, null);
             case "define-fn":
@@ -1315,7 +1391,7 @@ string createOutput(AstNode ast) {
             case "struct":
                 break; // TODO
             case "import-sz":
-                break; // TODO
+                return importShazaToString(ast);
             case "import-host":
                 return importHostToString(ast);
             case "rt-import-sz":
@@ -1339,7 +1415,29 @@ string createOutput(AstNode ast) {
 
     if (ast.type == TknType.root) {
         auto rootTexts = appender!(string[])();
-        foreach (AstNode child; ast.nodes) {
+        auto parsingstart = 0;
+
+        // Cornercase: Empty source file
+        if (ast.nodes.length == 0)
+            return "";
+
+        // Try to find module declaration
+        if (ast.nodes[0].type == TknType.closedScope
+                && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].text == "module") {
+            string temp = moduleToString(ast.nodes[0]);
+
+            if (!temp) {
+                return ""; // The module was already imported!
+            }
+
+            rootTexts ~= temp;
+            parsingstart++;
+        } else {
+            stderr.writeln("File is missing a module declaration. This is fine for scripts, "
+                    ~ "but can lead to problems when importing the same file multiple times.");
+        }
+
+        foreach (AstNode child; ast.nodes[parsingstart .. $]) {
             rootTexts ~= createOutput(child);
         }
         rootTexts ~= OutputContext.global().globals;

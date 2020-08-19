@@ -160,13 +160,14 @@ bool allowImplicitReturn(string returnType, AstNode command) {
         return false;
     if (isAtom(command.tkn))
         return true;
+    if (command.type == TknType.closedList || command.type == TknType.closedTaggedList)
+        return true;
     if (command.type != TknType.closedScope)
         return false;
 
     switch (command.nodes[0].text) {
     case "return":
     case "let":
-    case "t-let":
     case "define":
     case "ll":
     case "if":
@@ -229,7 +230,6 @@ bool opensScope(AstNode node) {
         return true;
 
     switch (node.nodes[0].text) {
-    case "t-let":
     case "let":
     case "loop":
     case "define":
@@ -266,12 +266,13 @@ string atomToString(AstNode ast) {
 string szNameToHostName(string szVarName) {
     if (szVarName.size == 1)
         return szVarName;
+    szVarName = szVarName.replace("=", "_");
+    szVarName = szVarName.replace("~", "_");
     szVarName = szVarName.replace("-", "_");
-    szVarName = szVarName.replace("?", "_Q");
     if (szVarName[$ - 1] == '?')
-        szVarName = szVarName[0 .. $ - 2] ~ "_Q";
+        szVarName = szVarName[0 .. $ - 1] ~ "_Q";
     else if (szVarName[$ - 1] == '!')
-        szVarName = szVarName[0 .. $ - 2] ~ "_E";
+        szVarName = szVarName[0 .. $ - 1] ~ "_E";
     return szVarName;
 }
 
@@ -329,4 +330,10 @@ T get(T)(Appender!T ap) {
 
 size_t size(T)(T[] arr) {
     return arr.length;
+}
+
+bool isValidDIdentifier(string s) {
+    import std.algorithm;
+
+    return !s.canFind('=') && !s.canFind('!') && !s.canFind('?');
 }

@@ -51,7 +51,6 @@ Context buildBasicAst(Context ctx) {
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
-                writeln(stack);
                 auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
@@ -64,7 +63,6 @@ Context buildBasicAst(Context ctx) {
             if (is_valid) {
                 stack = mergeTopElements(stack);
             } else {
-                writeln(stack);
                 throw new CompilerError("The closing token " ~ to!string(
                         current) ~ " isn't closing anything.");
             }

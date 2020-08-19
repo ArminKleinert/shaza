@@ -1,3 +1,5 @@
+(import-sz sz/stdlib)
+
 (import-host "std.string")
 (import-host "std.stdio")
 

@@ -51,7 +51,7 @@ bool isCharLiteral(string text) {
     if (text.size < 2)
         return false;
     return text == "\\space" || text == "\\newline" || text == "\\tab"
-    || (text[0] == "\\"[0] && text.size == 2);
+        || (text[0] == "\\"[0] && text.size == 2);
 }
 
 bool isValidTypeLiteral(string text) {
@@ -88,7 +88,7 @@ bool isValidTypeLiteral(string text) {
 
 bool lastCharMustBeSeperated(string text) {
     return (text[$ - 1] == ')' && !text.canFind('(')) || (text[$ - 1] == ']'
-    && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
+            && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
 }
 
 // SUBSECT Token-type-table
@@ -139,7 +139,7 @@ Context closeToken(Context ctx) {
     if (ctx.isInTypeLiteral) {
         if (!isValidTypeLiteral(txt)) {
             auto tknTextForErrors = Token(ctx.currTknStartLine,
-            ctx.currTknStartChar, TknType.litType, txt).as_readable();
+                    ctx.currTknStartChar, TknType.litType, txt).as_readable();
             throw new CompilerError("Illegal type literal: " ~ tknTextForErrors);
         } else if (lastCharMustBeSeperated(txt)) {
             auto tkntxt = txt[0 .. $ - 1];
@@ -196,7 +196,7 @@ Context tokenizeSubNextChar(Context ctx, char c) {
     } else if (c == ' ' || c == '\t' || c == '\n') {
         ctx = closeToken(ctx);
     } else if ((c == ']' && !ctx.currTknText.canFind('[')) || (c == ')'
-    && !ctx.currTknText.canFind('(')) || (c == '}' && !ctx.currTknText.canFind('{'))) {
+            && !ctx.currTknText.canFind('(')) || (c == '}' && !ctx.currTknText.canFind('{'))) {
         ctx = closeToken(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
         ctx = closeToken(ctx);

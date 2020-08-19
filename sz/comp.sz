@@ -1,5 +1,7 @@
 (module compiler)
 
+(import-sz sz/stdlib)
+
 (def-struct Token
   ::string text
   ::Keyword type
