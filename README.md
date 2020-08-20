@@ -135,8 +135,9 @@ if `:pure` is `#t`, in which case the compiler might otherwise try to memoize.
 ## Missing features
 
 Near future:  
-- ``alias`` command  
-- Make a check for `:export-as` to verify that the name is valid  
+- ``alias`` command.  
+- Make a check for `:export-as` to verify that the name is valid.  
+- Make `import-sz` safer.  
 - Make compiler check all function names and meta before the actual 
   output of functions!  
 - Make compiler print a lot of errors rather than quitting immediately.  
