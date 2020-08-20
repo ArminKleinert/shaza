@@ -55,5 +55,8 @@ string llToString(AstCtx ast) {
             llToStringSub(result, ast(child));
         }
     }
+    if (ast.nodes[0].text == "llr" && ast.requestReturn) {
+        return prependReturn(true, result.get());
+    }
     return result.get();
 }

@@ -21,7 +21,7 @@ string listLiteralToString(AstCtx ast) {
             result ~= ",";
     }
     result ~= "]";
-    return result.get();
+    return prependReturn(ast.requestReturn, result.get());
 }
 
 // SECTION Fucntion call to string
@@ -44,7 +44,9 @@ string callToString(AstCtx ast) {
         callingName = createOutput(ast[0]);
     }
 
-    return callingName ~ callArgsToString(ast, ast.nodes[1 .. $]);
+    auto result = callingName ~ callArgsToString(ast, ast.nodes[1 .. $]);
+    result = prependReturn(ast.requestReturn, result);
+    return result;
 }
 
 string callArgsToString(AstCtx actx, AstNode[] args) {
@@ -93,7 +95,7 @@ string setvToString(AstCtx ast) {
         result ~= attrSetvToString(varname, ast[2], ast[3]);
     }
     insertSemicolon(result, ast);
-    return result.get();
+    return prependReturn(ast.requestReturn, result.get());
 }
 
 // SECTION new-operator
@@ -107,7 +109,9 @@ string newToString(AstCtx ast) {
         throw new CompilerError("new: First parameter must be type literal. " ~ ast.nodes[1].tknstr);
     }
 
-    return "new " ~ createOutput(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]) ~ ";";
+    auto result = "new " ~ createOutput(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]) ~ ";";
+    result = prependReturn(ast.requestReturn, result);
+    return result;
 }
 
 // SECTION Operator call (+, -, *, /, &, %, |) for > 2 arguments
@@ -123,7 +127,7 @@ string opcallToString(AstCtx ast) {
     }
     result ~= createOutput(ast.subs[ast.size - 1]);
     result ~= ")";
-    return result.get();
+    return prependReturn(ast.requestReturn, result.get());
 }
 
 // SECTION conversions -> cast and to
@@ -133,7 +137,7 @@ string conversionToString(AstCtx ast) {
         throw new CompilerError("to: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     auto s = "to!" ~ typeToString(ast.nodes[1]);
-    return toOrCastToString(ast, s);
+    return prependReturn(ast.requestReturn, toOrCastToString(ast, s));
 }
 
 string castToString(AstCtx ast) {
@@ -141,7 +145,7 @@ string castToString(AstCtx ast) {
         throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     auto s = "cast(" ~ typeToString(ast.nodes[1]) ~ ")";
-    return toOrCastToString(ast, s);
+    return prependReturn(ast.requestReturn, toOrCastToString(ast, s));
 }
 
 string toOrCastToString(AstCtx ast, string start) {

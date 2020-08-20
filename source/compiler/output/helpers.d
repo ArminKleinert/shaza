@@ -266,7 +266,7 @@ struct AstCtx {
     this(AstNode fullAst, AstNode ast) {
         this.fullAst = fullAst;
         this.ast = ast;
-        requestReturn = true;
+        requestReturn = false;
     }
 
     AstCtx needReturn(bool v) {
@@ -275,24 +275,27 @@ struct AstCtx {
         return cpy;
     }
 
+    /*
     AstCtx withAst(AstNode node) {
         AstCtx cpy = AstCtx(fullAst, node);
         cpy.requestReturn = requestReturn;
         return cpy;
     }
+    */
 
     AstCtx opIndex(size_t i) {
-        return withAst(ast.nodes[i]);
+        return AstCtx(fullAst, ast.nodes[i]);
     }
 
     AstCtx opCall(AstNode node) {
-        return withAst(node);
+        return AstCtx(fullAst, node);
     }
 
     AstCtx[] subs() {
         AstCtx[] res = [];
         foreach (n; nodes) {
-            res ~= withAst(n);
+            // Do not want to inherit eg. requestReturn
+            res ~= AstCtx(fullAst, n);
         }
         return res;
     }
@@ -378,6 +381,12 @@ string createOutput(AstCtx ast) {
 
 string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
     return _parseRootNodeIntoContextAndReturnModulename(ast);
+}
+
+string prependReturn(bool requested, string s) {
+    if (!requested)
+        return s;
+    return "return " ~ s;
 }
 
 // SECTION Init

@@ -26,11 +26,11 @@ string lambdaToString(AstCtx ast) {
     AstNode returnType = ast.nodes[1];
     AstNode[] bindings = ast.nodes[2].nodes;
     string[] bindingArgNames = getVarNamesFromBindings(bindings);
-    AstNode[] bodyNodes = ast.nodes[3 .. $];
+    AstCtx[] bodyNodes = ast.subs[3 .. $];
 
     auto result = appender("delegate ");
     result ~= typeToString(returnType);
     result ~= generalFunctionBindingsToString(bindings);
     result ~= defineFnToString(typeToString(returnType), bindingArgNames, bodyNodes, ast);
-    return result.get();
+    return prependReturn(ast.requestReturn, result.get());
 }

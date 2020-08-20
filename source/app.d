@@ -25,11 +25,14 @@ string[string] parseFully(string script) {
 void main() {
     import std.file;
 
-    string txt = readText("./sz/comp.sz");
+    string txt = readText("./sz/examples.sz");
+    /*
     foreach (k, v; parseFully(txt)) {
-        writeln(
-                "; ---------------------------------------------------------------------------------");
+        writeln("; ---------------------------------------------------------------------------------");
         writeln(v);
         writeln();
     }
+    */
+
+    writeln(parseFully(txt)["examples"]);
 }

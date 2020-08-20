@@ -34,7 +34,7 @@ string letToString(AstCtx ast) {
         throw new CompilerError("let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
 
     AstNode[] bindings = ast.nodes[1].nodes;
-    AstNode[] bodyNodes = ast.nodes[2 .. $];
+    auto bodyNodes = ast.subs[2 .. $];
 
     // "{" without a keyword before it in D source code opens a new scope
     auto result = appender!string("{\n");
@@ -43,11 +43,14 @@ string letToString(AstCtx ast) {
     result ~= letBindingsToString(ast, bindings);
 
     // Write code
-    foreach (AstNode bodyNode; bodyNodes) {
+    foreach (AstCtx bodyNode; bodyNodes[0 .. $ - 1]) {
         result ~= createOutput(ast(bodyNode));
         insertSemicolon(result, bodyNode);
         result ~= "\n";
     }
+
+    result ~= createOutput(bodyNodes[bodyNodes.size - 1].needReturn(ast.requestReturn));
+    insertSemicolon(result, bodyNodes[bodyNodes.size - 1]);
 
     result ~= "}";
     return result[];
@@ -62,14 +65,14 @@ string ifToString(AstCtx ast) {
     result ~= "if(";
     result ~= createOutput(condition);
     result ~= ") {\n";
-    result ~= createOutput(branchThen);
+    result ~= createOutput(branchThen.needReturn(ast.requestReturn));
     insertSemicolon(result, branchThen);
     result ~= "\n}";
 
     if (ast.size == 4) {
         auto branchElse = ast[3];
         result ~= " else {\n";
-        result ~= createOutput(branchElse);
+        result ~= createOutput(branchElse.needReturn(ast.requestReturn));
         insertSemicolon(result, branchElse);
         result ~= "\n}";
     }
@@ -136,7 +139,7 @@ string loopToString(AstCtx ast) {
         insertSemicolon(result, node);
         result ~= '\n';
     }
-    result ~= createOutput(bodyNodes[$ - 1]);
+    result ~= createOutput(bodyNodes[$ - 1].needReturn(ast.requestReturn));
     insertSemicolon(result, bodyNodes[$ - 1]);
 
     // SUBSECT Remove label and return

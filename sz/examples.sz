@@ -1,4 +1,6 @@
-(import-sz sz/astdlib)
+(module examples)
+
+(import-sz sz/stdlib)
 
 (import-host "std.string")
 (import-host "std.stdio")
@@ -71,12 +73,10 @@
 (define ::int if-as-expression (::int n)
     (if (lt? n 0) (sub 0 n) n))
 
-; TODO Implement
 ; This loop doesn't do much, but hopefully I can turn it into an expression one day.
 (define ::int loop-as-expression (::int n)
     (loop () 1))
 
-; TODO Implement
 ; Same for let
 (define ::int let-as-expression (::int n)
     (let (a 1 b 1) (llr "a+b")))

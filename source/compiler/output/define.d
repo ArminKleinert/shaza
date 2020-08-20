@@ -22,10 +22,10 @@ string[] getVarNamesFromLoopBindings(AstCtx[] bindings) {
             i++;
         }
         if (i >= bindings.size) {
-            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
+            throw new CompilerError( "Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
-            names ~= szNameToHostName(symbolToString(bindings[i]));
+            names ~= szNameToHostName( symbolToString( bindings[i]));
             i++; // Skip value
         }
     }
@@ -41,10 +41,10 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
             i++;
         }
         if (i >= bindings.size) {
-            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
+            throw new CompilerError( "Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
-            names ~= szNameToHostName(symbolToString(bindings[i]));
+            names ~= szNameToHostName( symbolToString( bindings[i]));
         }
     }
 
@@ -52,18 +52,18 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
 }
 
 string generalFunctionBindingsToString(AstNode[] bindings) {
-    auto result = appender("(");
+    auto result = appender( "(");
 
     // Write function argument list
     for (int i = 0; i < bindings.size; i++) {
         if (bindings[i].type == TknType.litType) {
-            result ~= typeToString(bindings[i]);
+            result ~= typeToString( bindings[i]);
             i++;
         } else {
             result ~= SHAZA_PARENT_TYPE;
         }
         result ~= " ";
-        result ~= szNameToHostName(symbolToString(bindings[i])); // Name
+        result ~= szNameToHostName( symbolToString( bindings[i])); // Name
 
         if (i < bindings.size - 2) {
             result ~= ", ";
@@ -77,21 +77,21 @@ string generalFunctionBindingsToString(AstNode[] bindings) {
 // SECTION Add function to globally visible functions (May be used for type induction)
 
 FunctionDecl addFunctionFromAst(FnMeta meta, string name, AstNode typeNode,
-        AstNode[] bindings, string[] generics) {
-    string type = typestring(typeNode);
-    return addFunctionFromAst(meta, name, type, bindings, generics);
+AstNode[] bindings, string[] generics) {
+    string type = typestring( typeNode);
+    return addFunctionFromAst( meta, name, type, bindings, generics);
 }
 
 FunctionDecl addFunctionFromAst(FnMeta meta, string name, string type,
-        AstNode[] bindings, string[] generics) {
+AstNode[] bindings, string[] generics) {
     string[] args;
 
     // FIXME Update because sometimes the types are now optional
     for (int i = 0; i < bindings.size; i += 2) { // +2 skips name
-        args ~= typeToString(bindings[i]);
+        args ~= typeToString( bindings[i]);
     }
 
-    return OutputContext.global.addFunc(meta, name, type, args, generics);
+    return OutputContext.global.addFunc( meta, name, type, args, generics);
 }
 
 // SECTION define-instruction
@@ -108,7 +108,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         type = meta.returnType;
     }
     if (ast[nameIndex].type == TknType.litType) {
-        type = typeToString(ast[nameIndex]);
+        type = typeToString( ast[nameIndex]);
         nameIndex++; // Type found, name comes later.
     }
 
@@ -122,9 +122,9 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         auto genericsNodes = ast[nameIndex].nodes;
         foreach (node; genericsNodes) {
             if (node.type != TknType.litType) {
-                throw new CompilerError("Expected type: " ~ node.tknstr());
+                throw new CompilerError( "Expected type: " ~ node.tknstr());
             }
-            generics ~= typeToString(node.text);
+            generics ~= typeToString( node.text);
         }
 
         nameIndex++;
@@ -136,7 +136,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (nameNode.type != TknType.symbol) {
         string msg = "Token " ~ nameNode.tknstr();
         msg ~= " not allowed as a variable/function name. Token must be a symbol!";
-        throw new CompilerError(msg);
+        throw new CompilerError( msg);
     }
     string name = nameNode.text;
 
@@ -155,7 +155,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
             string msg = "Cannot induce return type for function definitions yet: ";
             msg ~= nameNode.tkn.as_readable;
             msg ~= ". Assuming type 'void'.";
-            warning(msg);
+            warning( msg);
             type = "void";
         }
     }
@@ -165,7 +165,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (!isFunctionDef) {
         if (meta !is null) {
             // TODO Enable meta for variables
-            warning("Metadata ignored because here a variable is defined. " ~ ast[0].tknstr());
+            warning( "Metadata ignored because here a variable is defined. " ~ ast[0].tknstr());
         }
 
         string val;
@@ -173,13 +173,13 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
             assert(type != "auto");
             val = type ~ ".init";
         } else {
-            val = createOutput(ast[nameIndex + 1]);
+            val = createOutput( ast[nameIndex + 1]);
         }
 
-        auto result = appender("");
+        auto result = appender( "");
         result ~= type;
         result ~= " ";
-        result ~= symbolToString(nameNode);
+        result ~= symbolToString( nameNode);
         result ~= " = ";
         result ~= val; // Value
         result ~= ";\n";
@@ -192,21 +192,21 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (ast[nameIndex + 1].type != TknType.closedScope) {
         string msg = "Token " ~ ast[nameIndex + 1].tkn.as_readable;
         msg ~= " not allowed as function argument list. Please surround arguments with '(...)'.";
-        throw new CompilerError(msg);
+        throw new CompilerError( msg);
     }
 
-    AstNode[] bindings = ast[nameIndex + 1].nodes;
-    AstNode[] bodyNodes = ast.nodes[nameIndex + 2 .. $];
-    auto argNames = getVarNamesFromBindings(bindings);
+    auto bindings = ast[nameIndex + 1].nodes;
+    auto bodyNodes = ast.subs[nameIndex + 2 .. $];
+    auto argNames = getVarNamesFromBindings( bindings);
 
     // Add function to globals
     if (meta is null)
-        meta = new FnMeta(szNameToHostName(name), generics, type);
-    auto fndeclaration = addFunctionFromAst(meta, name, type, bindings, generics);
+        meta = new FnMeta( szNameToHostName( name), generics, type);
+    auto fndeclaration = addFunctionFromAst( meta, name, type, bindings, generics);
 
     // SUBSECT Write name and (if given) generic types.
 
-    auto result = appender("");
+    auto result = appender( "");
     if (fndeclaration.visibility != "") {
         result ~= fndeclaration.visibility;
         result ~= ' ';
@@ -229,8 +229,8 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     // SUBSECT Write rest of arguments and body and return
 
-    result ~= generalFunctionBindingsToString(bindings);
-    result ~= defineFnToString(type, argNames, bodyNodes, ast);
+    result ~= generalFunctionBindingsToString( bindings);
+    result ~= defineFnToString( type, argNames, bodyNodes, ast);
     result ~= '\n';
 
     /*
@@ -249,8 +249,8 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
 // SUBSECT Helper for body of the define-instruction
 
-string defineFnToString(string type, string[] argNames, AstNode[] bodyNodes, AstCtx ast) {
-    auto result = appender("{\n");
+string defineFnToString(string type, string[] argNames, AstCtx[] bodyNodes, AstCtx ast) {
+    auto result = appender( "{\n");
 
     // If the body is empty, return the default value of the return-type
     // or, if the type is void, leave an empty body
@@ -264,27 +264,27 @@ string defineFnToString(string type, string[] argNames, AstNode[] bodyNodes, Ast
     }
 
     // Add jump-label
-    bool doAddLabel = nodesContainRecur(bodyNodes);
+    bool doAddLabel =false;
+    foreach (n; bodyNodes) {
+        if (nodeContainsRecur(n)) {
+            doAddLabel = true;break ;
+        }
+    }
     if (doAddLabel) {
-        result ~= OutputContext.global.newLabel(argNames);
+        result ~= OutputContext.global.newLabel( argNames);
     }
 
     // Write all but the last statement
-    foreach (AstNode bodyNode; bodyNodes[0 .. $ - 1]) {
-        result ~= createOutput(ast.withAst(bodyNode));
+    foreach (bodyNode; bodyNodes[0 .. $ - 1]) {
+        result ~= createOutput(bodyNode);
         insertSemicolon(result, bodyNode);
         result ~= '\n';
     }
 
-    AstNode lastStmt = bodyNodes[bodyNodes.size - 1];
-
-    // Implicitly insert "return" if possible.
-    if (allowImplicitReturn(type, lastStmt)) {
-        result ~= "return ";
-    }
-
-    result ~= createOutput(ast.withAst(lastStmt));
+    auto lastStmt = bodyNodes[bodyNodes.size - 1];
+    result ~= createOutput(lastStmt.needReturn(true));
     insertSemicolon(result, lastStmt);
+
 
     // Pop jump label
     if (doAddLabel)
