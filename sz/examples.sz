@@ -67,8 +67,6 @@
         (return 1)
         (return (tail-recur-test (dec n) res))))
 
-(comment
-; TODO Implement
 ; Treat if as expression and allow for implicit return
 (define ::int if-as-expression (::int n)
     (if (lt? n 0) (sub 0 n) n))
@@ -82,7 +80,6 @@
 ; Same for let
 (define ::int let-as-expression (::int n)
     (let (a 1 b 1) (llr "a+b")))
-)
 
 ; Set attribute "n" of object mt
 (define ::void setv_attr_test_1 (::MyType mt)

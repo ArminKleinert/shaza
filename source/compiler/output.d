@@ -260,6 +260,31 @@ string[string] getAllTexts() {
     return OutputContext.global.fullModuleTexts;
 }
 
+// SECTION Ast with additional context
+
+struct AstCtx {
+    AstNode ast;
+    AstNode fullAst;
+    bool requestReturn;
+
+    alias ast this;
+
+    this(AstNode fullAst, AstNode ast) {
+        this.fullAst=fullAst;this.ast = ast;
+        requestReturn = true;
+    }
+
+    AstCtx needReturn(bool v) {
+        AstCtx cpy = AstCtx(fullAst, ast);
+    cpy.requestReturn= v;
+    return cpy;}
+
+    AstCtx withAst(AstNode node){
+        AstCtx cpy = AstCtx(fullAst, node);
+        cpy.requestReturn = requestReturn;
+        return cpy;}
+}
+
 // SECTION Checked string converters
 
 string symbolToString(AstNode node) {
