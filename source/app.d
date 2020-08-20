@@ -10,7 +10,7 @@ import shaza.std;
 import compiler.types;
 import compiler.tokenizer;
 import compiler.ast;
-import compiler.output;
+import compiler.ast_converter;
 
 // SECTION Main
 
@@ -27,7 +27,8 @@ void main() {
 
     string txt = readText("./sz/comp.sz");
     foreach (k, v; parseFully(txt)) {
-        writeln("; ---------------------------------------------------------------------------------");
+        writeln(
+                "; ---------------------------------------------------------------------------------");
         writeln(v);
         writeln();
     }
