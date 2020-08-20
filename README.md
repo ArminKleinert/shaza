@@ -1,9 +1,11 @@
 # Shaza
 
-Shaza is a statically typed lisp intended for use as an intermediate representation
-for compilers. This is a hobby project and not intended for serious work.
-Similarly to many modern languages, typing is implicit but static.
-The type of functions and variables can be optionally specified as shown below.
+Shaza is a statically typed lisp I am making for fun. Right now it just transpiles to D.
+Many functionalities are still missing though. By now Shaza has everything it needs to 
+be made self-hosting.  
+By now, Shaza has reached a state at which I'm not totally by it anymore.  
+Any D-function can be called directly. The good thing with this is that it makes converting 
+D to Shaza is pretty easy. The problem is that Shaza is not a safe language right now.
 
 ## Basic commands
 
@@ -106,10 +108,9 @@ one of "public", "private", "protected".
 Implemented but not tested enough:
 - ``:alias [...]`` Defines a list of aliases for the function. 
 If an alias is used, the name is resolved to point back to the original. 
-This option can only be used if the ``meta`` block only includes a single
-function. Also, it is currently not tested enough to be used safely.
+It is currently not tested enough to be used safely.
 - ``:export-as <string>`` If set, the functions' name will be converted 
-to the given string by the compiler. Only supported for single functions.  
+to the given string by the compiler.  
 
 Not implemented:
 - ``:checked-calls #t/#f`` Makes sure the functions can only call functions 
@@ -137,63 +138,83 @@ Near future:
 - ``alias`` command  
 - Make a check for `:export-as` to verify that the name is valid  
 - Make compiler check all function names and meta before the actual 
-output of functions!  
-- Make compiler print a lot of errors rather than quitting immediately  
-- ``lambda`` with automatic type induction  
-- tail-recursion (right now, ``recur`` should be used)
-- Operators with ``'``  
+  output of functions!  
+- Make compiler print a lot of errors rather than quitting immediately.  
+- Implement functions for Maps (or implement Maps with `def-struct`).  
+- Implement functional types.  
+- Lazy sequences.
+- tail-recursion (right now, ``recur`` should be used).  
+- Operators with ``'``.  
 - Implicit return from ``if``, ``let`` and loops.  
 - ``struct``  
 - ``define-ns`` (This has not proven necessary yet)  
-- ``import-sz``  
 - ``bit-cast``  
 - ``bytesize, alloc, free, pointerto``  
-- Lazy sequences
 
 A byte further in the future:  
 - Unit-tests  
 - type-specifications on generics  
 - Modifiers on functions and vars (private, const, etc.)
-- Automatic type induction for functions  
+- Automatic type induction for functions.  
+- ``lambda`` with automatic type induction.  
 - ``define-macro, define-tk-macro``  
 - ``coll`` (This has not proven necessary yet)  
 - ``quote, pseudo-quote, unquote``
   (Shaza is transpiled to D at the moment, so doing these is hard.)  
 - ``call-extern`` (Shaza can call any D-function directly, so this 
-is not yet important)  
+  is not yet important)  
 - ``rt-import-sz``  
 - ``rt-import-dll``  
 - Variadic arguments  
 
 ## TODO List
 
-- Replace old names with operators  
-- Implement tail-recursion and make compiler turn statements into expressions  
+- Check this for varargs: 
+`void print(A...)(A a) { foreach(t; a) writeln(t); }`  
+- Remove `op-call`.  
+- Make Shaza self-hosting step-by-step.  
+- Disallow 2 `module` calls in one file.  
+- Implement tail-recursion and make compiler turn statements into expressions.  
 - Test corner-cases of :alias and :export-as meta.
   (What if we use D names?)  
-- Make Shaza self-hosting step-by-step.  
 - Make code more efficient (there is a lot of copying
-  and testing with meta-data)  
-- Clean up code  
+  and testing with meta-data).  
+- Clean up code.  
 - Implement tests.  
 - Go down the "missing features" list.  
-- Clean up code  
+- Clean up code.  
 - Implement tests.  
-- Clean up code  
-- Interpreter  
-- Clean up code  
+- Clean up code.  
+- Interpreter.  
+- Clean up code.  
 - Go down the "missing features" list.  
 - Implement tests.  
+
+## Ideas
+
+- `::* ::*0 .. ::*9` for anonymous generic types: `(define ::*1 f (::*1 a ::*1 b) (+ a b))`  
+- `%0 .. %9` for anonymous arguments: `(define ::int f (::int ::int) (+ %0 %1))`
 
 ## Example
 
 ```
-; A eager map-function using a generic type T.
-(define ::T[] (::T) map (::delegate:T(T) func ::T[] seq)
-    (let (::T[] result [])
-        (reduce
-            (lambda (elem res) (append res (func elem)))
-            result seq)))
+; Import Shazas' standard library.
+(import-sz stdlib)
+
+; A eager sum-function using a generic type T.
+; The D-compiler will complain if T does not support addition via +
+(define ::T (::T) sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
+
+; A eager sum-function using meta attributes.
+(meta (:generics [::T] :returns ::T :aliases ["sum-elems"])
+(define sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
+)
 
 ; Check if an element is nil using the llr command.
 (define ::bool (::T) nil? (T elem) (llr elem " is null"))
