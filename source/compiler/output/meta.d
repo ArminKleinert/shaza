@@ -1,4 +1,4 @@
-module compiler.output.meta;
+module meta;
 
 import compiler.output.helpers;
 import compiler.output.define;
