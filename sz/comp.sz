@@ -55,7 +55,6 @@
 (define ::char quot-mark (ch "\""))
 
 (meta (:returns ::bool)
-
 (define is-string-literal? (::string text)
   (and (>= (size text) 2)
        (= (first text) quot-mark)
@@ -64,7 +63,7 @@
 (define is-valid-symbol? (::string text)
   (if (< (size text) 2)
     (return false))
-  (loop (curr (first text) ::string rst)
+  (loop (curr (first text) ::string rst "")
     (if (empty? rst)
       (return true))
     (if (in? "\";()[]{}#:" curr)
@@ -72,88 +71,56 @@
       (recur (first rst) (slice rst 1)))))
 
 (define is-valid-integral? (::string text)
-    (to-long-valid? text))))
+  (to-long-valid? text))
 
 (define is-valid-unsigned? (::string text)
-    (to-ulong-valid? text))
+  (to-ulong-valid? text))
 
 (define is-valid-float? (::string text)
-    (to-double-valid? text))
+  (to-double-valid? text))
 
 (define is-valid-number? (::string text)
-    (and (is-valid-integral? text) (is-valid-float? text)))
+  (and (is-valid-integral? text) (is-valid-float? text)))
 
 (define is-type-literal? (::string text)
-    (starts-with? text "::"))
+  (starts-with? text "::"))
 
 (define is-keyword-literal? (::string text)
-    (and (>= (size text) 2) (= (first text) \:) (is-valid-symbol? (rest text))))
+  (and (>= (size text) 2) (= (first text) \:) (is-valid-symbol? (rest text))))
 
 (define is-bool-literal? (::string text)
-    (in? ["#t" "#f"] text))
+  (in? ["#t" "#f"] text))
 
 (define is-char-literal? (::string text)
-    (and (not-empty? text)
-      (or (in? ["\\space" "\\newline" "\\tab"] text)
-          (and (= (first text) (first "\\")) (= (size text) 2)))))
+  (and (not-empty? text)
+    (or (in? ["\\space" "\\newline" "\\tab"] text)
+        (and (= (first text) (first "\\")) (= (size text) 2)))))
 
 (define is-type-literal? (::string text)
-    (let [idx-of-ob  (index-of text (first "("))
+    (let (idx-of-ob  (index-of text (first "("))
           idx-of-cb  (index-of text (first ")"))
           idx-of-ocb (index-of text (first "{"))
           idx-of-ccb (index-of text (first "}"))
           idx-of-osb (index-of text (first "["))
           idx-of-csb (index-of text (first "]"))
-          ]
-      (not
-        (or
-          [
-         )
+          last-txt-idx (dec (size text))
+
+          res0 (&& (pos? idx-of-ob) (> idx-of-ob idx-of-cb)) ; Handle () in symbol
+          res1 (|| res0 (&& (pos? idx-of-ocb) (> idx-of-ocb idx-of-ccb))) ; Handle {} in symbol
+          res2 (|| res1 (&& (pos? idx-of-osb) (> idx-of-osb idx-of-csb))) ; Handle [] in symbol
+          )
+      (return (not res2))))
+
+(define last-char-must-be-separated (::string text)
+  (||
+    (&& (== (last text) (ch ")")) (not (contains? text (ch "("))))
+    (&& (== (last text) (ch "]")) (not (contains? text (ch "["))))
+    (&& (== (last text) (ch "}")) (not (contains? text (ch "{"))))
+    (== (last text) (ch ";"))))
 )
 
 
-bool isValidTypeLiteral(string text) {
-    // Handle bracket
-    auto idx_of_ob = text.idxOf('(');
-    auto idx_of_cb = text.idxOf(')');
-    if (idx_of_ob >= 0 && idx_of_ob > idx_of_cb)
-        return false;
-
-    // Handle curly brace
-    auto idx_of_ocb = text.idxOf('{');
-    auto idx_of_ccb = text.idxOf('}');
-    if (idx_of_ocb >= 0 && idx_of_ocb > idx_of_ccb)
-        return false;
-
-    // Handle square brackets
-    auto idx_of_osb = text.idxOf('[');
-    auto idx_of_csb = text.idxOf(']');
-    if (idx_of_osb >= 0 && idx_of_osb > idx_of_csb)
-        return false;
-
-    // When a closing bracket, closing curly brace or square
-    // brace is at the end, we are find also.
-    auto last_text_idx = text.size - 1;
-    if (idx_of_ob < 0 && idx_of_cb >= 0 && idx_of_cb != last_text_idx)
-        return false;
-    if (idx_of_ocb < 0 && idx_of_ccb >= 0 && idx_of_ccb != last_text_idx)
-        return false;
-    if (idx_of_osb < 0 && idx_of_csb >= 0 && idx_of_csb != last_text_idx)
-        return false;
-
-    return true;
-}
-
-bool lastCharMustBeSeperated(string text) {
-    return (text[$ - 1] == ')' && !text.canFind('(')) || (text[$ - 1] == ']'
-            && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
-}
 
 
 
-
-
-
-(define ::Token[] tokenize (::string text)
-  )
 

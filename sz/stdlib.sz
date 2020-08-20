@@ -75,7 +75,9 @@
     (define ::int <=> (::T e0 ::T e1)
       (if (== e0 e1) (return 0)
       (if (< e0 e1) (return -1)
-      (return 1))))))
+      (return 1)))))
+  (define pos? (::T e0) (>= e0 0))
+  (define neg? (::T e0) (< e0 0)))
 
 ; SECTION bool-ops
 
@@ -83,6 +85,8 @@
   (meta (:export-as "and")
     (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
     (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2)))
+  (meta (:export-as "nand")
+    (define !&& (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 && b1))))
   (meta (:export-as "or")
     (define || (::lazy:bool b0 ::lazy:bool b1) (llr b0 || b1))
     (define || (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 || b1 || b2))
@@ -90,7 +94,10 @@
       (if (= (size bs) 0) (return false))
       (if (= (size bs) 1) (return (first bs)))
       (loop (_r bs) (if (first _r) (return true) (recur (rest bs))))))
-  (define not (::bool b0) (llr !b0)))
+  (meta (:export-as "nor")
+    (define !|| (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 || b1))))
+  (meta (:export-as "not")
+  (define ! (::bool b0) (llr !b0)))
 
 ; SECTION Concatenation and appending of arrays
 
@@ -297,7 +304,7 @@
 (define insertionsort (::T[] coll)
   (let (::T[] acc [])
     (isort-acc coll acc))))
-    
+
 (meta (:visibility :private)
   (define isort-acc (::T[] coll ::T[] acc)
     (if (empty? coll)
@@ -326,6 +333,7 @@
           (filter (lambda ::T (::T x) (<= x piv)) coll)
           piv
           (filter (lambda ::T (::T x) (> x piv)) coll))))))
+)
 )
 
 ; SECTION Type convertions
@@ -359,13 +367,11 @@ try { to!toType(e); return true;
 (define ::void (::T) errorln! (::T text)
   (writeln (ll stderr) text))
 
-(define ::string (::T) readln! ()
+(define ::string readln! ()
   (llr "stdin.readln"))
 
 (define ::void main (::string[] args)
   (println! "Hello world!"))
-
-(import-sz sz/math)
 
 (comment
 - Tokenization as always

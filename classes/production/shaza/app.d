@@ -21,9 +21,26 @@ string parseFully(string script) {
     return createOutput(ctx.ast);
 }
 
-/*void main() {
+N plus(N)(N i...) {
+    N acc;
+    foreach (n; i) {
+        acc += n;
+    }
+    return acc;
+}
+
+void main() {
+    /*
     import std.file;
 
     string txt = readText("./sz/stdlib.sz");
     writeln(parseFully(txt));
-}*/
+    */
+
+    //import stdlib;
+    //main1([]);
+
+    auto ctx = new Context();
+    ctx = tokenize(ctx, "::* ::*1 %1");
+    writeln(ctx.tokens);
+}

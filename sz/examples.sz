@@ -1,4 +1,4 @@
-(import-sz sz/stdlib)
+(import-sz sz/astdlib)
 
 (import-host "std.string")
 (import-host "std.stdio")

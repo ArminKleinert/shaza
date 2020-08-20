@@ -74,7 +74,7 @@ bool isValidTypeLiteral(string text) {
         return false;
 
     // When a closing bracket, closing curly brace or square
-    // brace is at the end, we are find also.
+    // brace is at the end, we are fine also.
     auto last_text_idx = text.size - 1;
     if (idx_of_ob < 0 && idx_of_cb >= 0 && idx_of_cb != last_text_idx)
         return false;

@@ -124,6 +124,7 @@ class OutputContext {
     private FunctionDecl[] _functions;
     private FunctionDecl[string] aliasedFunctions;
     private Jumplabel[] jumpLabelStack;
+    private string[string] fullModuleTexts;
 
     private __gshared OutputContext _global;
 
@@ -240,12 +241,23 @@ class OutputContext {
         if (hasImported(modulename))
             return false;
         modules ~= modulename;
+        fullModuleTexts[modulename] = "";
         return true;
     }
 
     bool hasImported(string modulename) {
         return canFind(modules, modulename);
     }
+
+    void appendToModuleText(string modulename, string text) {
+        if (!hasImported(modulename))
+            addModule(modulename);
+        fullModuleTexts[modulename] ~= text;
+    }
+}
+
+string[string] getAllTexts() {
+    return OutputContext.global.fullModuleTexts;
 }
 
 // SECTION Checked string converters
@@ -675,13 +687,17 @@ string letToString(AstNode ast) {
 
 // SECTION module
 
+string retrieveModuleName(AstNode modulecallAst) {
+    return modulecallAst.nodes[1].symbolToString();
+}
+
 string moduleToString(AstNode ast) {
     if (ast.nodes.length < 2)
         throw new CompilerError("module: Too few arguments. " ~ ast.nodes[0].tknstr());
     if (ast.nodes[1].type != TknType.symbol)
         throw new CompilerError("module: Name has to be a symbol. " ~ ast.nodes[1].tknstr());
 
-    string modulename = ast.nodes[1].symbolToString();
+    string modulename = retrieveModuleName(ast);
 
     // Module already exists. It was probably imported.
     if (!OutputContext.global.addModule(modulename))
@@ -761,8 +777,6 @@ string importShazaToString(AstNode ast) {
         throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
     }
 
-    string result;
-
     import compiler.types : Context;
     import compiler.tokenizer : tokenize;
     import compiler.ast : buildBasicAst;
@@ -770,9 +784,9 @@ string importShazaToString(AstNode ast) {
     auto ctx = new Context();
     ctx = tokenize(ctx, readText(fname));
     ctx = buildBasicAst(ctx);
-    result = createOutput(ctx.ast);
+    auto importedModuleName = parseRootNodeIntoContextAndReturnModulename(ctx.ast);
 
-    return result;
+    return "import " ~ importedModuleName;
 }
 
 // SECTION List literal to string
@@ -1414,39 +1428,47 @@ string createOutput(AstNode ast) {
     }
 
     if (ast.type == TknType.root) {
-        auto rootTexts = appender!(string[])();
-        auto parsingstart = 0;
-
-        // Cornercase: Empty source file
-        if (ast.nodes.length == 0)
-            return "";
-
-        // Try to find module declaration
-        if (ast.nodes[0].type == TknType.closedScope
-                && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].text == "module") {
-            string temp = moduleToString(ast.nodes[0]);
-
-            if (!temp) {
-                return ""; // The module was already imported!
-            }
-
-            rootTexts ~= temp;
-            parsingstart++;
-        } else {
-            stderr.writeln("File is missing a module declaration. This is fine for scripts, "
-                    ~ "but can lead to problems when importing the same file multiple times.");
-        }
-
-        foreach (AstNode child; ast.nodes[parsingstart .. $]) {
-            rootTexts ~= createOutput(child);
-        }
-        rootTexts ~= OutputContext.global().globals;
-        auto result = appender("");
-        foreach (txt; rootTexts[]) {
-            result ~= txt ~ "\n";
-        }
-        return result.get();
+        auto modulename = parseRootNodeIntoContextAndReturnModulename(ast);
+        return OutputContext.global.fullModuleTexts[modulename];
     }
 
     return "";
+}
+
+string parseRootNodeIntoContextAndReturnModulename(AstNode ast) {
+    auto rootTexts = appender!(string[])();
+    auto modulename = "";
+    auto parsingstart = 0;
+
+    // Cornercase: Empty source file
+    if (ast.nodes.length == 0)
+        return "";
+
+    // Try to find module declaration
+    if (ast.nodes[0].type == TknType.closedScope && ast.nodes[0].nodes.size > 0
+            && ast.nodes[0].nodes[0].text == "module") {
+        string temp = moduleToString(ast.nodes[0]);
+
+        modulename = retrieveModuleName(ast.nodes[0]);
+        if (!temp) {
+            return modulename; // The module was already imported!
+        }
+
+        rootTexts ~= temp;
+        parsingstart++;
+    } else {
+        stderr.writeln("File is missing a module declaration. This is fine for scripts, "
+                ~ "but can lead to problems when importing the same file multiple times.");
+    }
+
+    foreach (AstNode child; ast.nodes[parsingstart .. $]) {
+        rootTexts ~= createOutput(child);
+    }
+    rootTexts ~= OutputContext.global().globals;
+    auto result = appender("");
+    foreach (txt; rootTexts[]) {
+        result ~= txt ~ "\n";
+    }
+    OutputContext.global.appendToModuleText(modulename, result.get());
+    return modulename;
 }

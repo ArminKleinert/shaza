@@ -14,21 +14,21 @@ import compiler.output;
 
 // SECTION Main
 
-string parseFully(string script) {
+string[string] parseFully(string script) {
     auto ctx = new Context();
     ctx = tokenize(ctx, script);
     ctx = buildBasicAst(ctx);
-    return createOutput(ctx.ast);
+    createOutput(ctx.ast);
+    return getAllTexts();
 }
 
 void main() {
-    /*
     import std.file;
 
-    string txt = readText("./sz/stdlib.sz");
-    writeln(parseFully(txt));
-    */
-
-    import stdlib;
-    main1([]);
+    string txt = readText("./sz/comp.sz");
+    foreach (k, v; parseFully(txt)) {
+        writeln("; ---------------------------------------------------------------------------------");
+        writeln(v);
+        writeln();
+    }
 }
