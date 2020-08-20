@@ -28,7 +28,7 @@
       (recur (rest c) (first c))
       (recur (rest c) res)))))
 
-(define ::T (::T) fib (::T _n)
+(define ::T fib (::T _n)
   (loop (n _n
          a 1
          b 0)

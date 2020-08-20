@@ -6,6 +6,9 @@
 ; Simple assignment with type induction
 (define abc "def")
 
+; Simple assignment to initial value of type
+(define ::long bcd) ; 0
+
 ; Simple assignment
 (define ::int defg 1000)
 
@@ -24,6 +27,7 @@
 ; define-fn forces the define to output a function
 ;   and never a variable.
 ; <type> <fn> () { return <type>.init; }
+; Empty body if type is void.
 (define-fn ::int implicit-init-return-0 () )
 (define-fn ::bool implicit-init-return-1 () )
 
@@ -64,8 +68,6 @@
         (return (tail-recur-test (dec n) res))))
 
 (comment
-
-; Statement as expression
 ; TODO Implement
 ; Treat if as expression and allow for implicit return
 (define ::int if-as-expression (::int n)
@@ -80,9 +82,7 @@
 ; Same for let
 (define ::int let-as-expression (::int n)
     (let (a 1 b 1) (llr "a+b")))
-
 )
-
 
 ; Set attribute "n" of object mt
 (define ::void setv_attr_test_1 (::MyType mt)
@@ -108,6 +108,7 @@
 (define chtest3 \newline)
 (define chtest4 \z)
 
+(comment
 ; Tests for the to-function
 (import-host "std.conv")
 (define s-to-i-with-base-test (to ::int "12345" 16))
@@ -115,6 +116,7 @@
 
 ; Tests for the cast-function
 (define cast-f-i-test (cast ::int 1.5f))
+)
 
 ; Lambda tests
 (define d (lambda ::int (::int i) (inc i))) ; Assign lambda to a variable
