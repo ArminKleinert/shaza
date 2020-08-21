@@ -21,7 +21,7 @@ string listLiteralToString(AstCtx ast) {
             result ~= ",";
     }
     result ~= "]";
-    return prependReturn(ast.requestReturn, result.get());
+    return result.get();
 }
 
 // SECTION Fucntion call to string

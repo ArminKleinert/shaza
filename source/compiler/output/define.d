@@ -282,9 +282,9 @@ string defineFnToString(string type, string[] argNames, AstCtx[] bodyNodes, AstC
     }
 
     auto lastStmt = bodyNodes[bodyNodes.size - 1];
-    result ~= createOutput(lastStmt.needReturn(true));
+    auto _needReturn = type != "void";
+    result ~= createOutput(lastStmt.needReturn(_needReturn));
     insertSemicolon(result, lastStmt);
-
 
     // Pop jump label
     if (doAddLabel)

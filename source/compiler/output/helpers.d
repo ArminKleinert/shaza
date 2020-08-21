@@ -389,6 +389,14 @@ string prependReturn(bool requested, string s) {
     return "return " ~ s;
 }
 
+// SECTION Predefined names
+
+bool isPredefinedName(string s) {
+    import std.algorithm.searching : canFind;
+    return ["module","define","define-fn","define-macro","define-tk-macro","let","setv!","ll","llr","if",
+    "lambda","return","new","loop","recur","to","cast","opcall","comment","def-struct","struct","import-sz","import-host","rt-import-sz","rt-import-dll","quote","pseudo-quote","unquote","meta"].canFind(s);
+}
+
 // SECTION Init
 
 bool initialized = false;

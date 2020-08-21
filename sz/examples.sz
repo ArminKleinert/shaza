@@ -60,24 +60,24 @@
 
 ; Test the if statement
 (define ::bool if-test ()
-    (if #t (return #t) (return #f)))
+    (if #t #t #f))
 
 ; Test tail-recursion
 ; TODO Implement
 (define ::int tail-recur-test (::int n ::int res)
     (if (le? n 1)
-        (return 1)
-        (return (tail-recur-test (dec n) res))))
+        1
+        (tail-recur-test (dec n) res)))
 
 ; Treat if as expression and allow for implicit return
 (define ::int if-as-expression (::int n)
     (if (lt? n 0) (sub 0 n) n))
 
-; This loop doesn't do much, but hopefully I can turn it into an expression one day.
+; This loop doesn't do much but uses implicit return
 (define ::int loop-as-expression (::int n)
     (loop () 1))
 
-; Same for let
+; Same for let. implicit return
 (define ::int let-as-expression (::int n)
     (let (a 1 b 1) (llr "a+b")))
 
@@ -200,11 +200,17 @@
     (loop (::int i 0
            v 1)
         (if (llr i < 10)
-            (return i)
-            (recur (inc i) 15))))
+            i
+            (inc i) 15)))
 
 ; Multiple declarations with the same :export-as
 (meta (:returns ::bool :export-as "and")
   (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
   (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2))
 )
+
+; meta with :tk-aliases
+(meta (:tk-aliases [::T ::bool])
+  (define ::T check (::T b) b))
+(meta (:tk-aliases [::Map ::V[K] ] :generics [::V ::K])
+  (define ::Map get-by-key (::Map m ::K k) (llr "m[k]")))

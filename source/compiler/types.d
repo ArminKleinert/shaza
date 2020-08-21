@@ -47,8 +47,8 @@ enum TknType : byte {
 struct Token {
     const int lineIdx;
     const int charIdx;
-    const TknType type;
-    const string text;
+    TknType type;
+    string text;
 
     this(int lineIdx, int charIdx, TknType type, string text) {
         this.lineIdx = lineIdx;
@@ -67,7 +67,7 @@ struct Token {
 // SUBSECT Abstract Syntax Tree (AST)
 
 class AstNode {
-    const Token tkn;
+    Token tkn;
     private AstNode[] children;
 
     this(Token tkn, AstNode[] children) {

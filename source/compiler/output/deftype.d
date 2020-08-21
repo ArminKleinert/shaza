@@ -60,8 +60,9 @@ string defStructToString(AstNode ast) {
     // SUBSECT Write header
 
     // Start class definition text
+    string typename =symbolToString(typeNode);
     auto result = appender("class ");
-    result ~= symbolToString(typeNode); // Write typename
+    result ~= typename; // Write typename
 
     // SUBSECT Generate list of generics (if given).
     if (generics !is null) {
@@ -105,19 +106,16 @@ string defStructToString(AstNode ast) {
         result ~= field;
         result ~= ";\n";
     }
-    result ~= '}';
-
-    // Close class
     result ~= "}\n";
 
     // SUBSECT Write setters
 
     for (auto i = 0; i < fieldNames.size; i++) {
-        result ~= symbolToString(typeNode);
+        result ~= typename;
         result ~= " with_" ~ szNameToHostName(fieldNames[i]);
         result ~= '(' ~ fieldTypes[i] ~ ' ' ~ szNameToHostName(fieldNames[i]);
         result ~= "){\n";
-        result ~= "return new " ~ symbolToString(typeNode);
+        result ~= "return new " ~ typename;
         result ~= "(";
 
         for (auto j = 0; j < fieldNames.size; j++) {
@@ -128,6 +126,9 @@ string defStructToString(AstNode ast) {
 
         result ~= ");\n}\n";
     }
+
+    // Close class
+    result ~= "}\n\n";
 
     return result.get();
 }

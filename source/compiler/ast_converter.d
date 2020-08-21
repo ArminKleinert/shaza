@@ -42,15 +42,11 @@ string createOutput(AstCtx ast) {
     import compiler.output.meta;
 
     if (isAtom(ast.tkn)) {
-        if (ast.requestReturn)
-            return "return " ~ atomToString(ast);
-        return atomToString(ast);
+        return prependReturn(ast.requestReturn, atomToString(ast));
     }
 
     if (ast.type == TknType.closedTaggedList || ast.type == TknType.closedList) {
-        if (ast.requestReturn)
-            return "return " ~ listLiteralToString(ast);
-        return listLiteralToString(ast);
+        return prependReturn(ast.requestReturn, listLiteralToString(ast));
     }
 
     if (ast.type == TknType.closedScope) {
