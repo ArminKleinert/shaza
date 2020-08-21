@@ -152,7 +152,6 @@ Near future:
 - Operators with ``'``.  
 - Implicit return from ``if``, ``let`` and loops.  
 - ``struct``  
-- ``define-ns`` (This has not proven necessary yet)  
 - ``bit-cast``  
 - ``bytesize, alloc, free, pointerto``  
 
