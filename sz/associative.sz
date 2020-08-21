@@ -1,0 +1,38 @@
+(module associative)
+
+(comment
+Ignore this source-file for now. It is just a placeholder for later.
+It will provide the operations for associative arrays (Maps) later on.
+)
+
+(define ::size_t (::T) index-of (::T[] lst ::T elem)
+  (loop (::size_t i 0
+         ::T[] _rest lst)
+    (if (empty? _rest) -1
+    (if (= (first _rest) elem) i
+    (recur (inc i) (rest _rest))))))
+
+(meta (:tk-aliases [::AMap ::ArrayMap(K,V) ] :generics [::K ::V])
+(def-struct ArrayMap (::K ::V) ::K[] keys ::V[] values)
+
+(define ::bool empty? (::AMap am) (= (size am.keys) 0))
+(define ::V get (::AMap am ::K key) (at am.values (index-of am.keys key)))
+
+(meta (:aliases [includes? contains?])
+  (define ::bool has-key? (::AMap am ::K key) (!= (index-of am.keys key) -1)))
+
+(define ::AMap assoc (::AMap am ::K key ::V value)
+  (let (i (index-of am.keys key))
+    (if (= i -1)
+      (new ::AMap (append am.keys key) (append am.values value))
+      (new ::AMap (clone keys) (assoc am.values i values)))))
+
+(define ::AMap assoc! (::AMap am ::K key ::V value)
+  (let (i (index-of am.keys key))
+    (if (= i -1)
+      (let () (append! am.keys key) (append! am.values value) am)
+      (let () (assoc! am.values i values) am))))
+
+(define ::AMap keys (::AMap am) (clone am.keys))
+(define ::AMap values (::AMap am) (clone am.values))
+)

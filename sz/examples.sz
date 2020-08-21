@@ -4,6 +4,7 @@
 
 (import-host "std.string")
 (import-host "std.stdio")
+(import-host "std.conv")
 
 ; Simple assignment with type induction
 (define abc "def")
@@ -167,7 +168,7 @@
   (define (::N) num-fn-4 (::N i0 ::N i1) (opcall ~ "" i0 "" i1))
   ; Function with meta which changes the return-type
   (meta (:returns ::int)
-    (define num-fn-5 (::N i0) (llr "to!int(i0);"))))
+    (define num-fn-5 (::N i0) (to ::int i0))))
 
 ; Test export names and validity of symbols as names
 (meta (:generics [::N] :returns ::N)

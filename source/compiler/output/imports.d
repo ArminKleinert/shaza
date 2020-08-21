@@ -29,7 +29,7 @@ string importHostToString(AstNode ast) {
 
     if (nodes.size == 1) {
         // Normal import
-        return "import " ~ nameText ~ ";\n";
+        return "import " ~ nameText ~ ";";
     } else if (nodes.size == 2) {
         // Import only specific list of functions.
         if (nodes[1].type != TknType.closedList && nodes[1].type != TknType.closedScope)
@@ -88,5 +88,5 @@ string importShazaToString(AstNode ast) {
     auto astCtx = AstCtx(ctx.ast, ctx.ast);
     auto importedModuleName = parseRootNodeIntoContextAndReturnModulename(astCtx);
 
-    return "import " ~ importedModuleName;
+    return "import " ~ importedModuleName ~ ";";
 }

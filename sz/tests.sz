@@ -1,0 +1,340 @@
+(module tests)
+
+(import-sz sz/stdlib)
+
+(meta (:returns ::bool)
+
+; Helper to find type of basic numbers or strings
+(meta (:visibility :private)
+  (define typestr (::int i) "int")
+  (define typestr (::uint i) "uint")
+  (define typestr (::long i) "long")
+  (define typestr (::ulong i) "ulong")
+  (define typestr (::bool i) "bool")
+  (define typestr (::float i) "float")
+  (define typestr (::double i) "double")
+  (define typestr (::string i) "string"))
+
+; SECTION Test defaults
+
+(define test-defaults ()
+  (and (= default-int 0)
+  (and (= default-uint 0)
+  (and (= default-long 0)
+  (and (= default-ulong 0)
+  (and (= default-bool #f)
+  (and (= default-float 0.0)
+  (and (= default-double 0.0)
+       (= default-string "")))))))))
+
+(define test-default-types ()
+  (and (= (typestr default-int) "int")
+  (and (= (typestr default-uint) "uint")
+  (and (= (typestr default-long) "long")
+  (and (= (typestr default-ulong) "ulong")
+  (and (= (typestr default-bool) "bool")
+  (and (= (typestr default-float) "float")
+  (and (= (typestr default-double) "double")
+       (= (typestr default-string) "string")))))))))
+
+; SECTION Test +
+
+(define test-addition ()
+  (and (= (+ default-int 15) 15)
+  (and (= (+ default-uint 15) 15)
+  (and (= (+ default-long 15) 15)
+  (and (= (+ default-ulong 15) 15)
+  (and (= (+ default-float 15) 15)
+       (= (+ default-double 15) 15)))))))
+
+(define test-addition-2 ()
+  (and (= (+ default-int 0) 0)
+  (and (= (+ default-uint 0) 0)
+  (and (= (+ default-long 0) 0)
+  (and (= (+ default-ulong 0) 0)
+  (and (= (+ default-float 0) 0)
+       (= (+ default-double 0) 0)))))))
+
+; Test alias
+(define test-addition-3 ()
+  (= (plus 1000 111) (+ 1000 111)))
+
+(define test-addition-4 ()
+  (= (+ 1000 111) (+ 111 1000)))
+
+(define test-addition-types ()
+  (and (= (+ default-int 0) "int")
+  (and (= (+ default-uint 0) "uint")
+  (and (= (+ default-long 0) "long")
+  (and (= (+ default-ulong 0) "ulong")
+  (and (= (+ default-float 0) "float")
+       (= (+ default-double 0) "double")))))))
+
+; SECTION Test -
+
+(define test-subtraction ()
+  (and (= (- default-int 15) -15)
+  (and (= (- default-long 15) -15)
+  (and (= (- default-float 15) -15)
+       (= (- default-double 15) -15)))))
+
+(define test-subtraction-2 ()
+  (and (= (- default-int 0) 0)
+  (and (= (- default-uint 0) 0)
+  (and (= (- default-long 0) 0)
+  (and (= (- default-ulong 0) 0)
+  (and (= (- default-float 0) 0)
+       (= (- default-double 0) 0)))))))
+
+; Test alias
+(define test-subtraction-3 ()
+  (= (sub 1000 111) (- 1000 111)))
+
+(define test-subtraction-types ()
+  (and (= (- default-int 0) "int")
+  (and (= (- default-uint 0) "uint")
+  (and (= (- default-long 0) "long")
+  (and (= (- default-ulong 0) "ulong")
+  (and (= (- default-float 0) "float")
+       (= (- default-double 0) "double")))))))
+
+; SECTION Test *
+
+(define test-multiplication ()
+  (and (= (* default-int 15) 15)
+  (and (= (* default-uint 15) 15)
+  (and (= (* default-long 15) 15)
+  (and (= (* default-ulong 15) 15)
+  (and (= (* default-float 15) 15)
+       (= (* default-double 15) 15)))))))
+
+(define test-multiplication-2 ()
+  (and (= (* (+ 1 default-int) 15) 15)
+  (and (= (* (+ 1 default-uint) 15) 15)
+  (and (= (* (+ 1 default-long) 15) 15)
+  (and (= (* (+ 1 default-ulong) 15) 15)
+  (and (= (* (+ 1 default-float) 15) 15)
+       (= (* (+ 1 default-double) 15) 15)))))))
+
+; Test alias
+(define test-multiplication-3 ()
+  (= (mul 1000 111) (* 1000 111)))
+
+(define test-multiplication-4 ()
+  (= (* 1000 111) (* 111 1000)))
+
+(define test-multiplication-types ()
+  (and (= (* default-int 0) "int")
+  (and (= (* default-uint 0) "uint")
+  (and (= (* default-long 0) "long")
+  (and (= (* default-ulong 0) "ulong")
+  (and (= (* default-float 0) "float")
+       (= (* default-double 0) "double")))))))
+
+; SECTION Test /
+
+(define test-division ()
+  (and (= (/ default-int 15) 0)
+  (and (= (/ default-uint 15) 0)
+  (and (= (/ default-long 15) 0)
+  (and (= (/ default-ulong 15) 0)
+  (and (= (/ default-float 15) 0)
+       (= (/ default-double 15) 0)))))))
+
+(define test-division-2 ()
+  (and (= (/ (+ 10 default-int) 2) 5)
+  (and (= (/ (+ 10 default-uint) 2) 5)
+  (and (= (/ (+ 10 default-long) 2) 5)
+  (and (= (/ (+ 10 default-ulong) 2) 5)
+  (and (= (/ (+ 10 default-float) 2) 5)
+       (= (/ (+ 10 default-double) 2) 5)))))))
+
+; Test alias
+(define test-division-3 ()
+  (= (div 1000 111) (/ 1000 111)))
+
+(define test-division-types ()
+  (and (= (/ default-int 1) "int")
+  (and (= (/ default-uint 1) "uint")
+  (and (= (/ default-long 1) "long")
+  (and (= (/ default-ulong 1) "ulong")
+  (and (= (/ default-float 1) "float")
+       (= (/ default-double 1) "double")))))))
+
+; SECTION Test %
+
+(define test-modulo()
+  (and (= (% default-int 15) 0)
+  (and (= (% default-uint 15) 0)
+  (and (= (% default-long 15) 0)
+  (and (= (% default-ulong 15) 0)
+  (and (= (% default-float 15) 0)
+       (= (% default-double 15) 0)))))))
+
+(define test-modulo-2 ()
+  (and (= (% (+ 10 default-int) 2) 0)
+  (and (= (% (+ 10 default-uint) 2) 0)
+  (and (= (% (+ 10 default-long) 2) 0)
+  (and (= (% (+ 10 default-ulong) 2) 0)
+  (and (= (% (+ 10 default-float) 2) 0)
+       (= (% (+ 10 default-double) 2) 0)))))))
+
+(define test-modulo-3 ()
+  (and (= (% (+ 10 default-int) 3) 1)
+  (and (= (% (+ 10 default-uint) 3) 1)
+  (and (= (% (+ 10 default-long) 3) 1)
+  (and (= (% (+ 10 default-ulong) 3) 1)
+  (and (= (% (+ 10 default-float) 3) 1)
+       (= (% (+ 10 default-double) 3) 1)))))))
+
+; Test alias
+(define test-modulo-4 ()
+  (= (mod 1000 111) (% 1000 111)))
+
+(define test-modulo-types ()
+  (and (= (/ default-int 1) "int")
+  (and (= (/ default-uint 1) "uint")
+  (and (= (/ default-long 1) "long")
+  (and (= (/ default-ulong 1) "ulong")
+  (and (= (/ default-float 1) "float")
+       (= (/ default-double 1) "double")))))))
+
+; SECTION Test increment
+
+(define test-inc ()
+  (and (= (++ default-int) 1)
+  (and (= (++ default-uint) 1)
+  (and (= (++ default-long) 1)
+  (and (= (++ default-ulong) 1)
+  (and (= (++ default-float) 1)
+       (= (++ default-double) 1)))))))
+
+(define test-inc-2 ()
+  (and (= (++ (++ default-int)) 2)
+  (and (= (++ (++ default-uint)) 2)
+  (and (= (++ (++ default-long)) 2)
+  (and (= (++ (++ default-ulong)) 2)
+  (and (= (++ (++ default-float)) 2)
+       (= (++ (++ default-double)) 2)))))))
+
+; Test alias
+(define test-inc-3 ()
+  (= (++ 1000) (inc 1000)))
+
+(define test-inc-types ()
+  (and (= (+ default-int 0) "int")
+  (and (= (+ default-uint 0) "uint")
+  (and (= (+ default-long 0) "long")
+  (and (= (+ default-ulong 0) "ulong")
+  (and (= (+ default-float 0) "float")
+       (= (+ default-double 0) "double")))))))
+
+; SECTION Test decrement
+
+(define test-dec ()
+  (and (= (-- default-int) -1)
+  (and (= (-- default-long) -1)
+  (and (= (-- default-float) -1)
+       (= (-- default-double) -1)))))
+
+(define test-dec-2 ()
+  (and (= (-- (++ default-int)) 0)
+  (and (= (-- (++ default-uint)) 0)
+  (and (= (-- (++ default-long)) 0)
+  (and (= (-- (++ default-ulong)) 0)
+  (and (= (-- (++ default-float)) 0)
+       (= (-- (++ default-double)) 0)))))))
+
+; Test alias
+(define test-dec-3 ()
+  (= (-- 1000) (dec 1000)))
+
+(define test-dec-types ()
+  (and (= (-- (++ default-int)) "int")
+  (and (= (-- (++ default-uint)) "uint")
+  (and (= (-- (++ default-long)) "long")
+  (and (= (-- (++ default-ulong)) "ulong")
+  (and (= (-- (++ default-float)) "float")
+       (= (-- (++ default-double)) "double")))))))
+
+; SECTION Test binary and
+
+(define test-bin-and ()
+  (and (= (& 3 1) 1)
+  (and (= (& 3 3) 3)
+  (and (= (& 3 0) 0)
+       (= (& #t 1) 1)))))
+
+(define test-bin-and-2 ()
+  (= (bin-and 3 1) (& 3 1)))
+
+; SECTION Test binary or
+
+(define test-bin-or ()
+  (and (= (| 3 1) 3)
+  (and (= (| 3 3) 3)
+  (and (= (| 3 0) 3)
+       (= (| #t 1) 1)))))
+
+(define test-bin-and-2 ()
+  (= (bin-or 3 1) (| 3 1)))
+
+; SECTION Test binary xor
+
+(define test-bin-xor ()
+  (and (= (^ 3 1) 2)
+  (and (= (^ 3 3) 0)
+  (and (= (^ 3 0) 3)
+       (= (^ #t 1) 0)))))
+
+(define test-bin-xor-2 ()
+  (= (bin-xor 33 3) (^ 33 3)))
+
+; SECTION Test binary negation
+
+; TODO!!!
+
+; SECTION Test bit-shift-left
+
+(define test-bin-shl ()
+  (and (= (<< 3 1) 6)
+  (and (= (<< 0 3) 0)
+       (= (<< 3 0) 3))))
+
+(define test-bin-shl-2 ()
+  (= (shl 33 1) (<< 33 1)))
+
+; SECTION Test bit-shift-right
+
+(define test-bin-shr ()
+  (and (= (>> 6 1) 3)
+  (and (= (>> 0 3) 0)
+       (= (>> 3 0) 3))))
+
+(define test-bin-shr-2 ()
+  (= (shr 33 1) (>> 33 1)))
+
+; SECTION Test equality
+
+(define test-equals ()
+  (and (= 3 3)
+  (and (= 3000 3000)
+  (and (= "abc" "abc")
+  (and (= #t #t)
+  (and (= #f #f)
+       (= 3.0 3.0)))))))
+
+; SECTION Test reference equality
+
+(define test-equals ()
+  (let (a 3 b 3000 c "abc" d #t e #f f 3.0)
+    (and (=== a a)
+    (and (=== b b)
+    (and (=== c c)
+    (and (=== d d)
+    (and (=== e e)
+         (=== f f))))))))
+
+
+
+)

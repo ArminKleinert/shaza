@@ -59,7 +59,7 @@
   (meta (:export-as "eql_Q" :aliases [eql? ==])
     (define = (::T e0 ::T e1) (llr e0 == e1)))
   (meta (:export-as "ref_eql")
-    (define === (::T e0 ::T e1) (llr "e0.ptr == e1.ptr")))
+    (define === (::T e0 ::T e1) (llr "&e0 == &e1")))
   (meta (:export-as "not_eql_Q" :aliases [not-eql? !=])
     (define not= (::T e0 ::T e1) (llr e0 != e1)))
   (meta (:export-as "lt_Q" :aliases [lt?])
@@ -148,7 +148,7 @@
     cc))
 
 (define coll-clone (::T[] coll)
-  (concat (ll "seq_of!T") coll))
+  (append (ll "seq_of!T") coll))
 
 (define assoc! (::T[] coll ::size_t index ::T elem)
   (ll "coll[index] = elem;")
