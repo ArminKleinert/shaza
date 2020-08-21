@@ -111,6 +111,10 @@ If an alias is used, the name is resolved to point back to the original.
 It is currently not tested enough to be used safely.
 - ``:export-as <string>`` If set, the functions' name will be converted 
 to the given string by the compiler.  
+- ``:tk-aliases [...]`` Defines a list of token-strings which will be replaced 
+by some other text. There is an example below. Right now, this is highly 
+unsafe and should be used with extreme caution, since it will happily replace
+any token if it fits the given name!
 
 Not implemented:
 - ``:checked-calls #t/#f`` Makes sure the functions can only call functions 
@@ -219,4 +223,9 @@ A byte further in the future:
 
 ; Check if an element is nil using the llr command.
 (define ::bool (::T) nil? (T elem) (llr elem " is null"))
+
+; Give the build-in associative-array type a name which is easier to read.
+; ::V[K] is replaced by ::Map everywhere inside the meta-block.
+(meta (:tk-aliases [::Map ::V[K] ] :generics [::V ::K])
+  (define ::Map get-by-key (::Map m ::K k) (llr "m[k]")))
 ```

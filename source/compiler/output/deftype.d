@@ -60,7 +60,7 @@ string defStructToString(AstNode ast) {
     // SUBSECT Write header
 
     // Start class definition text
-    string typename =symbolToString(typeNode);
+    string typename = symbolToString(typeNode);
     auto result = appender("class ");
     result ~= typename; // Write typename
 
