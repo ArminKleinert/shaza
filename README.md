@@ -3,7 +3,7 @@
 Shaza is a statically typed lisp I am making for fun. Right now it just transpiles to D.
 Many functionalities are still missing though. By now Shaza has everything it needs to 
 be made self-hosting.  
-By now, Shaza has reached a state at which I'm not totally by it anymore.  
+By now, Shaza has reached a state at which I'm not totally embaressed by it anymore.  
 Any D-function can be called directly. The good thing with this is that it makes converting 
 D to Shaza is pretty easy. The problem is that Shaza is not a safe language right now.
 
