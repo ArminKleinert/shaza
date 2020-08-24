@@ -9,14 +9,14 @@
 
 ; SECTION Global vars
 
-(define ::int default-int)
-(define ::uint default-uint)
-(define ::long default-long)
-(define ::ulong default-ulong)
-(define ::bool default-bool)
-(define ::float default-float)
-(define ::double default-double)
-(define ::string default-string "")
+(define ::int default_int)
+(define ::uint default_uint)
+(define ::long default_long)
+(define ::ulong default_ulong)
+(define ::bool default_bool)
+(define ::float default_float)
+(define ::double default_double)
+(define ::string default_string "")
 
 ; SECTION Simple math
 
@@ -117,7 +117,7 @@
   (loop (::T[] res coll0 ::T[] _rest coll1)
     (if (empty? _rest)
       (return res)
-      (recur (append coll0 (first coll1)) (rest coll1)))))
+      (recur (append res (first _rest)) (rest _rest)))))
 
 (define append! (::T[] coll0 ::T[] coll1)
   (loop (::T[] res coll0 _rest coll1)
@@ -199,6 +199,31 @@
 
 ; SECTION List operations
 
+(meta (:returns ::bool :generics [::T])
+(define all? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return #t)
+       (if (not (pred (first _rest)))
+         (return #f)
+         (recur (rest _rest))))))
+
+(define none? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return true)
+       (if (pred (first _rest))
+         (return #f)
+         (recur (rest _rest))))))
+
+(define any? (::bool:delegate(T) pred ::T[] coll)
+   (loop (_rest coll)
+     (if (empty? _rest)
+       (return false)
+       (if (pred (first _rest))
+         (return #t)
+         (recur (rest _rest)))))))
+
 (meta (:returns ::T[] :generics [::T])
 (define repeated (::T elem ::size_t times)
   (loop (::T[] result []
@@ -252,30 +277,6 @@
         (recur (append result (first _rest)) (rest _rest))
         (recur result (rest _rest))))))
 
-(define all? (::bool:delegate(T) pred ::T[] coll)
-   (loop (_rest coll)
-     (if (empty? _rest)
-       (return true)
-       (if (not (pred (first _rest)))
-         (return #f)
-         (recur (rest _rest))))))
-
-(define none? (::bool:delegate(T) pred ::T[] coll)
-   (loop (_rest coll)
-     (if (empty? _rest)
-       (return true)
-       (if (pred (first _rest))
-         (return #f)
-         (recur (rest _rest))))))
-
-(define any? (::bool:delegate(T) pred ::T[] coll)
-   (loop (_rest coll)
-     (if (empty? _rest)
-       (return false)
-       (if (pred (first _rest))
-         (return #t)
-         (recur (rest _rest))))))
-
 (meta (:aliases [uniq distinct])
 (define uniques (::T[] coll)
   (if (< (size coll) 2) (return coll))
@@ -301,40 +302,24 @@
       (return #f))))
 
 (meta (:aliases [sort])
-(define insertionsort (::T[] coll)
+(define ::T[] insertionsort (::T[] coll)
   (let (::T[] acc [])
     (isort-acc coll acc))))
 
 (meta (:visibility :private)
-  (define isort-acc (::T[] coll ::T[] acc)
+  (define ::T[] isort-acc (::T[] coll ::T[] acc)
     (if (empty? coll)
       (return acc)
       (isort-acc (rest coll) (isort-insert (first coll) acc))))
 
-  (define isort-insert (::T elem ::T[] coll)
+  (define ::T[] isort-insert (::T elem ::T[] coll)
     (if (empty? coll)
       (return (seq-of elem))
       (if (lt? elem (first coll))
         (prepend elem coll)
         (prepend (first coll)
                 (isort-insert elem (rest coll))))))
-
-  (define qs-append (::T[] c0 ::T e ::T[] c1)
-    (append (append c0 e) c1))
-)
-
-(meta (:export-as "quicksort")
-(define q-sort (::T[] coll)
-  (if (empty? coll)
-    (return coll)
-    (let (piv (first coll))
-      (return
-        (qs-append
-          (filter (lambda ::T (::T x) (<= x piv)) coll)
-          piv
-          (filter (lambda ::T (::T x) (> x piv)) coll))))))
-)
-)
+))
 
 ; SECTION Type convertions
 
@@ -369,9 +354,6 @@ try { to!toType(e); return true;
 
 (define ::string readln! ()
   (llr "stdin.readln"))
-
-(define ::void main (::string[] args)
-  (println! "Hello world!"))
 
 (comment
 - Tokenization as always

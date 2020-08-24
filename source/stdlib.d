@@ -161,8 +161,8 @@ jumplbl2:
 if(empty_Q(_rest)) {
 return res;
 } else {
-res = append(coll0, first(coll1));
-_rest = rest(coll1);
+res = append(res, first(_rest));
+_rest = rest(_rest);
 goto jumplbl2;
 }
 }
@@ -272,8 +272,53 @@ return false;
 } else {
 {
 auto slice_idx = sub(size(coll), size(other));
-auto sliced = slice(coll, slice-idx);
+auto sliced = slice(coll, slice_idx);
 return starts_with_Q(sliced, other);}
+}
+}
+bool all_Q(T)(bool delegate(T) pred, T[] coll){
+jumplbl1:
+auto _rest = coll;
+jumplbl2:
+if(empty_Q(_rest)) {
+return true;
+} else {
+if(not(pred(first(_rest)))) {
+return false;
+} else {
+_rest = rest(_rest);
+goto jumplbl2;
+}
+}
+}
+bool none_Q(T)(bool delegate(T) pred, T[] coll){
+jumplbl1:
+auto _rest = coll;
+jumplbl2:
+if(empty_Q(_rest)) {
+return true;
+} else {
+if(pred(first(_rest))) {
+return false;
+} else {
+_rest = rest(_rest);
+goto jumplbl2;
+}
+}
+}
+bool any_Q(T)(bool delegate(T) pred, T[] coll){
+jumplbl1:
+auto _rest = coll;
+jumplbl2:
+if(empty_Q(_rest)) {
+return false;
+} else {
+if(pred(first(_rest))) {
+return true;
+} else {
+_rest = rest(_rest);
+goto jumplbl2;
+}
 }
 }
 T[] repeated(T)(T elem, size_t times){
@@ -371,51 +416,6 @@ goto jumplbl2;
 }
 }
 }
-T[] all_Q(T)(bool delegate(T) pred, T[] coll){
-jumplbl1:
-auto _rest = coll;
-jumplbl2:
-if(empty_Q(_rest)) {
-return true;
-} else {
-if(not(pred(first(_rest)))) {
-return false;
-} else {
-_rest = rest(_rest);
-goto jumplbl2;
-}
-}
-}
-T[] none_Q(T)(bool delegate(T) pred, T[] coll){
-jumplbl1:
-auto _rest = coll;
-jumplbl2:
-if(empty_Q(_rest)) {
-return true;
-} else {
-if(pred(first(_rest))) {
-return false;
-} else {
-_rest = rest(_rest);
-goto jumplbl2;
-}
-}
-}
-T[] any_Q(T)(bool delegate(T) pred, T[] coll){
-jumplbl1:
-auto _rest = coll;
-jumplbl2:
-if(empty_Q(_rest)) {
-return false;
-} else {
-if(pred(first(_rest))) {
-return true;
-} else {
-_rest = rest(_rest);
-goto jumplbl2;
-}
-}
-}
 T[] uniques(T)(T[] coll){
 jumplbl1:
 if(lt_Q(size(coll), 2)) {
@@ -485,22 +485,6 @@ return prepend(first(coll), isort_insert(elem, rest(coll)));
 }
 }
 }
-private T[] qs_append(T)(T[] c0, T e, T[] c1){
-return append(append(c0, e), c1);
-}
-T[] quicksort(T)(T[] coll){
-if(empty_Q(coll)) {
-return coll;
-} else {
-{
-auto piv = first(coll);
-return qs_append(filter(delegate T(T x){
-return le_Q(x, piv);
-}, coll), piv, filter(delegate T(T x){
-return gt_Q(x, piv);
-}, coll));}
-}
-}
 string to_s(T)(T e){
 return to!string(e);
 }
@@ -539,9 +523,6 @@ writeln(stderr, text);
 }
 string readln_E(){
 return stdin.readln;
-}
-void main(string[] args){
-println_E("Hello world!");
 }
 
 

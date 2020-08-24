@@ -202,7 +202,7 @@
            v 1)
         (if (llr i < 10)
             i
-            (inc i) 15)))
+            (recur (inc i) 15))))
 
 ; Multiple declarations with the same :export-as
 (meta (:returns ::bool :export-as "and")

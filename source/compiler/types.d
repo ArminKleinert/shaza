@@ -258,6 +258,8 @@ string atomToString(AstNode ast) {
         if (ast.text == "\\tab")
             return "'\\t'";
         return "'" ~ ast.text[1] ~ "'";
+    } else if (ast.type == TknType.symbol) {
+        return szNameToHostName(ast.text);
     }
 
     return text.get();
