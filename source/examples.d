@@ -14,8 +14,8 @@ int bar(){
 return 1;
 }
 
-void baz(T)(T arg){
-writeln(arg);
+auto baz(T)(T arg){
+return writeln(arg);
 }
 
 bool implicit_return_0(){
@@ -257,28 +257,6 @@ private int num_fn_5(Num)(N i0){
 return to!int(i0);
 }
 
-N plus(N)(N i0, N i1){
-return (i0 + i1);
-}
-N sub(N)(N i0, N i1){
-return (i0 - i1);
-}
-N mul(N)(N i0, N i1){
-return (i0 * i1);
-}
-N div(N)(N i0, N i1){
-return (i0 / i1);
-}
-N mod(N)(N i0, N i1){
-return (i0 % i1);
-}
-N inc(N)(N n){
-return plus(n, 1);
-}
-N dec(N)(N n){
-return sub(n, 1);
-}
-
 string[] returnAList(){
 return ["a","b","c"];
 }
@@ -331,9 +309,76 @@ import std.functional;
 return accept_func_pointer((std.functional.toDelegate(&export_next)), 1);
 }
 
-int apply_func_pointer_2(){
+int apply_func_pointer_alias(){
 import std.functional;
 return accept_func_pointer((std.functional.toDelegate(&export_next)), 1);
+}
+
+int accept_anonymous_func_type(FUNC)(FUNC f, int i0){
+return f(i0);
+}
+
+int apply_func_pointer_anonymous_func_type(){
+import std.functional;
+return accept_func_pointer((std.functional.toDelegate(&export_next)), 1);
+}
+
+auto plus2(T)(T i){
+return plus(i, i);
+}
+
+void test_plus2(){
+writeln(plus2(8));
+}
+
+auto byauto(T)(){
+return T.init;
+}
+
+auto auto_fn(){
+return plus(1, 2.0);
+}
+
+auto addAny(T, T1)(T i, T1 j){
+return i+j;
+}
+
+auto anon_params_1(_gensym_637341463101456358, _gensym_637341463101456389)(_gensym_637341463101456358 _gensym_637341463101456375, _gensym_637341463101456389 _gensym_637341463101456401){
+return _gensym_637341463101456375+_gensym_637341463101456401;
+}
+
+auto anon_params_2(int _gensym_637341463101457427, float _gensym_637341463101457442, int _gensym_637341463101457455){
+return _gensym_637341463101457427+_gensym_637341463101457442+_gensym_637341463101457455;
+}
+
+auto anon_params_nested(int _gensym_637341463101458891){
+return delegate int(){
+return _gensym_637341463101458891;
+};
+}
+
+auto anon_types_0(_gensym_637341463101459436)(_gensym_637341463101459436 i){
+return i+1;
+}
+
+auto anon_types_1(_gensym_637341463101459506)(_gensym_637341463101459506 i, int j){
+return i+j;
+}
+
+auto anon_types_2(_gensym_637341463101459581, _gensym_637341463101459597)(_gensym_637341463101459581 i, _gensym_637341463101459597 j){
+return i+j;
+}
+
+auto anon_types_3(_gensym_637341463101459668)(_gensym_637341463101459668 i, int j){
+return i+j;
+}
+
+auto anon_types_4(_gensym_637341463101459741, _gensym_637341463101459757)(_gensym_637341463101459741 i, _gensym_637341463101459757 j){
+return i+j;
+}
+
+auto anon_params_nested_1(int _gensym_637341463101459826){
+return 1;
 }
 
 

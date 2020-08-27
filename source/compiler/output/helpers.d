@@ -328,7 +328,7 @@ Appender!string insertSemicolon(Appender!string result, AstNode node) {
     if (node.type == TknType.closedScope && node.size > 0) {
         allow = allow && node.nodes[0].text != "ll" && node.nodes[0].text != "loop";
     }
-    if (allow)
+    if (allow || (node.size > 0 && node.nodes[0].text == "lambda"))
         result ~= ';';
     return result;
 }
@@ -401,6 +401,17 @@ bool isPredefinedName(string s) {
         "import-host", "rt-import-sz", "rt-import-dll", "quote",
         "pseudo-quote", "unquote", "meta"
     ].canFind(s);
+}
+
+// SECTION Generate symbol
+
+private shared(ulong) gensymCounter = 0;
+string gensym() {
+    import std.conv : to;
+    import std.datetime.systime;
+    import core.atomic : atomicOp;
+
+    return "_gensym_" ~ to!string(Clock.currStdTime() + atomicOp!"+="(gensymCounter, 1));
 }
 
 // SECTION Init

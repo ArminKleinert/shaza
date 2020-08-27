@@ -16,15 +16,14 @@ import compiler.ast_converter;
 
 string[string] parseFully(string script) {
     auto ctx = new Context();
-    ctx = tokenize( ctx, script);
-    ctx = buildBasicAst( ctx);
-    createOutput( ctx.ast);
+    ctx = tokenize(ctx, script);
+    ctx = buildBasicAst(ctx);
+    createOutput(ctx.ast);
     return getAllTexts();
 }
 
 void main() {
     import std.file;
-
 
     string txt = readText("./sz/examples.sz");
     foreach (k, v; parseFully(txt)) {
@@ -33,10 +32,9 @@ void main() {
         writeln(file);
     }
 
-
     import tests;
+
     tests.main1();
 
     //import stdlib;
 }
-

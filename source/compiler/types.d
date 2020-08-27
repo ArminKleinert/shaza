@@ -57,6 +57,10 @@ struct Token {
         this.text = text;
     }
 
+    this(TknType type, string text) {
+        this(0, 0, type, text);
+    }
+
     const string as_readable() @property {
         import std.conv : to;
 

@@ -175,23 +175,6 @@
   (meta (:returns ::int)
     (define num-fn-5 (::N i0) (to ::int i0))))
 
-; Test export names and validity of symbols as names
-(meta (:generics [::N] :returns ::N)
-  (meta (:export-as "plus")
-    (define + (::N i0 ::N i1) (opcall + i0 i1)))
-  (meta (:export-as "sub")
-    (define - (::N i0 ::N i1) (opcall - i0 i1)))
-  (meta (:export-as "mul")
-    (define * (::N i0 ::N i1) (opcall * i0 i1)))
-  (meta (:export-as "div")
-    (define / (::N i0 ::N i1) (opcall / i0 i1)))
-  (meta (:export-as "mod")
-    (define % (::N i0 ::N i1) (opcall % i0 i1)))
-  (meta (:export-as "inc")
-    (define ++ (::N n) (+ n 1)))
-  (meta (:export-as "dec")
-    (define -- (::N n) (- n 1))))
-
 ; Implicit return on list
 (define ::string[] returnAList ()
   ["a" "b" "c"])
@@ -230,7 +213,38 @@
   (accept-func-pointer (fp next) 1))
 ;(define ::int apply-func-pointer-1 ()
 ;  (accept-func-pointer (fp export_next) 1))
-(define ::int apply-func-pointer-2 ()
+(define ::int apply-func-pointer-alias ()
   (import-host "std.functional")
   (accept-func-pointer (fp succ) 1))
 
+(define ::int (::FUNC) accept-anonymous-func-type (::FUNC f ::int i0)
+  (f i0))
+(define ::int apply-func-pointer-anonymous-func-type ()
+  (import-host "std.functional")
+  (accept-func-pointer (fp next) 1))
+
+(define ::auto (::T) plus2 (::T i) (+ i i))
+(define ::void test-plus2 ()
+  (writeln (plus2 8)))
+
+; Test automatic type induction for function
+(define (::T) byauto () (llr T.init))
+(define auto-fn () (+ 1 2.0))
+
+; Test addition of different types
+
+(define (::T ::T1) addAny (::T i ::T1 j) (llr i + j))
+
+; Test anonymous types and parameter names
+
+(define anon-params-1 (_ _) (llr $0 + $1))
+(define anon-params-2 (::int $ ::float $ ::int $) (llr $0 + $1 + $2))
+(define anon-params-nested (::int $) (lambda ::int () $0))
+
+(define anon-types-0 (:: i) (llr i + 1))
+(define anon-types-1 (:: i ::int j) (llr i + j))
+(define anon-types-2 (:: i :: j) (llr i + j))
+(define anon-types-3 (i ::int j) (llr i + j))
+(define anon-types-4 (i j) (llr i + j))
+
+(define anon-params-nested-1 (::int $) 1)

@@ -78,6 +78,7 @@ Context buildBasicAst(Context ctx) {
 
     for (auto i = 1; i < stack.size(); i++) {
         root ~= stack[i];
+        stderr.writeln("Unclosed token: " ~ stack[i].tknstr());
     }
 
     ctx.ast = root;

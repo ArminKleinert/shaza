@@ -6,6 +6,34 @@ import compiler.types;
 import shaza.std;
 
 import std.array;
+import std.stdio;
+
+// SECTION Replace anonymous parameter names
+
+void replaceAnonymousNames(AstNode root, string[] anonymousParamNames) {
+    import std.algorithm.searching : canFind;
+
+    static const string ss = "0123456789";
+
+    auto getParamIndex(string s) {
+        if (s.size == 2 && s[0] == '$' && ss.canFind(s[1])) {
+            return s[1] - '0';
+        }
+        return -1;
+    }
+
+    size_t i;
+
+    if ((i = getParamIndex(root.text)) != -1) {
+        import compiler.tokenizer;
+
+        root.tkn.text = anonymousParamNames[i];
+        root.tkn.type = tknTypeByText(anonymousParamNames[i]);
+    }
+    foreach (child; root.nodes) {
+        replaceAnonymousNames(child, anonymousParamNames);
+    }
+}
 
 // SECTION Generate text for function bindings.
 
@@ -114,7 +142,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     // SUBSECT Generics
 
-    string[] generics = null; // None if not given
+    string[] generics = []; // None if not given
     if (ast[nameIndex].type == TknType.closedScope) {
         generics = [];
         isFunctionDef = true;
@@ -152,11 +180,9 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         if (!isFunctionDef) {
             type = "auto"; // For variables, use "auto" :)
         } else if (type == "") {
-            string msg = "Cannot induce return type for function definitions yet: ";
-            msg ~= nameNode.tkn.as_readable;
-            msg ~= ". Assuming type 'void'.";
-            warning(msg);
-            type = "void";
+            //string msg = "define: Type induction for function is not safe yet. " ~ nameNode.tknstr();
+            //warning(msg);
+            type = "auto";
         }
     }
 
@@ -197,12 +223,88 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     auto bindings = ast[nameIndex + 1].nodes;
     auto bodyNodes = ast.subs[nameIndex + 2 .. $];
-    auto argNames = getVarNamesFromBindings(bindings);
+    string[] argNames = []; //getVarNamesFromBindings(bindings);
 
-    // Add function to globals
+    // SUBSECT Transform bindings for anonymous names and types
+
+    import std.algorithm.searching : canFind;
+
+    bool usedAnonymousType;
+    bool usedAnonymousName;
+    AstNode[] bindings2 = [];
+
+    for (auto i = 0; i < bindings.size; i++) {
+        // SUBSECT Handle parameter types
+
+        if (bindings[i].text == "::") { // Anonymous type
+            auto sym = gensym();
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            generics ~= sym;
+            i++;
+        } else if (bindings[i].type == TknType.litType) { // Normal case
+            bindings2 ~= bindings[i];
+            i++;
+        } else if (bindings[i].text == "_") { // Parameter type and name are anonymous; name can still be accessed as $n
+            // Write anonymous type
+            auto sym = gensym();
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            generics ~= sym;
+
+            // Write anonymous name
+            sym = gensym();
+            argNames ~= sym;
+            bindings2 ~= new AstNode(Token(TknType.symbol, sym));
+            usedAnonymousName = true;
+
+            // Go on
+            continue;
+        } else if (bindings[i].type == TknType.symbol) {
+            // No type given
+            auto sym = gensym();
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            generics ~= sym;
+
+            // Add generic, anonymous type
+            // Let the next part handle the parameter name :)
+        } else {
+            throw new CompilerError("define: Expecting type or symbol. " ~ bindings[i].tknstr());
+        }
+
+        if (i >= bindings.size) {
+            throw new CompilerError("Expecting more tokens in bindings. " ~ ast[0].tknstr());
+        }
+
+        // SUBSECT Handle parameter name
+
+        auto b = bindings[i].text;
+        if (bindings[i].type == TknType.symbol) {
+            if (b == "$") { // Anonymous
+                auto sym = gensym();
+                bindings2 ~= new AstNode(Token(TknType.symbol, sym));
+                argNames ~= sym;
+                usedAnonymousName = true;
+            } else {
+                bindings2 ~= bindings[i];
+                argNames ~= bindings[i].text;
+            }
+        } else {
+            throw new CompilerError("define: Expecting symbol. " ~ bindings[i].tknstr());
+        }
+    }
+
+    // SUBSECT Deep-replace anonymous names
+
+    if (usedAnonymousName) {
+        foreach (node; ast.nodes[3 .. $]) {
+            replaceAnonymousNames(node, argNames);
+        }
+    }
+
+    // SUBSECT Add function to globals
+
     if (meta is null)
         meta = new FnMeta(szNameToHostName(name), generics, type);
-    auto fndeclaration = addFunctionFromAst(meta, name, type, bindings, generics);
+    auto fndeclaration = addFunctionFromAst(meta, name, type, bindings2, generics);
 
     // SUBSECT Write name and (if given) generic types.
 
@@ -229,7 +331,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     // SUBSECT Write rest of arguments and body and return
 
-    result ~= generalFunctionBindingsToString(bindings);
+    result ~= generalFunctionBindingsToString(bindings2);
     result ~= defineFnToString(type, argNames, bodyNodes, ast);
     result ~= '\n';
 

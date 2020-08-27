@@ -31,37 +31,42 @@
 
 ; SECTION Simple math
 
-(meta (:generics [::N] :returns ::N)
+(meta (:generics [::N ::N1])
   (meta (:export-as "plus")
-    (define + (::N i0 ::N i1) (opcall + i0 i1)))
+    (define + (::N i0 ::N1 i1) (opcall + i0 i1)))
   (meta (:export-as "sub")
-    (define - (::N i0 ::N i1) (opcall - i0 i1)))
+    (define - (::N i0 ::N1 i1) (opcall - i0 i1)))
   (meta (:export-as "mul")
-    (define * (::N i0 ::N i1) (opcall * i0 i1)))
+    (define * (::N i0 ::N1 i1) (opcall * i0 i1)))
   (meta (:export-as "div")
-    (define / (::N i0 ::N i1) (opcall / i0 i1)))
+    (define / (::N i0 ::N1 i1) (opcall / i0 i1)))
   (meta (:export-as "mod")
-    (define % (::N i0 ::N i1) (opcall % i0 i1)))
+    (define % (::N i0 ::N1 i1) (opcall % i0 i1))))
+
+(meta (:generics [::N])
   (meta (:export-as "inc")
     (define ++ (::N n) (+ n 1)))
   (meta (:export-as "dec")
-    (define -- (::N n) (- n 1))))
+    (define -- (::N n) (- n 1)))
+)
 
 ; SECTION Bit-ops
 
-(meta (:generics [::Int] :returns ::Int)
+(meta (:generics [::Int1 ::Int2])
   (meta (:export-as "bit_and" :aliases [bit-and])
-    (define & (::Int i0 ::Int i1) (opcall & i0 i1)))
+    (define & (::Int1 i0 ::Int2 i1) (opcall & i0 i1)))
   (meta (:export-as "bit_or" :aliases [bit-or])
-    (define | (::Int i0 ::Int i1) (opcall | i0 i1)))
+    (define | (::Int1 i0 ::Int2 i1) (opcall | i0 i1)))
   (meta (:export-as "bit_xor" :aliases [bit-xor])
-    (define ^ (::Int i0 ::Int i1) (opcall ^ i0 i1)))
-  (meta (:export-as "bit_negate" :aliases [bit-flip])
-    (define ~ (::Int i0) (opcall ~ i0)))
+    (define ^ (::Int1 i0 ::Int2 i1) (opcall ^ i0 i1)))
   (meta (:export-as "shift_left" :aliases [shl])
-    (define << (::Int i0 ::Int i1) (opcall << i0 i1)))
+    (define << (::Int1 i0 ::Int2 i1) (opcall << i0 i1)))
   (meta (:export-as "shift_right" :aliases [shr])
-    (define >> (::Int i0 ::Int i1) (opcall >> i0 i1)))
+    (define >> (::Int1 i0 ::Int2 i1) (opcall >> i0 i1)))
+)
+
+(meta (:export-as "bit_negate" :aliases [bit-flip] :generics [::Int])
+  (define ~ (::Int i0) (opcall ~ i0))
 )
 
 ; SECTION Comparisons and null-check
@@ -84,7 +89,8 @@
     (define ::int <=> (::T e0 ::T e1)
       (if (== e0 e1) 0 (if (< e0 e1) -1 1))))
   (define pos? (::T e0) (>= e0 0))
-  (define neg? (::T e0) (< e0 0)))
+  (define neg? (::T e0) (< e0 0))
+)
 
 ; SECTION bool-ops
 
@@ -109,7 +115,7 @@
         (when (first _r) #t (recur (rest bs)))))))
   (meta (:export-as "nor")
     (define !|| (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 || b1))))
-  )
+)
 
 ; SECTION Concatenation and appending of arrays
 
@@ -211,20 +217,20 @@
 
 ; SECTION List operations
 
-(meta (:returns ::bool :generics [::T])
-(define all? (::bool:delegate(T) pred ::T[] coll)
+(meta (:returns ::bool :generics [::T] :tk-aliases [::pred ::bool:delegate(T)])
+(define all? (::pred pred ::T[] coll)
   (loop (_rest coll)
     (when (empty? _rest) #t
       (when (not (pred (first _rest)))
         #f (recur (rest _rest))))))
 
-(define none? (::bool:delegate(T) pred ::T[] coll)
+(define none? (::pred pred ::T[] coll)
   (loop (_rest coll)
     (when (empty? _rest) #t
       (when (pred (first _rest)) #f
         (recur (rest _rest))))))
 
-(define any? (::bool:delegate(T) pred ::T[] coll)
+(define any? (::pred pred ::T[] coll)
    (loop (_rest coll)
      (when (empty? _rest) #f
        (when (pred (first _rest)) #t
@@ -245,16 +251,17 @@
       result
       (recur (append result (func)) (++ i)))))
 
-(define map (::T:delegate(T) func ::T[] coll)
+(meta (:tk-aliases [::F ::T:delegate(T)])
+(define map (::F func ::T[] coll)
   (loop (::T[] result []
          ::T[] _rest coll)
     (when (empty? _rest)
       result
       (recur (append result (func (first _rest)))
-           (rest _rest)))))
+           (rest _rest))))))
 
-(meta (:generics [::T ::T1])
-(define ::T1 reduce (::T1:delegate(T,T1) func ::T[] coll ::T1 initval)
+(meta (:generics [::T ::T1] :tk-aliases [::F ::T:delegate(T,T1)])
+(define ::T1 reduce (::F func ::T[] coll ::T1 initval)
   (loop (::T1 result initval
          ::T[] _rest coll)
     (when (empty? _rest)
@@ -262,8 +269,8 @@
       (recur (func (first _rest) result)
             (rest _rest))))))
 
-(meta (:returns ::T[] :generics [::T])
-(define remove (::bool:delegate(T) pred ::T[] coll)
+(meta (:returns ::T[] :generics [::T] :tk-aliases [::pred ::bool:delegate(T)])
+(define remove (::pred pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
     (when (empty? _rest)
@@ -275,7 +282,7 @@
 (define remove (::T[] coll ::T elem)
   (remove (lambda ::bool (::T v) (= v elem))))
 
-(define filter (::bool:delegate(T) pred ::T[] coll)
+(define filter (::pred pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
     (when (empty? _rest)
@@ -300,13 +307,11 @@
   (when (gt? (size seq) 1)
     (let (m (/ (size seq) 2))
       (when (eql? (get seq m) key)
-        (return #t)
+        #t
         (when (lt? key (get seq m))
           (bin-search (slice seq 0 m) key)
           (bin-search (slice seq (++ m)) key))))
-    (when (eql? (size seq) 1)
-      (eql? (first seq) key)
-      #f)))
+    (if (eql? (size seq) 1) (eql? (first seq) key) #f)))
 
 (meta (:aliases [sort])
 (define insertionsort (::T[] coll)

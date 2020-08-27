@@ -30,45 +30,47 @@ T if2(T)(lazy bool cond, lazy T branchThen){
 return (cond?branchThen:(T.init));
 }
 
-N plus(N)(N i0, N i1){
+auto plus(N, N1)(N i0, N1 i1){
 return (i0 + i1);
 }
-N sub(N)(N i0, N i1){
+auto sub(N, N1)(N i0, N1 i1){
 return (i0 - i1);
 }
-N mul(N)(N i0, N i1){
+auto mul(N, N1)(N i0, N1 i1){
 return (i0 * i1);
 }
-N div(N)(N i0, N i1){
+auto div(N, N1)(N i0, N1 i1){
 return (i0 / i1);
 }
-N mod(N)(N i0, N i1){
+auto mod(N, N1)(N i0, N1 i1){
 return (i0 % i1);
 }
-N inc(N)(N n){
+
+auto inc(N)(N n){
 return plus(n, 1);
 }
-N dec(N)(N n){
+auto dec(N)(N n){
 return sub(n, 1);
 }
 
-Int bit_and(Int)(Int i0, Int i1){
+auto bit_and(Int1, Int2)(Int1 i0, Int2 i1){
 return (i0 & i1);
 }
-Int bit_or(Int)(Int i0, Int i1){
+auto bit_or(Int1, Int2)(Int1 i0, Int2 i1){
 return (i0 | i1);
 }
-Int bit_xor(Int)(Int i0, Int i1){
+auto bit_xor(Int1, Int2)(Int1 i0, Int2 i1){
 return (i0 ^ i1);
 }
-Int bit_negate(Int)(Int i0){
-return (i0);
-}
-Int shift_left(Int)(Int i0, Int i1){
+auto shift_left(Int1, Int2)(Int1 i0, Int2 i1){
 return (i0 << i1);
 }
-Int shift_right(Int)(Int i0, Int i1){
+auto shift_right(Int1, Int2)(Int1 i0, Int2 i1){
 return (i0 >> i1);
+}
+
+auto bit_negate(Int)(Int i0){
+return (i0);
 }
 
 bool eql_Q(T)(T e0, T e1){
@@ -375,7 +377,7 @@ _rest = rest(_rest);
 goto jumplbl2;
 }
 }
-T1 reduce(T, T1)(T1 delegate(T,T1) func, T[] coll, T1 initval){
+T1 reduce(T, T1)(T delegate(T,T1) func, T[] coll, T1 initval){
 jumplbl1:
 T1 result = initval;
 T[] _rest = coll;
@@ -470,11 +472,7 @@ return bin_search(slice(seq, inc(m)), key);
 }
 }}
 } else {
-if(eql_Q(size(seq), 1)) {
-return eql_Q(first(seq), key);
-} else {
-return false;
-}
+return if2(eql_Q(size(seq), 1), eql_Q(first(seq), key), false);
 }
 }
 T[] insertionsort(T)(T[] coll){
