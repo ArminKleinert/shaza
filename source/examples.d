@@ -318,4 +318,22 @@ V[K] get_by_key(V, K)(V[K] m, K k){
 return m[k];
 }
 
+int export_next(int i){
+return i+1;
+}
+
+int accept_func_pointer(int delegate(int) f, int i0){
+return f(i0);
+}
+
+int apply_func_pointer(){
+import std.functional;
+return accept_func_pointer((std.functional.toDelegate(&export_next)), 1);
+}
+
+int apply_func_pointer_2(){
+import std.functional;
+return accept_func_pointer((std.functional.toDelegate(&export_next)), 1);
+}
+
 

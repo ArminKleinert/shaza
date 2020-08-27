@@ -113,6 +113,8 @@ string createOutput(AstCtx ast) {
                 break; // TODO
             case "meta":
                 return parseMetaGetString(ast);
+            case "fp":
+                return functionPointerToString(ast);
             default:
                 break;
             }

@@ -6,6 +6,7 @@ import std.typecons;
 import std.string;
 import std.algorithm;
 import std.array;
+import std.functional;
 int default_int = int.init;
 
 uint default_uint = uint.init;

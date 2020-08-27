@@ -168,3 +168,23 @@ string toOrCastToString(AstCtx ast, string start) {
     result ~= ")";
     return result.get();
 }
+
+// SECTION Function pointer to string
+
+string functionPointerToString(AstCtx ast) {
+    if (ast.size != 2) {
+        throw new CompilerError("fp: Excepts exactly 1 argument. " ~ ast.nodes[0].tknstr());
+    }
+    if (ast[1].type != TknType.symbol) {
+        throw new CompilerError("fp: Function name expected. " ~ ast[1].tknstr());
+    }
+
+    FunctionDecl fn = OutputContext.global.findFn(ast[1].text);
+
+    if (fn is null) {
+        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
+    }
+
+    string fnOutName = fn.exportName;
+    return "(std.functional.toDelegate(&" ~ fnOutName ~ "))";
+}

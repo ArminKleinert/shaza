@@ -6,6 +6,7 @@
 (import-host "std.string")
 (import-host "std.algorithm")
 (import-host "std.array")
+(import-host "std.functional")
 
 ; SECTION Global vars
 

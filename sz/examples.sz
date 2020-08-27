@@ -220,3 +220,17 @@
   (define ::T check (::T b) b))
 (meta (:tk-aliases [::Map ::V[K] ] :generics [::V ::K])
   (define ::Map get-by-key (::Map m ::K k) (llr "m[k]")))
+
+(meta (:export-as "export_next" :aliases [succ])
+  (define ::int next (::int i) (llr i+1)))
+(define ::int accept-func-pointer (::int:delegate(int) f ::int i0)
+  (f i0))
+(define ::int apply-func-pointer ()
+  (import-host "std.functional")
+  (accept-func-pointer (fp next) 1))
+;(define ::int apply-func-pointer-1 ()
+;  (accept-func-pointer (fp export_next) 1))
+(define ::int apply-func-pointer-2 ()
+  (import-host "std.functional")
+  (accept-func-pointer (fp succ) 1))
+
