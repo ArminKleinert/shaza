@@ -26,7 +26,9 @@ Please use sparingly and with caution.
 ``(llr &<body>)`` 
 Same as ``ll``, but allows implicit ``return``.  
 ``(lambda <type>? <bindings> &<body>)`` 
-Define an anonymous function. (Type is optional)  
+Define an anonymous function. (Type is currently mandatory).  
+``(fp <function>)``
+Shaza does not yet have first class functions. This is a workaround. ``(fp +)`` creates a pointer to the global + function. This is not necessary for lambdas.  
 ``(def-struct <name> <bindings>)`` 
 Create a new struct type.  
 ``(struct <bindings>`` 
