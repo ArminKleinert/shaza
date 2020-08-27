@@ -26,7 +26,7 @@ void main() {
     import std.file;
 
 
-    string txt = readText("./sz/tests.sz");
+    string txt = readText("./sz/examples.sz");
     foreach (k, v; parseFully(txt)) {
         auto file = File("source/" ~ k ~ ".d", "w");
         file.writeln(v);

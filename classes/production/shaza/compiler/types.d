@@ -170,7 +170,7 @@ bool allowImplicitReturn(string returnType, AstNode command) {
     case "let":
     case "define":
     case "ll":
-    case "if":
+    case "when":
     case "for":
     case "foreach":
     case "while":

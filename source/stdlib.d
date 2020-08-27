@@ -16,11 +16,18 @@ ulong default_ulong = ulong.init;
 
 bool default_bool = bool.init;
 
-float default_float = float.init;
+float default_float = 0.0;
 
-double default_double = double.init;
+double default_double = 0.0;
 
 string default_string = "";
+
+T if2(T)(lazy bool cond, lazy T branchThen, lazy T branchElse){
+return (cond?branchThen:branchElse);
+}
+T if2(T)(lazy bool cond, lazy T branchThen){
+return (cond?branchThen:(T.init));
+}
 
 N plus(N)(N i0, N i1){
 return (i0 + i1);
@@ -66,9 +73,6 @@ return (i0 >> i1);
 bool eql_Q(T)(T e0, T e1){
 return e0==e1;
 }
-bool ref_eql(T)(T e0, T e1){
-return &e0 == &e1;
-}
 bool not_eql_Q(T)(T e0, T e1){
 return e0!=e1;
 }
@@ -88,15 +92,7 @@ bool nil_Q(T)(T e){
 return e is null;
 }
 int compare(T)(T e0, T e1){
-if(eql_Q(e0, e1)) {
-return 0;
-} else {
-if(lt_Q(e0, e1)) {
-return -1;
-} else {
-return 1;
-}
-}
+return if2(eql_Q(e0, e1), 0, if2(lt_Q(e0, e1), -1, 1));
 }
 bool pos_Q(T)(T e0){
 return ge_Q(e0, 0);
@@ -105,11 +101,29 @@ bool neg_Q(T)(T e0){
 return lt_Q(e0, 0);
 }
 
+bool not(bool b0){
+return if2(b0, false, true);
+}
 bool and(lazy bool b0, lazy bool b1){
 return b0&&b1;
 }
-bool and(lazy bool b0, lazy bool b1, lazy bool b2){
-return b0&&b1&&b2;
+bool and(lazy bool[] bs){
+jumplbl1:
+if(eql_Q(size(bs), 0)) {
+return false;
+}
+auto _r = bs;
+jumplbl2:
+if(eql_Q(size(bs), 0)) {
+return true;
+} else {
+if(first(_r)) {
+_r = rest(bs);
+goto jumplbl2;
+} else {
+return false;
+}
+}
 }
 bool nand(lazy bool b0, lazy bool b1){
 return !(b0&&b1);
@@ -117,19 +131,16 @@ return !(b0&&b1);
 bool or(lazy bool b0, lazy bool b1){
 return b0||b1;
 }
-bool or(lazy bool b0, lazy bool b1, lazy bool b2){
-return b0||b1||b2;
-}
 bool or(lazy bool[] bs){
 jumplbl1:
 if(eql_Q(size(bs), 0)) {
 return false;
 }
-if(eql_Q(size(bs), 1)) {
-return first(bs);
-}
 auto _r = bs;
 jumplbl2:
+if(eql_Q(size(bs), 0)) {
+return true;
+} else {
 if(first(_r)) {
 return true;
 } else {
@@ -137,12 +148,11 @@ _r = rest(bs);
 goto jumplbl2;
 }
 }
+}
 bool nor(lazy bool b0, lazy bool b1){
 return !(b0||b1);
 }
-bool not(bool b0){
-return !b0;
-}
+
 T[] append(T)(T[] coll0, T value){
 return coll0~value;
 }
@@ -179,6 +189,7 @@ _rest = rest(coll1);
 goto jumplbl2;
 }
 }
+
 T[] seq_of(T)(){
 {
 T[] res = [];
@@ -227,6 +238,7 @@ return coll[start .. $];
 T[] slice(T)(T[] coll, size_t start, size_t end_offset){
 return coll[start .. $ - end_offset];
 }
+
 bool contains_Q(T)(T[] coll, T value){
 jumplbl1:
 T current = first(coll);
@@ -276,6 +288,7 @@ auto sliced = slice(coll, slice_idx);
 return starts_with_Q(sliced, other);}
 }
 }
+
 bool all_Q(T)(bool delegate(T) pred, T[] coll){
 jumplbl1:
 auto _rest = coll;
@@ -321,6 +334,7 @@ goto jumplbl2;
 }
 }
 }
+
 T[] repeated(T)(T elem, size_t times){
 jumplbl1:
 T[] result = [];
@@ -485,13 +499,16 @@ return prepend(first(coll), isort_insert(elem, rest(coll)));
 }
 }
 }
+
 string to_s(T)(T e){
 return to!string(e);
 }
+
 bool canConvert(toType, fromType)(fromType e) {
 import std.conv;
 try { to!toType(e); return true;
-} catch(ConvException ce) { return false; }}bool to_int_valid_Q(T)(T e){
+} catch(ConvException ce) { return false; }}
+bool to_int_valid_Q(T)(T e){
 return canConvert!int(e);
 }
 bool to_uint_valid_Q(T)(T e){
@@ -509,20 +526,26 @@ return canConvert!float(e);
 bool to_double_valid_Q(T)(T e){
 return canConvert!double(e);
 }
+
 void print_E(T)(T text){
 write(text);
 }
+
 void println_E(T)(T text){
 writeln(text);
 }
+
 void error_E(T)(T text){
 write(stderr, text);
 }
+
 void errorln_E(T)(T text){
 writeln(stderr, text);
 }
+
 string readln_E(){
 return stdin.readln;
 }
+
 
 

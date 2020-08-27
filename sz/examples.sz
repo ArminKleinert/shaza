@@ -48,10 +48,10 @@
     This works across lines.)
 
 (define ::void let-example ()
-    (let (::int i 10 ; int
-          j 11 ; auto
-          abc "") ; auto
-        (writefln "%s %s %s" i j abc)))
+  (let (::int i 10 ; int
+        j 11 ; auto
+        abc "") ; auto
+    (writefln "%s %s %s" i j abc)))
 
 ; Test type-definitions
 (def-struct MyType ::int n)
@@ -61,44 +61,48 @@
 
 ; Test the if statement
 (define ::bool if-test ()
-    (if #t #t #f))
+  (if #t #t #f))
+
+; Test the when statement
+(define ::bool when-test ()
+  (when #t #t #f))
 
 ; Test tail-recursion
 ; TODO Implement
 (define ::int tail-recur-test (::int n ::int res)
-    (if (le? n 1)
-        1
-        (tail-recur-test (dec n) res)))
+  (if (le? n 1)
+    1
+    (tail-recur-test (dec n) res)))
 
-; Treat if as expression and allow for implicit return
-(define ::int if-as-expression (::int n)
-    (if (lt? n 0) (sub 0 n) n))
+; Treat when as expression and allow for implicit return
+(define ::int when-as-expression (::int n)
+  (when (lt? n 0) (sub 0 n) n))
 
 ; This loop doesn't do much but uses implicit return
 (define ::int loop-as-expression (::int n)
-    (loop () 1))
+  (loop () 1))
 
 ; Same for let. implicit return
 (define ::int let-as-expression (::int n)
-    (let (a 1 b 1) (llr "a+b")))
+  (let (a 1 b 1) (llr "a+b")))
 
 ; Set attribute "n" of object mt
 (define ::void setv_attr_test_1 (::MyType mt)
-    (setv! mt n 15))
+  (setv! mt n 15))
 
 ; This one is more of a side-effect of how symbols are parsed. Still nice.
 ; Notice that this compiles to a simple assignment instead of an
 ; attribute assignment.
 (define ::void setv_attr_test_2 (::MyType mt)
-    (setv! mt.n 15))
+  (setv! mt.n 15))
 
 ; Set attribute "n" of object mt; The keyword is turned into a symbol
 (define ::void setv_attr_test_3 (::MyType mt)
-    (setv! mt :n 15))
+  (setv! mt :n 15))
 
 ; Set attribute "n" of object mt; The string is unquoted.
 (define ::void setv_attr_test_4 (::MyType mt)
-    (setv! mt "n" 15))
+  (setv! mt "n" 15))
 
 ; Tests for character literals
 (define chtest1 \tab)
@@ -125,8 +129,8 @@
 (define ::int give_int_and_print(::int i) (writeln i) i)
 (define ::bool or_ (::lazy:int i ::lazy:int j) (llr i || j))
 (define ::void docall ()
-    (or_ (give_int_and_print 0) (give_int_and_print 1)) ; prints 0 and 1
-    (or_ (give_int_and_print 5) (give_int_and_print 9))) ; prints only 5
+  (or_ (give_int_and_print 0) (give_int_and_print 1)) ; prints 0 and 1
+  (or_ (give_int_and_print 5) (give_int_and_print 9))) ; prints only 5
 
 ; New type syntax test
 (define ::static:int static-i-0 0)
@@ -144,9 +148,10 @@
   (:generics [::T1 ::T2])
   (define ::void meta-test-1 (::T1 arg) (writeln arg)))
 
-(meta (:generics [::T] :aliases [none? nil? null?])
-  (define ::bool is-nil? (::T o) (llr "o is null")))
-(define ::void call-alias () (none? ""))
+(meta (:generics [::T] :aliases [none2?])
+  (define ::bool is-nil2? (::T o) (llr "o is null")))
+
+(define ::void call-alias () (none2? null))
 
 (meta (:visibility :private)
   (define ::void hidden-fn () (writeln)))
@@ -189,20 +194,20 @@
 
 ; Implicit return on list
 (define ::string[] returnAList ()
-    ["a" "b" "c"])
+  ["a" "b" "c"])
 
-; recur to function
+; recur to function; Runs forever because there is no condition
 (define ::void recur-test ()
-    (writeln "hey!")
-    (recur))
+  (writeln "hey!")
+  (recur))
 
 ; recur to loop
 (define ::int loop-recur-test ()
-    (loop (::int i 0
-           v 1)
-        (if (llr i < 10)
-            i
-            (recur (inc i) 15))))
+  (loop (::int i 0
+         v 1)
+    (when (llr i < 10)
+      i
+      (recur (inc i) 15))))
 
 ; Multiple declarations with the same :export-as
 (meta (:returns ::bool :export-as "and")

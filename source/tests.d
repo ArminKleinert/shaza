@@ -158,18 +158,8 @@ return eql_Q(shift_right(33, 1), shift_right(33, 1));
 bool test_equals(){
 return and(eql_Q(3, 3), and(eql_Q(3000, 3000), and(eql_Q("abc", "abc"), and(eql_Q(true, true), and(eql_Q(false, false), eql_Q(3.0, 3.0))))));
 }
-bool test_ref_equals(){
-{
-auto a = 3;
-auto b = 3000;
-auto c = "abc";
-auto d = true;
-auto e = false;
-auto f = 3.0;
-return and(ref_eql(a, a), and(ref_eql(b, b), and(ref_eql(c, c), and(ref_eql(d, d), and(ref_eql(e, e), ref_eql(f, f))))));}
-}
 
-void main(){
+void main1(){
 println_E(append("test-defaults ", to_s(test_defaults())));
 println_E(append("test-default-types ", to_s(test_default_types())));
 println_E(append("test-addition ", to_s(test_addition())));
@@ -214,7 +204,6 @@ println_E(append("test-bit-shl-2 ", to_s(test_bit_shl_2())));
 println_E(append("test-bit-shr ", to_s(test_bit_shr())));
 println_E(append("test-bit-shr-2 ", to_s(test_bit_shr_2())));
 println_E(append("test-equals ", to_s(test_equals())));
-println_E(append("test-ref-equals ", to_s(test_ref_equals())));
 }
 
 

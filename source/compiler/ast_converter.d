@@ -73,7 +73,7 @@ string createOutput(AstCtx ast) {
                 return llToString(ast);
             case "llr":
                 return llToString(ast);
-            case "if":
+            case "when":
                 return ifToString(ast);
             case "lambda":
                 return lambdaToString(ast);

@@ -324,19 +324,9 @@
   (and (= #f #f)
        (= 3.0 3.0)))))))
 
-; SECTION Test reference equality
-
-(define test-ref-equals ()
-  (let (a 3 b 3000 c "abc" d #t e #f f 3.0)
-    (and (=== a a)
-    (and (=== b b)
-    (and (=== c c)
-    (and (=== d d)
-    (and (=== e e)
-         (=== f f))))))))
 )
 
-(define ::void main ()
+(define ::void main1 ()
     (println! (append "test-defaults " (to_s (test-defaults ))))
     (println! (append "test-default-types " (to_s (test-default-types ))))
     (println! (append "test-addition " (to_s (test-addition ))))
@@ -381,5 +371,4 @@
     (println! (append "test-bit-shr " (to_s (test-bit-shr ))))
     (println! (append "test-bit-shr-2 " (to_s (test-bit-shr-2 ))))
     (println! (append "test-equals " (to_s (test-equals ))))
-    (println! (append "test-ref-equals " (to_s (test-ref-equals ))))
 )

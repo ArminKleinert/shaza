@@ -14,9 +14,19 @@
 (define ::long default_long)
 (define ::ulong default_ulong)
 (define ::bool default_bool)
-(define ::float default_float)
-(define ::double default_double)
+(define ::float default_float 0.0)
+(define ::double default_double 0.0)
 (define ::string default_string "")
+
+; SECTION If
+
+(meta (:generics [::T] :returns ::T :export-as "if2")
+
+(define if (::lazy:bool cond ::lazy:T branchThen ::lazy:T branchElse)
+  (llr "(cond?branchThen:branchElse)"))
+
+(define if (::lazy:bool cond ::lazy:T branchThen)
+  (llr "(cond?branchThen:(T.init))")))
 
 ; SECTION Simple math
 
@@ -58,8 +68,6 @@
 (meta (:returns ::bool :generics [::T])
   (meta (:export-as "eql_Q" :aliases [eql? ==])
     (define = (::T e0 ::T e1) (llr e0 == e1)))
-  (meta (:export-as "ref_eql")
-    (define === (::T e0 ::T e1) (llr "&e0 == &e1")))
   (meta (:export-as "not_eql_Q" :aliases [not-eql? !=])
     (define not= (::T e0 ::T e1) (llr e0 != e1)))
   (meta (:export-as "lt_Q" :aliases [lt?])
@@ -73,31 +81,34 @@
   (define nil? (::T e) (llr "e is null"))
   (meta (:export-as "compare")
     (define ::int <=> (::T e0 ::T e1)
-      (if (== e0 e1) (return 0)
-      (if (< e0 e1) (return -1)
-      (return 1)))))
+      (if (== e0 e1) 0 (if (< e0 e1) -1 1))))
   (define pos? (::T e0) (>= e0 0))
   (define neg? (::T e0) (< e0 0)))
 
 ; SECTION bool-ops
 
 (meta (:returns ::bool)
+  (meta (:export-as "not")
+    (define ! (::bool b0) (if b0 #f #t)))
   (meta (:export-as "and")
     (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1))
-    (define && (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 && b1 && b2)))
+    (define && (::lazy:bool[] bs)
+      (when (= (size bs) 0) (return #f))
+      (loop (_r bs)
+        (when (= (size bs) 0) #t
+        (when (first _r) (recur (rest bs)) #f)))))
   (meta (:export-as "nand")
     (define !&& (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 && b1))))
   (meta (:export-as "or")
     (define || (::lazy:bool b0 ::lazy:bool b1) (llr b0 || b1))
-    (define || (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2) (llr b0 || b1 || b2))
     (define || (::lazy:bool[] bs)
-      (if (= (size bs) 0) (return false))
-      (if (= (size bs) 1) (return (first bs)))
-      (loop (_r bs) (if (first _r) (return true) (recur (rest bs))))))
+      (when (= (size bs) 0) (return #f))
+      (loop (_r bs)
+        (when (= (size bs) 0) #t
+        (when (first _r) #t (recur (rest bs)))))))
   (meta (:export-as "nor")
     (define !|| (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 || b1))))
-  (meta (:export-as "not")
-  (define ! (::bool b0) (llr !b0)))
+  )
 
 ; SECTION Concatenation and appending of arrays
 
@@ -115,14 +126,14 @@
 
 (define append (::T[] coll0 ::T[] coll1)
   (loop (::T[] res coll0 ::T[] _rest coll1)
-    (if (empty? _rest)
-      (return res)
+    (when (empty? _rest)
+      res
       (recur (append res (first _rest)) (rest _rest)))))
 
 (define append! (::T[] coll0 ::T[] coll1)
   (loop (::T[] res coll0 _rest coll1)
-    (if (empty? _rest)
-      (return res)
+    (when (empty? _rest)
+      res
       (recur (append! coll0 (first coll1)) (rest coll1))))))
 
 ; SECTION Attributes of and access to arrays
@@ -169,20 +180,20 @@
 (meta (:aliases [in?])
 (define contains? (::T[] coll ::T value)
   (loop (::T current (first coll) ::T[] rest_ (rest coll))
-    (if (eql? current value)
-      (return #t)
+    (when (eql? current value)
+      #t
       (recur (first rest_) (rest coll))))))
 
 (define starts-with? (::T[] coll ::T e)
   (eql? (first coll) e))
 
 (define starts-with? (::T[] coll ::T[] other)
-  (if (lt? (size coll) (size other))
+  (when (lt? (size coll) (size other))
     (return #f))
   (loop (_coll0 (rest coll)
          _coll1 (rest other))
-    (if (not_eql? (first _coll0) (first _coll1)) (return #f)
-    (if (empty? _coll1) (return #t)
+    (when (not_eql? (first _coll0) (first _coll1)) (return #f)
+    (when (empty? _coll1) (return #t)
     (recur (rest _coll0) (rest _coll1))
     ))))
 
@@ -190,60 +201,54 @@
   (eql? (last coll) e))
 
 (define ends-with? (::T[] coll ::T[] other)
-  (if (lt? (size coll) (size other))
-    (return #f)
+  (when (lt? (size coll) (size other))
+    #f
     (let (slice-idx (- (size coll) (size other))
-        sliced (slice coll slice-idx))
-      (return (starts-with? sliced other)))))
+          sliced (slice coll slice-idx))
+      (starts-with? sliced other))))
 )
 
 ; SECTION List operations
 
 (meta (:returns ::bool :generics [::T])
 (define all? (::bool:delegate(T) pred ::T[] coll)
-   (loop (_rest coll)
-     (if (empty? _rest)
-       (return #t)
-       (if (not (pred (first _rest)))
-         (return #f)
-         (recur (rest _rest))))))
+  (loop (_rest coll)
+    (when (empty? _rest) #t
+      (when (not (pred (first _rest)))
+        #f (recur (rest _rest))))))
 
 (define none? (::bool:delegate(T) pred ::T[] coll)
-   (loop (_rest coll)
-     (if (empty? _rest)
-       (return true)
-       (if (pred (first _rest))
-         (return #f)
-         (recur (rest _rest))))))
+  (loop (_rest coll)
+    (when (empty? _rest) #t
+      (when (pred (first _rest)) #f
+        (recur (rest _rest))))))
 
 (define any? (::bool:delegate(T) pred ::T[] coll)
    (loop (_rest coll)
-     (if (empty? _rest)
-       (return false)
-       (if (pred (first _rest))
-         (return #t)
+     (when (empty? _rest) #f
+       (when (pred (first _rest)) #t
          (recur (rest _rest)))))))
 
 (meta (:returns ::T[] :generics [::T])
 (define repeated (::T elem ::size_t times)
   (loop (::T[] result []
          i times)
-    (if (<= i 0)
-      (return result)
+    (when (<= i 0)
+      result
       (recur (append result elem) (-- i)))))
 
 (define repeatedly (::T:delegate() func ::size_t times)
   (loop (::T[] result []
          i 0)
-    (if (>= i times)
-      (return result)
+    (when (>= i times)
+      result
       (recur (append result (func)) (++ i)))))
 
 (define map (::T:delegate(T) func ::T[] coll)
   (loop (::T[] result []
          ::T[] _rest coll)
-    (if (empty? _rest)
-      (return result)
+    (when (empty? _rest)
+      result
       (recur (append result (func (first _rest)))
            (rest _rest)))))
 
@@ -251,17 +256,18 @@
 (define ::T1 reduce (::T1:delegate(T,T1) func ::T[] coll ::T1 initval)
   (loop (::T1 result initval
          ::T[] _rest coll)
-    (if (empty? _rest)
-      (return result)
+    (when (empty? _rest)
+      result
       (recur (func (first _rest) result)
             (rest _rest))))))
 
+(meta (:returns ::T[] :generics [::T])
 (define remove (::bool:delegate(T) pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
-    (if (empty? _rest)
-      (return result)
-      (if (pred (first _rest))
+    (when (empty? _rest)
+      result
+      (when (pred (first _rest))
         (recur result (rest _rest))
         (recur (append result (first _rest)) (rest _rest))))))
 
@@ -271,54 +277,54 @@
 (define filter (::bool:delegate(T) pred ::T[] coll)
   (loop (::T[] result []
          _rest coll)
-    (if (empty? _rest)
-      (return result)
-      (if (pred (first _rest))
+    (when (empty? _rest)
+      result
+      (when (pred (first _rest))
         (recur (append result (first _rest)) (rest _rest))
         (recur result (rest _rest))))))
 
 (meta (:aliases [uniq distinct])
 (define uniques (::T[] coll)
-  (if (< (size coll) 2) (return coll))
+  (when (< (size coll) 2) (return coll))
   (loop (::T[] sorted (sort coll)
          ::T prev (first sorted)
          ::T[] result [prev])
-    (if (empty? sorted)
-      (return result)
-      (if (= prev (first sorted))
+    (when (empty? sorted)
+      result
+      (when (= prev (first sorted))
         (recur (rest sorted) prev result)
         (recur (rest sorted) (first sorted) (append result prev)))))))
 
 (define bin-search (::T[] seq ::T key)
-  (if (gt? (size seq) 1)
+  (when (gt? (size seq) 1)
     (let (m (/ (size seq) 2))
-      (if (eql? (get seq m) key)
+      (when (eql? (get seq m) key)
         (return #t)
-        (if (lt? key (get seq m))
-          (return (bin-search (slice seq 0 m) key))
-          (return (bin-search (slice seq (++ m)) key)))))
-    (if (eql? (size seq) 1)
-      (return (eql? (first seq) key))
-      (return #f))))
+        (when (lt? key (get seq m))
+          (bin-search (slice seq 0 m) key)
+          (bin-search (slice seq (++ m)) key))))
+    (when (eql? (size seq) 1)
+      (eql? (first seq) key)
+      #f)))
 
 (meta (:aliases [sort])
-(define ::T[] insertionsort (::T[] coll)
+(define insertionsort (::T[] coll)
   (let (::T[] acc [])
     (isort-acc coll acc))))
 
 (meta (:visibility :private)
-  (define ::T[] isort-acc (::T[] coll ::T[] acc)
-    (if (empty? coll)
-      (return acc)
+  (define isort-acc (::T[] coll ::T[] acc)
+    (when (empty? coll)
+      acc
       (isort-acc (rest coll) (isort-insert (first coll) acc))))
 
-  (define ::T[] isort-insert (::T elem ::T[] coll)
-    (if (empty? coll)
-      (return (seq-of elem))
-      (if (lt? elem (first coll))
+  (define isort-insert (::T elem ::T[] coll)
+    (when (empty? coll)
+      (seq-of elem)
+      (when (lt? elem (first coll))
         (prepend elem coll)
         (prepend (first coll)
-                (isort-insert elem (rest coll))))))
+                (isort-insert elem (rest coll)))))))
 ))
 
 ; SECTION Type convertions

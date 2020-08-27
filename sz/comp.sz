@@ -15,6 +15,18 @@
   ::size_t index
   ::Node[] children)
 
+(def-struct Context
+  ::Token[] tokens
+  ::Node ast
+  ::int curr-tkn-line
+  ::int curr-tkn-char
+  ::int curr-tkn-start-line
+  ::int curr-tkn-start-char
+  ::bool next-escaped
+  ::string curr-tkn-text
+  ::bool is-in-stringb
+  ::bool is-in-type-literal)
+
 (comment TokenTypes:
     :unknown
     :root
@@ -52,6 +64,9 @@
 (define ::bool is-in-string #f)
 (define ::bool is-in-type-literal #f)
 
+(define start-context
+  (new ::Context [] nil 0 0 0 0 #f "" #f #f))
+
 (define ::char quot-mark (ch "\""))
 
 (meta (:returns ::bool)
@@ -82,9 +97,6 @@
 (define is-valid-number? (::string text)
   (and (is-valid-integral? text) (is-valid-float? text)))
 
-(define is-type-literal? (::string text)
-  (starts-with? text "::"))
-
 (define is-keyword-literal? (::string text)
   (and (>= (size text) 2) (= (first text) \:) (is-valid-symbol? (rest text))))
 
@@ -97,19 +109,20 @@
         (and (= (first text) (first "\\")) (= (size text) 2)))))
 
 (define is-type-literal? (::string text)
-    (let (idx-of-ob  (index-of text (first "("))
-          idx-of-cb  (index-of text (first ")"))
-          idx-of-ocb (index-of text (first "{"))
-          idx-of-ccb (index-of text (first "}"))
-          idx-of-osb (index-of text (first "["))
-          idx-of-csb (index-of text (first "]"))
-          last-txt-idx (dec (size text))
+  (if (! (starts_with? text "::")) (return #f))
+  (let (idx-of-ob  (index-of text (first "("))
+        idx-of-cb  (index-of text (first ")"))
+        idx-of-ocb (index-of text (first "{"))
+        idx-of-ccb (index-of text (first "}"))
+        idx-of-osb (index-of text (first "["))
+        idx-of-csb (index-of text (first "]"))
+        last-txt-idx (dec (size text))
 
-          res0 (&& (pos? idx-of-ob) (> idx-of-ob idx-of-cb)) ; Handle () in symbol
-          res1 (|| res0 (&& (pos? idx-of-ocb) (> idx-of-ocb idx-of-ccb))) ; Handle {} in symbol
-          res2 (|| res1 (&& (pos? idx-of-osb) (> idx-of-osb idx-of-csb))) ; Handle [] in symbol
-          )
-      (return (not res2))))
+        res0 (&& (pos? idx-of-ob) (> idx-of-ob idx-of-cb)) ; Handle () in symbol
+        res1 (|| res0 (&& (pos? idx-of-ocb) (> idx-of-ocb idx-of-ccb))) ; Handle {} in symbol
+        res2 (|| res1 (&& (pos? idx-of-osb) (> idx-of-osb idx-of-csb))) ; Handle [] in symbol
+        )
+    (return (not res2))))
 
 (define last-char-must-be-separated (::string text)
   (||
@@ -117,7 +130,59 @@
     (&& (== (last text) (ch "]")) (not (contains? text (ch "["))))
     (&& (== (last text) (ch "}")) (not (contains? text (ch "{"))))
     (== (last text) (ch ";"))))
+
+(define is-tagged-list-opener? (::string text)
+  (or (= text "Set[") (or (= text "Map[") (= text "Lst["))))
 )
+
+(define ::Keyword tknTypeByText (::string text)
+  (if (is-valid-integral? text) :lit-int
+  (if (is-valid-unsigned? text) :lit-uint
+  (if (is-valid-float? text) :lit-flt
+  (if (is-bool-literal? text) :lit-bool
+  (if (is-keyword-literal? text) :lit-keyword
+  (if (is-type-literal? text) :lit-type
+  (if (is-valid-symbol? text) :symbol
+  (if (is-string-literal? text) :lit-string
+  (if (is-tagged-list-opener? text) :lst-tagged-open
+  (if (= text "[") :lst-open
+  (if (= text "]") :lst-close
+  (if (= text "(") :scope-open
+  (if (= text ")") :scope-close
+  (if (= text ";") :ln-comment
+  :unknown)))))))))))))))
+
+(define ::Context close-token (::Context ctx)
+  ; TODO
+  ctx)
+
+(define ::Context tokenize-sub-next-char-in-string (::Context ctx ::char c)
+  ;TODO
+  ctx)
+
+(define ::Context tokenize-sub-next-char (::Context ctx ::char c)
+  ;TODO
+  ctx)
+
+(define ::Context next-char (::Context ctx ::char c)
+  (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char))
+  (if (= c \newline)
+    (setv! ctx curr-tkn-line (inc ctx.curr_tkn_line))
+    (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char)))
+  (if (ctx.is_in_string)
+    (tokenize-sub-next-char-in-string ctx c)
+    (tokenize-sub-next-char ctx c)))
+
+(define ::Context tokenize (::Context ctx ::string source)
+  (close-token
+    (reduce
+      (lambda ::Context (::char c ::Context ctx) (next-char ctx c))
+      source ctx)))
+
+
+
+
+
 
 
 
