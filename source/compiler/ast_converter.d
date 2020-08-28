@@ -115,6 +115,10 @@ string createOutput(AstCtx ast) {
                 return parseMetaGetString(ast);
             case "fp":
                 return functionPointerToString(ast);
+            case "alias":
+                return aliasToString(ast);
+            case "include":
+                return includeToString(ast);
             default:
                 break;
             }

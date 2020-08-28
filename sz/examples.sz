@@ -247,4 +247,12 @@
 (define anon-types-3 (i ::int j) (llr i + j))
 (define anon-types-4 (i j) (llr i + j))
 
-(define anon-params-nested-1 (::int $) 1)
+; Test alias
+
+(alias alias1 ::int)
+(alias alias2 byauto)
+
+; Test include
+
+(include sz/examples_extra)
+

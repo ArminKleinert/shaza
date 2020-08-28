@@ -1,0 +1,5 @@
+(module examples1)
+
+; Test-module which will be included by the examples.sz module.
+
+(define includedFunction (::int i) i)

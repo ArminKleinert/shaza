@@ -58,6 +58,43 @@ string importHostToString(AstNode ast) {
 
 string importShazaToString(AstNode ast) {
     if (ast.size < 2)
+        warning("Import: No file to import: " ~ ast.nodes[0].tknstr() ~ "; Ignoring...");
+
+    auto node = ast.nodes[1];
+    auto fname = "";
+
+    if (node.type == TknType.litString) {
+        fname = node.tkn.text[1 .. $ - 1];
+    } else if (node.type == TknType.symbol) {
+        fname = "./" ~ node.tkn.text ~ ".sz";
+    } else {
+        warning("Import: Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");
+        return "";
+    }
+
+    import std.file : exists, readText;
+
+    if (!exists(fname)) {
+        throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
+    }
+
+    import compiler.types : Context;
+    import compiler.tokenizer : tokenize;
+    import compiler.ast : buildBasicAst;
+
+    auto ctx = new Context();
+    ctx = tokenize(ctx, readText(fname));
+    ctx = buildBasicAst(ctx);
+    auto astCtx = AstCtx(ctx.ast, ctx.ast);
+    auto importedModuleName = parseRootNodeIntoContextAndReturnModulename(astCtx);
+
+    return "import " ~ importedModuleName ~ ";";
+}
+
+// SECTION Include
+
+string includeToString(AstNode ast) {
+    if (ast.size < 2)
         warning("No file to import: " ~ ast.nodes[0].tknstr() ~ "; Ignoring...");
 
     auto node = ast.nodes[1];
@@ -88,5 +125,15 @@ string importShazaToString(AstNode ast) {
     auto astCtx = AstCtx(ctx.ast, ctx.ast);
     auto importedModuleName = parseRootNodeIntoContextAndReturnModulename(astCtx);
 
-    return "import " ~ importedModuleName ~ ";";
+    auto output = OutputContext.global.fullModuleTexts[importedModuleName];
+    OutputContext.global.fullModuleTexts.remove(importedModuleName);
+
+    // SUBSECT Cut "module" declaration
+    // FIXME This should be implemented in a safer way...
+    import std.string : indexOf;
+    output = output[output.indexOf('\n')..$];
+
+    return output;
 }
+
+

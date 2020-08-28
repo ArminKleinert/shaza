@@ -7,6 +7,24 @@ import shaza.std;
 
 import std.array;
 
+// SECTION alias-instruction
+
+string aliasToString(AstCtx ast) {
+    if (ast.size != 3)
+        throw new CompilerError("alias: Needs exactly 2 arguments. " ~ ast[0].tknstr());
+
+    if (ast[1].type != TknType.symbol)
+        throw new CompilerError("alias: First argument must be a symbol. " ~ ast[1].tknstr());
+
+    if (ast[2].type == TknType.symbol)
+        return "alias " ~ symbolToString(ast[1]) ~ " = " ~ symbolToString(ast[2]) ~ ";";
+    else if (ast[2].type == TknType.litType)
+        return "alias " ~ symbolToString(ast[1]) ~ " = " ~ typeToString(ast[2]) ~ ";";
+    else
+        throw new CompilerError(
+                "alias: Invalid argument. Expected type or symbol. " ~ ast[2].tknstr());
+}
+
 // SECTION let-instruction
 
 string letBindingsToString(AstCtx ast, AstNode[] bindings) {
