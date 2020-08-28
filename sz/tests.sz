@@ -101,12 +101,12 @@
 ; SECTION Test *
 
 (define test-multiplication ()
-  (and (= (* default-int 15) 15)
-  (and (= (* default-uint 15) 15)
-  (and (= (* default-long 15) 15)
-  (and (= (* default-ulong 15) 15)
-  (and (= (* default-float 15) 15)
-       (= (* default-double 15) 15)))))))
+  (and (= (* default-int 15) 0)
+  (and (= (* default-uint 15) 0)
+  (and (= (* default-long 15) 0)
+  (and (= (* default-ulong 15) 0)
+  (and (= (* default-float 15) 0)
+       (= (* default-double 15) 0)))))))
 
 (define test-multiplication-2 ()
   (and (= (* (+ 1 default-int) 15) 15)

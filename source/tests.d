@@ -60,7 +60,7 @@ bool test_subtraction_types(){
 return and(eql_Q(typestr(sub(default_int, 0)), "int"), and(eql_Q(typestr(sub(default_uint, 0)), "uint"), and(eql_Q(typestr(sub(default_long, 0)), "long"), and(eql_Q(typestr(sub(default_ulong, 0)), "ulong"), and(eql_Q(typestr(sub(default_float, 0)), "float"), eql_Q(typestr(sub(default_double, 0)), "double"))))));
 }
 bool test_multiplication(){
-return and(eql_Q(mul(default_int, 15), 15), and(eql_Q(mul(default_uint, 15), 15), and(eql_Q(mul(default_long, 15), 15), and(eql_Q(mul(default_ulong, 15), 15), and(eql_Q(mul(default_float, 15), 15), eql_Q(mul(default_double, 15), 15))))));
+return and(eql_Q(mul(default_int, 15), 0), and(eql_Q(mul(default_uint, 15), 0), and(eql_Q(mul(default_long, 15), 0), and(eql_Q(mul(default_ulong, 15), 0), and(eql_Q(mul(default_float, 15), 0), eql_Q(mul(default_double, 15), 0))))));
 }
 bool test_multiplication_2(){
 return and(eql_Q(mul(plus(1, default_int), 15), 15), and(eql_Q(mul(plus(1, default_uint), 15), 15), and(eql_Q(mul(plus(1, default_long), 15), 15), and(eql_Q(mul(plus(1, default_ulong), 15), 15), and(eql_Q(mul(plus(1, default_float), 15), 15), eql_Q(mul(plus(1, default_double), 15), 15))))));

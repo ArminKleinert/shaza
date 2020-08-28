@@ -1,0 +1,104 @@
+(module basics)
+
+(comment
+Basic operations that will be needed in probably EVERY SINGLE shaza file.
+)
+
+; SECTION Global vars
+
+(define ::int default_int)
+(define ::uint default_uint)
+(define ::long default_long)
+(define ::ulong default_ulong)
+(define ::bool default_bool)
+(define ::float default_float 0.0)
+(define ::double default_double 0.0)
+(define ::string default_string "")
+
+; SECTION If
+
+(meta (:generics [::T] :returns ::T :export-as "if2")
+
+(define if (::lazy:bool cond ::lazy:T branchThen ::lazy:T branchElse)
+  (llr "(cond?branchThen:branchElse)"))
+
+(define if (::lazy:bool cond ::lazy:T branchThen)
+  (llr "(cond?branchThen:(T.init))")))
+
+; SECTION Simple math
+
+(meta (:generics [::N ::N1])
+  (meta (:export-as "plus")
+    (define + (::N i0 ::N1 i1) (opcall + i0 i1)))
+  (meta (:export-as "sub")
+    (define - (::N i0 ::N1 i1) (opcall - i0 i1)))
+  (meta (:export-as "mul")
+    (define * (::N i0 ::N1 i1) (opcall * i0 i1)))
+  (meta (:export-as "div")
+    (define / (::N i0 ::N1 i1) (opcall / i0 i1)))
+  (meta (:export-as "mod")
+    (define % (::N i0 ::N1 i1) (opcall % i0 i1))))
+
+(meta (:generics [::N])
+  (meta (:export-as "inc")
+    (define ++ (::N n) (+ n 1)))
+  (meta (:export-as "dec")
+    (define -- (::N n) (- n 1)))
+)
+
+; SECTION Bit-ops
+
+(meta (:generics [::Int1 ::Int2])
+  (meta (:export-as "bit_and" :aliases [bit-and])
+    (define & (::Int1 i0 ::Int2 i1) (opcall & i0 i1)))
+  (meta (:export-as "bit_or" :aliases [bit-or])
+    (define | (::Int1 i0 ::Int2 i1) (opcall | i0 i1)))
+  (meta (:export-as "bit_xor" :aliases [bit-xor])
+    (define ^ (::Int1 i0 ::Int2 i1) (opcall ^ i0 i1)))
+  (meta (:export-as "shift_left" :aliases [shl])
+    (define << (::Int1 i0 ::Int2 i1) (opcall << i0 i1)))
+  (meta (:export-as "shift_right" :aliases [shr])
+    (define >> (::Int1 i0 ::Int2 i1) (opcall >> i0 i1)))
+)
+
+(meta (:export-as "bit_negate" :aliases [bit-flip] :generics [::Int])
+  (define ~ (::Int i0) (opcall ~ i0))
+)
+
+; SECTION Comparisons and null-check
+
+(meta (:returns ::bool :generics [::T])
+  (meta (:export-as "eql_Q" :aliases [eql? ==])
+    (define = (::T e0 ::T e1) (llr e0 == e1)))
+  (meta (:export-as "not_eql_Q" :aliases [not-eql? !=])
+    (define not= (::T e0 ::T e1) (llr e0 != e1)))
+  (meta (:export-as "lt_Q" :aliases [lt?])
+    (define < (::T e0 ::T e1) (llr e0 < e1)))
+  (meta (:export-as "le_Q" :aliases [le?])
+    (define <= (::T e0 ::T e1) (llr e0 <= e1)))
+  (meta (:export-as "gt_Q" :aliases [gt?])
+    (define > (::T e0 ::T e1) (llr e0 > e1)))
+  (meta (:export-as "ge_Q" :aliases [ge?])
+    (define >= (::T e0 ::T e1) (llr e0 >= e1)))
+  (define nil? (::T e) (llr "e is null"))
+  (meta (:export-as "compare")
+    (define ::int <=> (::T e0 ::T e1)
+      (if (== e0 e1) 0 (if (< e0 e1) -1 1))))
+  (define pos? (::T e0) (>= e0 0))
+  (define neg? (::T e0) (< e0 0))
+)
+
+; SECTION bool-ops
+
+(meta (:returns ::bool)
+  (meta (:export-as "not")
+    (define ! (::bool b0) (if b0 #f #t)))
+  (meta (:export-as "and")
+    (define && (::lazy:bool b0 ::lazy:bool b1) (llr b0 && b1)))
+  (meta (:export-as "nand")
+    (define !&& (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 && b1))))
+  (meta (:export-as "or")
+    (define || (::lazy:bool b0 ::lazy:bool b1) (llr b0 || b1)))
+  (meta (:export-as "nor")
+    (define !|| (::lazy:bool b0 ::lazy:bool b1) (llr !(b0 || b1))))
+)

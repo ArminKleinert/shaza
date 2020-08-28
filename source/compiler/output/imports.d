@@ -119,6 +119,8 @@ string includeToString(AstNode ast) {
     import compiler.tokenizer : tokenize;
     import compiler.ast : buildBasicAst;
 
+    auto oldImportedModules = OutputContext.global.fullModuleTexts.keys;
+
     auto ctx = new Context();
     ctx = tokenize(ctx, readText(fname));
     ctx = buildBasicAst(ctx);
@@ -126,14 +128,17 @@ string includeToString(AstNode ast) {
     auto importedModuleName = parseRootNodeIntoContextAndReturnModulename(astCtx);
 
     auto output = OutputContext.global.fullModuleTexts[importedModuleName];
-    OutputContext.global.fullModuleTexts.remove(importedModuleName);
+
+    import std.algorithm.searching : canFind;
+
+    if (!oldImportedModules.canFind(importedModuleName))
+        OutputContext.global.fullModuleTexts.remove(importedModuleName);
 
     // SUBSECT Cut "module" declaration
     // FIXME This should be implemented in a safer way...
     import std.string : indexOf;
-    output = output[output.indexOf('\n')..$];
+
+    output = output[output.indexOf('\n') .. $];
 
     return output;
 }
-
-
