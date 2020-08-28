@@ -1,0 +1,38 @@
+(module enumerator)
+
+(comment
+WIP
+)
+
+(def-struct Lazy (::T ::C)
+  ::C current
+  ::bool:delegate(Lazy!(T,C)) next?
+  ::T:delegate(Lazy!(T,C)) calcnext)
+
+(meta (:generics [::T] :tk-aliases [::LazyT ::Lazy!T])
+
+(define ::T calc-next-get-prev (::LazyT l)
+  (when (! (l.next? l)) (return T.init))
+  (let (r (l.calcnext l))
+    (setv! en current calcnext)
+    r))
+
+(define ::LazySeq(T) enumerator (::T[] coll)
+  (new LazySeq
+    0
+    (lambda ::bool (::Enumerator!T en) (empty? c))
+    (lambda ::T (::Enumerator!T en)
+      (let (r (first en.current))
+        (setv! en current (rest en.current)) r)))))
+
+(define ::LazySeq(T) (::T) range (::T start ::T last)
+  (new LazySeq
+    start
+    (lambda ::bool (::Enumerator!T en) (< start last))
+    (lambda ::T (::Enumerator!T en) (setv! en current (++ en.current)) en.current)))
+
+(define ::LazySeq(T) (::T) repeat (::T e)
+  (new LazySeq e
+    (lambda ::bool (::LazyT lt) #t)
+    (lambda ::T next ())))
+)

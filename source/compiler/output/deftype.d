@@ -7,14 +7,20 @@ import shaza.std;
 
 import std.array;
 
-// SECTION Code for def-struct
+string defStructToString(AstNode ast) {
+    return defTypeOrStructToString(ast, true, "def-struct");
+}
+
+string defTypeToString(AstNode ast) {
+    return defTypeOrStructToString(ast, false, "def-type");
+}
 
 // This should really be made into a macro once possible...
-string defStructToString(AstNode ast) {
+string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string defName) {
     // SUBSECT Error checking stuff
 
     if (ast.size < 2) {
-        auto msg = "def-struct: Not enough parameters. ";
+        auto msg = defName ~ ": Not enough parameters. ";
         throw new CompilerError(msg ~ ast.tknstr);
     }
 
@@ -23,7 +29,7 @@ string defStructToString(AstNode ast) {
     AstNode typeNode = ast.nodes[1]; // Type name
 
     if (typeNode.type != TknType.symbol) {
-        auto msg = "def-struct: First argument must be a symbol. ";
+        auto msg = defName ~ ": First argument must be a symbol. ";
         throw new CompilerError(msg ~ typeNode.tknstr);
     }
 
@@ -44,7 +50,7 @@ string defStructToString(AstNode ast) {
     }
 
     if (attrList.size % 2 != 0) {
-        auto msg = "def-struct: fields must be a sequence of types and symbols.";
+        auto msg = defName ~ ": fields must be a sequence of types and symbols.";
         throw new CompilerError(msg ~ typeNode.tknstr);
     }
 
@@ -58,38 +64,59 @@ string defStructToString(AstNode ast) {
     }
 
     // SUBSECT Write header
-
-    // Start class definition text
     string typename = symbolToString(typeNode);
-    auto result = appender("class ");
+    auto result = appender(isValueTypeDefinition ? "struct " : "class ");
     result ~= typename; // Write typename
 
     // SUBSECT Generate list of generics (if given).
-    if (generics !is null) {
-        result ~= "(";
-        for (int i = 0; i < generics.size; i++) {
-            result ~= typeToString(generics.nodes[i]);
-            if (i < generics.size - 1)
-                result ~= ", ";
-        }
-        result ~= ")";
-    }
+    result ~= typeGenericsListToString(generics);
 
     result ~= " {\n";
 
     // SUBSECT Write list of attributes
+    result ~= typeAttributesToString(fieldTypes, fieldNames);
 
+    // SUBSECT Write constructor
+    result ~= typeConstructorToString(fieldTypes, fieldNames);
+
+    // SUBSECT Write setters
+    //result ~= typeSettersToString(typename, fieldTypes,fieldNames);
+
+    // SUBSECT Write clone method
+    result ~= typeCopyMethodToString(typename, fieldTypes, fieldNames);
+
+    // Close class
+    result ~= "}\n\n";
+
+    return result.get();
+}
+
+private string typeGenericsListToString(AstNode generics) {
+    if (generics is null)
+        return "";
+    auto result = "(";
+    for (int i = 0; i < generics.size; i++) {
+        result ~= typeToString(generics.nodes[i]);
+        if (i < generics.size - 1)
+            result ~= ", ";
+    }
+    result ~= ")";
+    return result;
+}
+
+private string typeAttributesToString(string[] fieldTypes, string[] fieldNames) {
+    auto result = "";
     for (auto i = 0; i < fieldTypes.size; i++) {
         result ~= fieldTypes[i];
         result ~= ' ';
         result ~= fieldNames[i];
         result ~= ";\n";
     }
+    return result;
+}
 
-    // SUBSECT Write constructor
-
-    // Name
-    result ~= "this(";
+private string typeConstructorToString(string[] fieldTypes, string[] fieldNames) {
+    auto result = "this(";
     // Write constructor arguments; Arguments have a '_' in front of the name.
     for (auto i = 0; i < fieldTypes.size; i++) {
         result ~= fieldTypes[i];
@@ -106,10 +133,11 @@ string defStructToString(AstNode ast) {
         result ~= field;
         result ~= ";\n";
     }
-    result ~= "}\n";
+    return result ~ "}\n";
+}
 
-    // SUBSECT Write setters
-
+private string typeSettersToString(string typename, string[] fieldTypes, string[] fieldNames) {
+    auto result = appender("");
     for (auto i = 0; i < fieldNames.size; i++) {
         result ~= typename;
         result ~= " with_" ~ szNameToHostName(fieldNames[i]);
@@ -126,9 +154,22 @@ string defStructToString(AstNode ast) {
 
         result ~= ");\n}\n";
     }
+    return result.get();
+}
 
-    // Close class
-    result ~= "}\n\n";
+private string typeCopyMethodToString(string typename, string[] fieldTypes, string[] fieldNames) {
+    auto result = appender("");
+    result ~= typename;
+    result ~= " clone(){\n";
+    result ~= "return new " ~ typename;
+    result ~= "(";
 
+    for (auto j = 0; j < fieldNames.size; j++) {
+        result ~= szNameToHostName(fieldNames[j]);
+        if (j < fieldNames.size - 1)
+            result ~= ", ";
+    }
+
+    result ~= ");\n}\n";
     return result.get();
 }
