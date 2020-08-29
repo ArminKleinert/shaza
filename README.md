@@ -1,16 +1,33 @@
 # Shaza
 
-Shaza is a statically typed lisp I am making for fun. Right now it just transpiles to D.
-Many functionalities are still missing though. By now Shaza has everything it needs to 
-be made self-hosting.  
-By now, Shaza has reached a state at which I'm not totally embaressed by it anymore.  
-Any D-function can be called directly. The good thing with this is that it makes converting 
-D to Shaza is pretty easy. The problem is that Shaza is not a safe language right now.
+Shaza is a statically typed lisp I am making for fun. For simplicity, it compiles straight to D.
+It is influenced by Scheme, Clojure, Ruby, C, D and a little Java. Clojure and D incluenced
+Shaza more than the others. The influences from Scheme and Ruby lie more in their many 
+implementations.  
+
+Very basic features are still missing, which makes writing Shaza harder than I would like it to.
+It has progressed far enough that it can be made self-hosting, which is the next goal.  
+
+Every aspect of the compiler, the library and the documentation is going through a grind of 
+constant change right now. You have been warned.
+
+## How to use
+
+- Install D and the Dub tool (which should come with D)
+- Clone the repository
+- Open the command line, cd to the directory you cloned Shaza to
+- Write some Shaza source code
+- Put the files of the standard library into the same directory
+- Run ``dub run <path to your shaza file>``
+- If everything works, the compiler should have created a bunch of new `.d` files.
+- Put these files into a new or existing D-project and run it.
+- Get angry like me when it doesn't work.
 
 ## Basic commands
 
-``(define-ns <name>)`` 
-Define a new namespace. (Not implemented yet)  
+``(module <name>)`` 
+Define a new module. Modules are used to bundle files and to determine the names for
+the output files.  
 ``(define <type>? <name> <value>)`` 
 Define a variable. The type is optional.  
 ``(define <type>? <generics>? <name> <bindings> &<body>)`` 
@@ -28,26 +45,25 @@ Same as ``ll``, but allows implicit ``return``.
 ``(lambda <type>? <bindings> &<body>)`` 
 Define an anonymous function. (Type is currently mandatory).  
 ``(fp <function>)``
-Shaza does not yet have first class functions. This is a workaround. ``(fp +)`` creates a pointer to the global + function. This is not necessary for lambdas.  
+Shaza does not yet have first class functions. This is a workaround. ``(fp +)`` 
+creates a pointer to the global + function. This is not necessary for lambdas.  
 ``(def-struct <name> <bindings>)`` 
 Create a new struct type.  
 ``(struct <bindings>`` 
 Create an anonymous struct type. (Not implemented yet)  
-``(bit-cast <type> <val>)`` 
-Cast a value to a specific type and trusts the programmer that the type is correct. 
-(Not implemented yet)  
-``(coll <coll-type> &<vals>)`` 
-Create a collection of elements. (Not implemented yet)  
+``(cast <type> <val>)`` 
+Cast a value to a specific type and trusts the programmer that the type is correct.  
+``(to <type> <val>)`` 
+Tries to convert a variable to the specified type. To convert an int to a string, for example,
+you can use `(to ::string 15)`.
 ``(import-host <path>``  
 Import file or module from the host-language.  
 ``(import-sz <path>)`` 
 Import a shaza file. (Not implemented yet)  
 ``(rt-import-sz <path>)`` 
 Import and parse a shaza file at runtime. (Not implemented yet)  
-``(rt-import-dll <path>)`` (Not implemented yet)  
-Import a dll file at runtime.  
-``(call-extern <type> <ns> <name> &<args>)`` 
-Call a function from a file that was import at runtime. (Not implemented yet)  
+``(rt-import-dll <path>)``  
+Import a dll file at runtime. (Not implemented yet)  
 ``(loop <bindings> &<body>)`` 
 Creates a loop which runs until it exits or encounters a call to ``recur``. 
 Shaza does not support tail-recursion (yet).  
@@ -70,28 +86,54 @@ Returns a pointer the given variable. (Not implemented yet)
 
 ## Operators
 
-Operators are available in 2 forms. One of them relies on automatic 
-type recognition, the other lets the user specify the type:
+Every operator has an alias and an export-name, with which it can be used in D-code.
+For example, the binary `&` operator can also be written as `bit-and` or `bit_and` but will
+always be called `bit_and` in the output.
+Some operators take different amounts of arguments, some are even variadic. Here is a 
+little table:
 
-``(+ <val> <val>)``  
-``(+' <type> <val> <val>)``
-
-Equivalents are available for the other operators too:  
-
-``+ +'`` Addition  
-``- -'`` Subtraction  
-``* *'`` Multiplication  
-``/ /'`` Dividing  
-``% %'`` Modulo  
-``<< <<'`` Left bit-shift  
-``>> >>'`` Right bit-shift  
-``bit-and bit-and'`` Bitwise and  
-``bit-or bit-or'`` Bitwise or  
-``bit-xor bit-xor'`` Bitwise xor  
+```
+Name(s)          | Export-name | Result   | # of arguments   | Meaning
+-----------------+-------------+----------+------------------+----------------------------
++ plus           | plus        | Number   | Variadic (min 1) | 
+- sub            | sub         | Number   | Variadic (min 1) | 
+* mul            | mul         | Number   | variadic (min 2) | 
+/ div            | div         | Number   | variadic (min 2) | 
+% mod            | mod         | Number   | variadic (min 2) | 
+++ inc           | inc         | Number   | 1                | Adds 1 to number (Unchanged)
+-- dec           | dec         | Number   | 1                | Lower number by 1 (Unchanged)
+-----------------+-------------+----------+------------------+----------------------------
+& bit-and        | bit_and     | Integral | 2                | AND integral numbers
+| bit-or         | bit_or      | Integral | 2                | OR integral numbers
+^ bit-xor        | bit_xor     | Integral | 2                | XOR integral numbers
+<< shl           | shift_left  | Integral | 2                | Shift bits of integral
+>> shr           | shift_right | Integral | 2                | Shift bits of integral
+~ bit-flip       | bit_negate  | Integral | 1                | Flip all bits in an integral
+-----------------+-------------+----------+------------------+----------------------------
+! not            | not         | bool     | 1                | Negate bool
+&& and           | and         | bool     | Variadic (min 2) | AND booleans (lazy)
+|| or            | or          | bool     | Variadic (min 2) | OR booleans (lazy)
+^^ xor           | xor         | bool     | 2                | XOR booleans (lazy)
+!&& nand         | nand        | bool     | Variadic (min 2) | NAND booleans (lazy)
+!|| nor          | nor         | bool     | Variadic (min 2) | NOR booleans (lazy)
+-----------------+-------------+----------+------------------+----------------------------
+= == eql?        |  eql_Q      | bool     | 2                | Check equality
+!= not= not-eql? | not_eql_Q   | bool     | 2                | Check unequality
+< lt?            | lt_Q        | bool     | 2                | A less than B?
+<= le?           | le_Q        | bool     | 2                | A less than or equal to B?
+> gt?            | gt_Q        | bool     | 2                | A greater than B?
+>= ge?           | ge_Q        | bool     | 2                | A greater than or equal to B?
+nil?             | nil_Q       | bool     | 1                | Checks for nil (does not work on value types)
+-----------------+-------------+----------+------------------+----------------------------
+<=>              | compare     | int      | 2                | 1 if A>B, 0 if A==B, -1 if A<B
+pos?             | pos_Q       | bool     | 1                | Checks if input is positive
+neg?             | neg_Q       | bool     | 1                | Checks if input is negative
+```
 
 ## Types
 
-At the moment Shaza offers any type that D has.
+At the moment Shaza offers any type that D has.  
+Types for Maps, Trees and Lazy sequences are being implemented in Shaza and are WIP.
 
 ## Meta-data
 
@@ -117,6 +159,7 @@ to the given string by the compiler.
 by some other text. There is an example below. Right now, this is highly 
 unsafe and should be used with extreme caution, since it will happily replace
 any token if it fits the given name!
+- ``:variadic #t/#f`` Makes the last argument of the functions variadic.  
 
 Not implemented:
 - ``:checked-calls #t/#f`` Makes sure the functions can only call functions 
@@ -125,7 +168,6 @@ created in Shaza, but no D-functions. `#f` is redundant.
 or not. The value `#f` is redundant.  
 - ``:parameters [...]`` Sets the list of parameters for all functions in scope.
 Can be overridden in the signatures.  
-- ``:variadic #t/#f`` Makes the last argument of the functions variadic.  
 - ``:inline (<lambda>)`` Create an inlined version which can be used by the
 compiler.  
 - ``:import [...]`` Defines a list of modules that will be imported only for the
@@ -141,7 +183,6 @@ if `:pure` is `#t`, in which case the compiler might otherwise try to memoize.
 ## Missing features
 
 Near future:  
-- ``alias`` command.  
 - Make a check for `:export-as` to verify that the name is valid.  
 - Make `import-sz` safer.  
 - Make compiler check all function names and meta before the actual 
@@ -151,7 +192,6 @@ Near future:
 - Implement functional types.  
 - Lazy sequences.
 - tail-recursion (right now, ``recur`` should be used).  
-- Operators with ``'``.  
 - Implicit return from ``if``, ``let`` and loops.  
 - ``struct``  
 - ``bit-cast``  
@@ -175,11 +215,8 @@ A byte further in the future:
 
 ## TODO List
 
-- Check this for varargs: 
-`void print(A...)(A a) { foreach(t; a) writeln(t); }`  
-- Remove `op-call`.  
+- Write documentation for `meta` and anonymous arguments.
 - Make Shaza self-hosting step-by-step.  
-- Disallow 2 `module` calls in one file.  
 - Implement tail-recursion and make compiler turn statements into expressions.  
 - Test corner-cases of :alias and :export-as meta.
   (What if we use D names?)  
@@ -196,10 +233,6 @@ A byte further in the future:
 - Go down the "missing features" list.  
 - Implement tests.  
 
-## Ideas
-
-- `::* ::*0 .. ::*9` for anonymous generic types: `(define ::*1 f (::*1 a ::*1 b) (+ a b))`  
-- `%0 .. %9` for anonymous arguments: `(define ::int f (::int ::int) (+ %0 %1))`
 
 ## Example
 

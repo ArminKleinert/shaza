@@ -114,22 +114,6 @@ string newToString(AstCtx ast) {
     return result;
 }
 
-// SECTION Operator call (+, -, *, /, &, %, |) for > 2 arguments
-
-string opcallToString(AstCtx ast) {
-    string op = szNameToHostName(ast.nodes[1].text);
-    auto result = appender("(");
-    for (size_t i = 2; i < ast.nodes.size - 1; i++) {
-        result ~= createOutput(ast[i]);
-        result ~= " ";
-        result ~= op;
-        result ~= " ";
-    }
-    result ~= createOutput(ast.subs[ast.size - 1]);
-    result ~= ")";
-    return prependReturn(ast.requestReturn, result.get());
-}
-
 // SECTION conversions -> cast and to
 
 string conversionToString(AstCtx ast) {

@@ -48,7 +48,7 @@ auto plus(N, N1)(N i0){
 return i0;
 }
 auto plus(N, N1)(N i0, N1 i1){
-return (i0 + i1);
+return i0+i1;
 }
 auto plus(N)(N[] nums...){
 return variadic_helper(delegate N(N n, N m){
@@ -59,28 +59,36 @@ auto sub(N, N1)(N i0){
 return -i0;
 }
 auto sub(N, N1)(N i0, N1 i1){
-return (i0 - i1);
+return i0-i1;
 }
 auto sub(N)(N[] nums...){
-return variadic_helper((std.functional.toDelegate(&sub)), nums);
+return variadic_helper(delegate N(N n, N m){
+return plus(n, m);
+}, nums);
 }
 auto mul(N, N1)(N i0, N1 i1){
-return (i0 * i1);
+return i0*i1;
 }
 auto mul(N)(N[] nums...){
-return variadic_helper((std.functional.toDelegate(&mul)), nums);
+return variadic_helper(delegate N(N n, N m){
+return plus(n, m);
+}, nums);
 }
 auto div(N, N1)(N i0, N1 i1){
-return (i0 / i1);
+return i0/i1;
 }
 auto div(N)(N[] nums...){
-return variadic_helper((std.functional.toDelegate(&div)), nums);
+return variadic_helper(delegate N(N n, N m){
+return plus(n, m);
+}, nums);
 }
 auto mod(N, N1)(N i0, N1 i1){
-return (i0 % i1);
+return i0%i1;
 }
 auto mod(N)(N[] nums...){
-return variadic_helper((std.functional.toDelegate(&mod)), nums);
+return variadic_helper(delegate N(N n, N m){
+return plus(n, m);
+}, nums);
 }
 
 auto inc(N)(N n){
@@ -91,23 +99,23 @@ return sub(n, 1);
 }
 
 auto bit_and(Int1, Int2)(Int1 i0, Int2 i1){
-return (i0 & i1);
+return i0&i1;
 }
 auto bit_or(Int1, Int2)(Int1 i0, Int2 i1){
-return (i0 | i1);
+return i0|i1;
 }
 auto bit_xor(Int1, Int2)(Int1 i0, Int2 i1){
-return (i0 ^ i1);
+return i0^i1;
 }
 auto shift_left(Int1, Int2)(Int1 i0, Int2 i1){
-return (i0 << i1);
+return i0<<i1;
 }
 auto shift_right(Int1, Int2)(Int1 i0, Int2 i1){
-return (i0 >> i1);
+return i0>>i1;
 }
 
 auto bit_negate(Int)(Int i0){
-return (i0);
+return ~i0;
 }
 
 bool eql_Q(T)(T e0, T e1){

@@ -89,8 +89,6 @@ string createOutput(AstCtx ast) {
                 return conversionToString(ast);
             case "cast":
                 return castToString(ast);
-            case "opcall":
-                return opcallToString(ast);
             case "comment":
                 return "";
             case "def-struct":
