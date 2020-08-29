@@ -48,21 +48,23 @@ Define an anonymous function. (Type is currently mandatory).
 Shaza does not yet have first class functions. This is a workaround. ``(fp +)`` 
 creates a pointer to the global + function. This is not necessary for lambdas.  
 ``(def-struct <name> <bindings>)`` 
-Create a new struct type.  
+Create a new value type. (struct)  
+``(def-type <name> <bindings>)`` 
+Create a new class type. (class)    
 ``(struct <bindings>`` 
 Create an anonymous struct type. (Not implemented yet)  
 ``(cast <type> <val>)`` 
 Cast a value to a specific type and trusts the programmer that the type is correct.  
 ``(to <type> <val>)`` 
 Tries to convert a variable to the specified type. To convert an int to a string, for example,
-you can use `(to ::string 15)`.
-``(import-host <path>``  
+you can use `(to ::string 15)`.  
+``(import-host <path>)`` 
 Import file or module from the host-language.  
 ``(import-sz <path>)`` 
 Import a shaza file. (Not implemented yet)  
 ``(rt-import-sz <path>)`` 
 Import and parse a shaza file at runtime. (Not implemented yet)  
-``(rt-import-dll <path>)``  
+``(rt-import-dll <path>)`` 
 Import a dll file at runtime. (Not implemented yet)  
 ``(loop <bindings> &<body>)`` 
 Creates a loop which runs until it exits or encounters a call to ``recur``. 
@@ -200,11 +202,10 @@ Near future:
 A byte further in the future:  
 - Unit-tests  
 - type-specifications on generics  
-- Modifiers on functions and vars (private, const, etc.)
+- Modifiers on functions and vars (private, const, etc.)  
 - Automatic type induction for functions.  
 - ``lambda`` with automatic type induction.  
 - ``define-macro, define-tk-macro``  
-- ``coll`` (This has not proven necessary yet)  
 - ``quote, pseudo-quote, unquote``
   (Shaza is transpiled to D at the moment, so doing these is hard.)  
 - ``call-extern`` (Shaza can call any D-function directly, so this 
@@ -255,6 +256,11 @@ A byte further in the future:
     (lambda ::T (::T l0 ::T l1) (+ l0 l1))
     seq 0))
 )
+
+; A eager sum-function using an anonymous parameter, return-type induction
+; and the fp-command to point to another function. 
+(define (::T) sum (::T[])
+  (reduce (fp plus) $1 0))  
 
 ; Check if an element is nil using the llr command.
 (define ::bool (::T) nil? (T elem) (llr elem " is null"))
