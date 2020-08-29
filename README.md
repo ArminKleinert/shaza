@@ -215,6 +215,7 @@ A byte further in the future:
 
 ## TODO List
 
+- Make the compiler accept arguments and create output and stuff...
 - Write documentation for `meta` and anonymous arguments.
 - Make Shaza self-hosting step-by-step.  
 - Implement tail-recursion and make compiler turn statements into expressions.  
