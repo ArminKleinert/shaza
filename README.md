@@ -260,7 +260,11 @@ A byte further in the future:
 ; A eager sum-function using an anonymous parameter, return-type induction
 ; and the fp-command to point to another function. 
 (define (::T) sum (::T[])
-  (reduce (fp plus) $1 0))  
+  (reduce (fp plus) $0 0))  
+
+; An even more condensed version of the above. It's getting hard to read now...
+; _ means that there is an unnamed argument with an unknown type. 
+(define sum (_) (reduce (fp plus) $0 0))
 
 ; Check if an element is nil using the llr command.
 (define ::bool (::T) nil? (T elem) (llr elem " is null"))
