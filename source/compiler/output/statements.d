@@ -77,6 +77,9 @@ string letToString(AstCtx ast) {
 // SECTION if-else
 
 string ifToString(AstCtx ast) {
+    if (ast.size < 3 || ast.size > 4)
+      throw new CompilerError("when: Too few or too many arguments. Expecting 3 or 4. " ~ ast.nodes[1].tknstr());
+
     auto condition = ast[1];
     auto branchThen = ast[2];
     auto result = appender("");
@@ -185,7 +188,7 @@ string recurToString(AstCtx ast) {
     auto result = appender("");
 
     for (auto i = 0; i < lastLabel.vars.size; i++) {
-        result ~= lastLabel.vars[i];
+        result ~= szNameToHostName(lastLabel.vars[i]);
         result ~= " = ";
         result ~= createOutput(bindings[i]);
         insertSemicolon(result, bindings[i]);

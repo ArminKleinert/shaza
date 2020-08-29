@@ -13,7 +13,7 @@ It will provide the operations for associative arrays (Maps) later on.
     (recur (inc i) (rest _rest))))))
 
 (meta (:tk-aliases [::AMap ::ArrayMap(K,V) ] :generics [::K ::V])
-(def-struct ArrayMap (::K ::V) ::K[] keys ::V[] values)
+(def-type ArrayMap (::K ::V) ::K[] keys ::V[] values)
 
 (define ::bool empty? (::AMap am) (= (size am.keys) 0))
 (define ::V get (::AMap am ::K key) (at am.values (index-of am.keys key)))

@@ -54,10 +54,15 @@
     (writefln "%s %s %s" i j abc)))
 
 ; Test type-definitions
-(def-struct MyType ::int n)
-(def-struct MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
-(def-struct GenericType (::T) ::T entry)
-(def-struct EmptyType)
+(def-type MyType ::int n)
+(def-type MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
+(def-type GenericType (::T) ::T entry)
+(def-type EmptyType)
+
+(def-type MyStruct ::int n)
+(def-type MyStructWithMoreFields ::int m ::int n ::string o ::float p)
+(def-type GenericStruct (::T) ::T entry)
+(def-type EmptyStruct)
 
 ; Test the if statement
 (define ::bool if-test ()
@@ -256,3 +261,9 @@
 
 (include sz/examples_extra)
 
+; Test varargs
+
+(meta (:variadic #t)
+    (define varargs1 (::int i) (println! i)))
+(meta (:variadic #f)
+    (define not-varargs (::int i) (println! i)))

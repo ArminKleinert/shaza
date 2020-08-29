@@ -63,6 +63,8 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
         fieldNames ~= symbolToString(attrList[i + 1]);
     }
 
+    // SUBSECT Retrieve methods
+
     // SUBSECT Write header
     string typename = symbolToString(typeNode);
     auto result = appender(isValueTypeDefinition ? "struct " : "class ");

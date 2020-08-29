@@ -47,6 +47,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
     string[] aliases = [];
     string exportName = null;
     string returnType = null;
+    bool variadic = false;
 
     // Currently accepted options are :generics, :visibility, :aliases, :export-as
     for (auto i = 0; i < attribs.size; i++) {
@@ -113,6 +114,12 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
                         replaceTkAliases(child, replacement.text, orig.text);
                     }
                 }
+            }} else if (attribs.nodes[i].text == ":variadic") {
+            i++;
+            if (attribs.nodes[i].type != TknType.litBool) {
+                warning("meta: The :variadic option required a boolean (#t/#f) " ~ attribs.nodes[i].tknstr());
+            } else {
+                variadic = attribs.nodes[i].text == "#t";
             }
         } else {
             warning("Unknown meta-option. " ~ attribs.nodes[i].tknstr());
@@ -121,7 +128,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
 
     // SUBSECT Create and parse function
 
-    auto meta = new FnMeta(exportName, visibility, aliases, generics, returnType);
+    auto meta = new FnMeta(exportName, visibility, aliases, generics, returnType, variadic);
     if (parentMeta !is null) {
         meta = parentMeta.combineWith(meta);
     }

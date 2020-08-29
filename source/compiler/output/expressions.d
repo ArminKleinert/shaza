@@ -180,11 +180,12 @@ string functionPointerToString(AstCtx ast) {
     }
 
     FunctionDecl fn = OutputContext.global.findFn(ast[1].text);
+    string fnOutName = "";
 
     if (fn is null) {
-        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
-    }
+//        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
+        fnOutName = szNameToHostName(ast[1].text);
+    } else { fnOutName = fn.exportName;}
 
-    string fnOutName = fn.exportName;
     return "(std.functional.toDelegate(&" ~ fnOutName ~ "))";
 }

@@ -11,16 +11,18 @@ class FnMeta {
     const string exportName;
     const string visibility;
     const string returnType;
+    const bool variadic;
     const immutable(string)[] aliases;
     const immutable(string)[] generics;
 
     this(string exportName, string visibility, in string[] aliases,
-            in string[] generics, string returnType) {
+            in string[] generics, string returnType, bool variadic) {
         this.exportName = exportName;
         this.visibility = visibility;
         this.aliases = aliases.dup;
         this.generics = generics.dup;
         this.returnType = returnType;
+        this.variadic = variadic;
     }
 
     this(string exportName, string[] generics, string returnType) {
@@ -29,6 +31,7 @@ class FnMeta {
         aliases = [];
         visibility = "";
         this.returnType = returnType;
+        this.variadic = false;
     }
 
     FnMeta combineWith(FnMeta other) {
@@ -39,7 +42,7 @@ class FnMeta {
                 other.visibility.size > 0 ? other.visibility : visibility,
                 other.aliases.size > 0 ? other.aliases : aliases, other.generics.size > 0
                 ? other.generics : generics, other.returnType.size > 0
-                ? other.returnType : returnType);
+                ? other.returnType : returnType, other.variadic ? true : variadic);
     }
 }
 

@@ -30,7 +30,7 @@ string lambdaToString(AstCtx ast) {
 
     auto result = appender("delegate ");
     result ~= typeToString(returnType);
-    result ~= generalFunctionBindingsToString(bindings);
+    result ~= generalFunctionBindingsToString(bindings, null);
     result ~= defineFnToString(typeToString(returnType), bindingArgNames, bodyNodes, ast);
     return prependReturn(ast.requestReturn, result.get());
 }
