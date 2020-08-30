@@ -119,13 +119,14 @@ Name(s)          | Export-name | Result   | # of arguments   | Meaning
 !&& nand         | nand        | bool     | Variadic (min 2) | NAND booleans (lazy)
 !|| nor          | nor         | bool     | Variadic (min 2) | NOR booleans (lazy)
 -----------------+-------------+----------+------------------+----------------------------
-= == eql?        |  eql_Q      | bool     | 2                | Check equality
+= == eql?        | eql_Q       | bool     | 2                | Check equality
 != not= not-eql? | not_eql_Q   | bool     | 2                | Check unequality
 < lt?            | lt_Q        | bool     | 2                | A less than B?
 <= le?           | le_Q        | bool     | 2                | A less than or equal to B?
 > gt?            | gt_Q        | bool     | 2                | A greater than B?
 >= ge?           | ge_Q        | bool     | 2                | A greater than or equal to B?
-nil?             | nil_Q       | bool     | 1                | Checks for nil (does not work on value types)
+nil?             | nil_Q       | bool     | 1                | Checks for nil (does not work 
+                 |             |          |                  | on value types, only references)
 -----------------+-------------+----------+------------------+----------------------------
 <=>              | compare     | int      | 2                | 1 if A>B, 0 if A==B, -1 if A<B
 pos?             | pos_Q       | bool     | 1                | Checks if input is positive
@@ -249,7 +250,7 @@ A byte further in the future:
     (lambda ::T (::T l0 ::T l1) (+ l0 l1))
     seq 0))
 
-; A eager sum-function using meta attributes.
+; An eager sum-function using meta attributes.
 (meta (:generics [::T] :returns ::T :aliases ["sum-elems"])
 (define sum (::T[] seq)
   (reduce
@@ -257,7 +258,7 @@ A byte further in the future:
     seq 0))
 )
 
-; A eager sum-function using an anonymous parameter, return-type induction
+; An eager sum-function using an anonymous parameter, return-type induction
 ; and the fp-command to point to another function. 
 (define (::T) sum (::T[])
   (reduce (fp plus) $0 0))  
