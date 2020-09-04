@@ -251,9 +251,9 @@ string atomToString(AstNode ast) {
     if (ast.type == TknType.litBool) {
         text = appender(ast.text == "#t" ? "true" : "false");
     } else if (ast.type == TknType.litKeyword) {
-        text = appender("Keyword(");
+        text = appender("Keyword(\"");
         text ~= ast.text;
-        text ~= ")";
+        text ~= "\")";
     } else if (ast.type == TknType.litChar) {
         if (ast.text == "\\space")
             return "' '";
@@ -262,6 +262,8 @@ string atomToString(AstNode ast) {
         if (ast.text == "\\tab")
             return "'\\t'";
         return "'" ~ ast.text[1] ~ "'";
+    } else if (ast.type == TknType.symbol && ast.text == "nil") {
+        return "null";
     } else if (ast.type == TknType.symbol) {
         return szNameToHostName(ast.text);
     }

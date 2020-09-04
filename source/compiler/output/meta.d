@@ -114,10 +114,12 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
                         replaceTkAliases(child, replacement.text, orig.text);
                     }
                 }
-            }} else if (attribs.nodes[i].text == ":variadic") {
+            }
+        } else if (attribs.nodes[i].text == ":variadic") {
             i++;
             if (attribs.nodes[i].type != TknType.litBool) {
-                warning("meta: The :variadic option required a boolean (#t/#f) " ~ attribs.nodes[i].tknstr());
+                warning(
+                        "meta: The :variadic option required a boolean (#t/#f) " ~ attribs.nodes[i].tknstr());
             } else {
                 variadic = attribs.nodes[i].text == "#t";
             }

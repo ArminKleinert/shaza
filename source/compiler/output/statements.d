@@ -78,7 +78,8 @@ string letToString(AstCtx ast) {
 
 string ifToString(AstCtx ast) {
     if (ast.size < 3 || ast.size > 4)
-      throw new CompilerError("when: Too few or too many arguments. Expecting 3 or 4. " ~ ast.nodes[1].tknstr());
+        throw new CompilerError(
+                "when: Too few or too many arguments. Expecting 3 or 4. " ~ ast.nodes[1].tknstr());
 
     auto condition = ast[1];
     auto branchThen = ast[2];

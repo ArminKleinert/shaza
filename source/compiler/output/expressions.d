@@ -109,7 +109,7 @@ string newToString(AstCtx ast) {
         throw new CompilerError("new: First parameter must be type literal. " ~ ast.nodes[1].tknstr);
     }
 
-    auto result = "new " ~ createOutput(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]) ~ ";";
+    auto result = "new " ~ typeToString(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]) ~ ";";
     result = prependReturn(ast.requestReturn, result);
     return result;
 }
@@ -167,9 +167,11 @@ string functionPointerToString(AstCtx ast) {
     string fnOutName = "";
 
     if (fn is null) {
-//        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
+        //        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
         fnOutName = szNameToHostName(ast[1].text);
-    } else { fnOutName = fn.exportName;}
+    } else {
+        fnOutName = fn.exportName;
+    }
 
     return "(std.functional.toDelegate(&" ~ fnOutName ~ "))";
 }

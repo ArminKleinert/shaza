@@ -1,5 +1,7 @@
 (module basic_collection)
 
+; SECTION Basic, necessary functions
+
 (comment
 The functions in the meta-block below need to be overridden 
 by any new collection type.
@@ -19,7 +21,7 @@ The implementations given here are for arrays specifically.
     (llr coll ~ value))
 
   ; Only needed for mutable collection types.
-  (define append! (::T[] coll ::T value)
+  (define append! (::ref:T[] coll ::T value)
     (ll coll ~= value ";")
     coll)
 
@@ -27,7 +29,7 @@ The implementations given here are for arrays specifically.
     (llr coll ~ value))
 
   ; Only needed for mutable collection types.
-  (define append! (::T[] coll ::T[] value)
+  (define append! (::ref:T[] coll ::T[] value)
     (ll coll ~= value ";")
     coll)
 
@@ -63,13 +65,13 @@ The implementations given here are for arrays specifically.
   (define slice (::T[] coll ::KEY start ::KEY end_offset)
     (llr "coll[start .. $ - end_offset]"))  
 
-  (define get (::T[] coll ::KEY k)
+  (define ::T get (::T[] coll ::KEY k)
     (if (> (size coll) k)
       (llr "coll[k]")
       (llr "T.init")))
 
   ; Returns an empty version of the collection type.
-  (define ::T[] cleared (::T[] c)
+  (define cleared (::T[] c)
     (let (::T[] output []) output))
 
   (define resized (::T[] coll ::size_t newsize)
@@ -78,16 +80,26 @@ The implementations given here are for arrays specifically.
       cc))
 )
 
-; ::Collection - Generic type for your collection (::T[] for arrays)
+; ::T[] - Generic type for your collection (::T[] for arrays)
 ; ::K - Generic type for your keys (::size_t for sequentials)
 ; ::T - Generic type for your values
-(meta (:generics [::Collection ::K ::T])
+(meta (:generics [::T])
+
+  ; SECTION array creation
+
+  (meta (:variadic #t)
+    (define ::T[] vector (::T elements)
+      elements)
+  )
+
+  ; SECTION entries
+
   ; Return a native (associative array) with the keys and values of a
   ; collection. If the collection type is sequential, the keys will be
   ; numbers.
   ; If the collection type is a map, this can be overridden by 
   ; returning a copy of the collection.
-  (define ::T[K] entries (::Collection c)
+  (define ::T[K] entries (::T[] c)
     (when (= (size c) 0)
       (let (::T[K] res []) (return res)))
     (loop (keyseq (keys c)
@@ -103,124 +115,155 @@ The implementations given here are for arrays specifically.
   ; SECTION first / second / last / rest / empty
 
   (meta (:returns ::T)
-    (define first (::Collection c)
+    (define first (::T[] c)
       (get (values c) 0))
-    (define second (::Collection c)
+    (define second (::T[] c)
       (get (values c) 1))
-    (define last (::Collection c)
+    (define last (::T[] c)
       (get (values c) (-- (size c))))
   )
 
   ; Has to be overridden for maps.
-  (define ::Collection rest (::Collection c)
+  (define rest (::T[] c)
     (slice (values c) 1))
 
-  (define ::bool empty? (::Collection c)
+  (define empty? (::T[] c)
     (= (size c) 0))
+
+  (define not-empty? (::T[] c)
+    (! (empty? c)))
 
   ; SECTION Find index or key
 
-  (meta (:returns ::K)
-    (define key-of (::Collection c ::T value ::K default-key)
+  (meta (:generics [::T] :returns ::size_t)
+    (define key-of (::T[] c ::T value ::size_t default-key)
       (loop (r (keys c))
         (when (= (get c (first r)) value) (get c (first r))
         (when (empty? r) default-key
         (recur (rest r))))))
 
-    (define key-of (::Collection c ::T value)
-      (key-of c (llr T.init)))
+    (define key-of (::T[] c ::T value)
+      (key-of c (llr size_t.init)))
   )
 
   ; Index of value; For maps, this might rather search for the
   ; index of a key.
-  (define ::long index-of (::Collection c ::T value)
+  (define ::long index-of (::T[] c ::T value)
     (loop (r (values c) i 0)
       (when (= (first r) value) i
       (when (empty? r) -1
       (recur (rest r) (++ i))))))
-  
+
   ; SECTION starts-with / ends-with
 
   (meta (:returns ::bool)
-    (define starts-with? (::Collection c ::T e)
+    (define starts-with? (::T[] c ::T e)
       (= (first c) e))
-    
-    (define starts-with? (::Collection c ::Collection c1)
+
+    (define starts-with? (::T[] c ::T[] c1)
       (when (empty? c1) #t
       (when (< (size c) (size c1)) #f
-      (when (!= (first c) (first c1))
+      (when (!= (first c) (first c1)) #f
       (recur (rest c) (rest c1))))))
-    
-    (define ends-with? (::Collection c ::T e)
+
+    (define ends-with? (::T[] c ::T e)
       (= (last c) e))
-    
-    (define ends-with? (::Collection c ::Collection c1)
+
+    (define ends-with? (::T[] c ::T[] c1)
       (when (< (size c) (size c1)) #f
         (let (slice-idx (- (size c) (size c1))
               sliced (slice c slice-idx))
           (starts-with? sliced c1))))
   )
-  
+
   ; SECTION reduce / foldl
-  
+
   ; If you need a reduce / foldl function for maps,
   ; you should re-implement this.
-  (meta (:returns ::T1 :generics [::Collection ::K ::T ::T1]
+  (meta (:returns ::T1 :generics [::T ::T1]
          :tk-aliases [::F ::T:delegate(T,T1)])
     ; Loop 
-    (define reduce (::F func ::Collection c ::T1 res)
-      (when (empty? c)
-        res
-        (recur func (rest c) (func (first c) res))))
-    
-    (define reduce (::F func ::Collection c)
+    (define reduce (::F func ::T[] c ::T1 res)
+      (loop (_rest c _res res)
+        (when (empty? c)
+          res
+          (recur (rest _rest) (func (first _rest) _res)))))
+
+    (define reduce (::F func ::T[] c)
       (if (> (size c) 1) (reduce func (rest c) (first c))
       (if (= (size c) 1) (first c))
       (llr "T.init")))
   )
-  
-  (meta (:tk-aliases [::F ::Collection:delegate(T)])
-    (define filter (::F func ::Collection c)
+
+  (meta (:tk-aliases [::F ::"T[] delegate(T)"])
+    (define filter (::F func ::T[] c)
       (reduce
-        (lambda ::Collection (::T e ::Collection res)
+        (lambda ::T[] (::T e ::T[] res)
           (if (func e) (append! res e) res))
         c (cleared c)))
-  
-    (define remove (::F func ::Collection c)
+
+    (define remove (::F func ::T[] c)
       (reduce
-        (lambda ::Collection (::T e ::Collection res)
+        (lambda ::T[] (::T e ::T[] res)
           (if (func e) res (append! res e)))
         c (cleared c)))
   )
-  
+
   ; SECTION any / all / none
-  
+
   (meta (:returns ::bool :tk-aliases [::pred ::bool:delegate(T)])
-    (define any? (::pred pred ::Collection c)
+    (define any? (::pred pred ::T[] c)
       (when (empty? c) #f
       (when (pred (first c)) #t
       (recur pred (rest c)))))
-    
-    (define all? (::pred pred ::Collection c)
+
+    (define all? (::pred pred ::T[] c)
       (when (empty? c) #t
       (when (not (pred (first c))) #t
       (recur pred (rest c)))))
-    
-    (define none? (::pred pred ::Collection c)
+
+    (define none? (::pred pred ::T[] c)
       (not (any? pred c)))
   )
-  
+
+  ; SECTION includes / contains / can-find
+
+  (meta (:returns ::bool)
+    (meta (:export-as "includes_Q")
+      (define includes? (::T[] c ::T e)
+        (any? (lambda ::bool (::T t1) (= t1 e)) c))
+
+      (define includes? (::T[] c ::T[] other)
+        (loop (_rest c)
+          (when (< (size _rest) (size other)) #f
+          (when (starts-with? _rest other) #t
+          (recur (rest _rest))))))
+    )
+
+    (define in? (::T[] c ::T e)
+      (includes? c e))
+
+    (define in? (::T[] c ::T[] other)
+      (includes? c other))
+
+    (define contains? (::T[] c ::T e)
+      (includes? c e))
+
+    (define contains? (::T[] c ::T[] other)
+      (includes? c other))
+  )
+
   ; SECTION map
-  
+
   (meta (:tk-aliases [::F ::T:delegate(T)])
-    (define map-into (::F func ::Collection c ::Collection output)
+    (define map-into (::F func ::T[] c ::T[] output)
       (append output (func (first c))))
-  
-    (define map (::F func ::Collection c)
+
+    (define map (::F func ::T[] c)
       (map-into func c (cleared c)))
-      
+
     (meta (:aliases [map-in-place])
-      (define map! (::F func ::Collection c)
+      (define map! (::F func ::T[] c)
         (loop (keys (keys c))
           (when (empty? keys)
             c
@@ -229,16 +272,16 @@ The implementations given here are for arrays specifically.
               (recur (rest keys))))))
     )
   )
-  
+
   (meta (:tk-aliases [::F ::T:delegate(K,T)])
-    (define map-entries-into (::F func ::Collection c ::Collection output)
+    (define map-entries-into (::F func ::T[] c ::T[] output)
       (append output (func (first (keys c)) (first (keys c)))))
-  
-    (define map-entries (::F func ::Collection c)
+
+    (define map-entries (::F func ::T[] c)
       (map-entries-into func c (cleared c)))
-      
+
     (meta (:aliases [map-entries-in-place])
-      (define map-entries! (::F func ::Collection c)
+      (define map-entries! (::F func ::T[] c)
         (loop (keys (keys c))
           (when (empty? keys)
             c
@@ -247,28 +290,29 @@ The implementations given here are for arrays specifically.
               (recur (rest keys))))))
     )
   )
-  
+
   ; SECTION Uniqueness
 
   (meta (:visibility :private)
-    (define uniq-acc (::Collection c ::T[] output)
+    (define uniq-acc (::T[] c ::T[] output)
       (when (empty? c) output
       (when (> (index-of output (first c)) -1) output
       (recur (rest c) (append! output)))))
   )
 
   (meta (:aliases [distinct])
-    (define ::T[] uniq (::Collection c)
+    (define ::T[] uniq (::T[] c)
       (let (::T[] output [])
         (uniq-acc c output element)))
   )
-  
+
   (meta (:aliases [is-distinct? is-unique?])
-    (define ::bool uniq? (::Collection c)
+    (define ::bool uniq? (::T[] c)
       (= (size c) (size (uniq c))))
   )
 
   ; SECTION Sorting
+  ; Be aware that the type T must be comparable to T! (via <, >, ...)
 
   (meta (:visibility :private)
     (define isort-acc (::T[] coll ::T[] acc)

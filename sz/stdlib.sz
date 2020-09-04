@@ -8,6 +8,14 @@
 (import-host "std.array")
 (import-host "std.functional")
 
+; SECTION Important Shaza types
+
+(def-struct Keyword ::string text)
+(define keyword (::string text) (Keyword text))
+(define str (::Keyword kw) kw.text)
+
+; SECTION Important imports
+
 ; Import basic stuff
 (include sz/basics)
 
@@ -31,6 +39,10 @@ try { to!toType(e); return true;
   (define to-ulong-valid? (::T e) (llr "canConvert!ulong(e)"))
   (define to-float-valid? (::T e) (llr "canConvert!float(e)"))
   (define to-double-valid? (::T e) (llr "canConvert!double(e)"))
+)
+
+(meta (:returns ::string :generics [::T])
+  (define ::string str (::T obj) (to ::string obj))
 )
 
 (define ::void (::T) print! (::T text)

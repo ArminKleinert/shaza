@@ -16,7 +16,7 @@ void replaceAnonymousNames(AstNode root, string[] anonymousParamNames) {
     static const string ss = "0123456789";
 
     auto getParamIndex(string s) {
-        if (s.size == 2 && s[0] == '$' && ss.canFind( s[1])) {
+        if (s.size == 2 && s[0] == '$' && ss.canFind(s[1])) {
             return s[1] - '0';
         }
         return -1;
@@ -24,14 +24,14 @@ void replaceAnonymousNames(AstNode root, string[] anonymousParamNames) {
 
     size_t i;
 
-    if ((i = getParamIndex( root.text)) != -1) {
+    if ((i = getParamIndex(root.text)) != -1) {
         import compiler.tokenizer;
 
         root.tkn.text = anonymousParamNames[i];
-        root.tkn.type = tknTypeByText( anonymousParamNames[i]);
+        root.tkn.type = tknTypeByText(anonymousParamNames[i]);
     }
     foreach (child; root.nodes) {
-        replaceAnonymousNames( child, anonymousParamNames);
+        replaceAnonymousNames(child, anonymousParamNames);
     }
 }
 
@@ -50,10 +50,10 @@ string[] getVarNamesFromLoopBindings(AstCtx[] bindings) {
             i++;
         }
         if (i >= bindings.size) {
-            throw new CompilerError( "Expected more bindings after " ~ bindings[$ - 1].tknstr());
+            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
-            names ~= szNameToHostName( symbolToString( bindings[i]));
+            names ~= szNameToHostName(symbolToString(bindings[i]));
             i++; // Skip value
         }
     }
@@ -69,35 +69,35 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
             i++;
         }
         if (i >= bindings.size) {
-            throw new CompilerError( "Expected more bindings after " ~ bindings[$ - 1].tknstr());
+            throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
         if (bindings[i].type == TknType.symbol) {
-            names ~= szNameToHostName( symbolToString( bindings[i]));
+            names ~= szNameToHostName(symbolToString(bindings[i]));
         }
     }
 
     return names;
 }
 
-string generalFunctionBindingsToString(AstNode[] bindings,FnMeta meta) {
-    auto result = appender( "(");
+string generalFunctionBindingsToString(AstNode[] bindings, FnMeta meta) {
+    auto result = appender("(");
 
     // Write function argument list
     for (int i = 0; i < bindings.size; i++) {
-        result ~= typeToString( bindings[i]);
+        result ~= typeToString(bindings[i]);
 
         // Variadic type
-        if (i == bindings.size-2 && meta && meta.variadic) {
+        if (i == bindings.size - 2 && meta && meta.variadic) {
             result ~= "[]";
         }
 
         i++;
 
         result ~= " ";
-        result ~= szNameToHostName( symbolToString( bindings[i])); // Name
+        result ~= szNameToHostName(symbolToString(bindings[i])); // Name
 
         // Variadic argument
-        if (i == bindings.size-1 && meta && meta.variadic) {
+        if (i == bindings.size - 1 && meta && meta.variadic) {
             result ~= "...";
         }
 
@@ -113,21 +113,21 @@ string generalFunctionBindingsToString(AstNode[] bindings,FnMeta meta) {
 // SECTION Add function to globally visible functions (May be used for type induction)
 
 FunctionDecl addFunctionFromAst(FnMeta meta, string name, AstNode typeNode,
-AstNode[] bindings, string[] generics) {
-    string type = typestring( typeNode);
-    return addFunctionFromAst( meta, name, type, bindings, generics);
+        AstNode[] bindings, string[] generics) {
+    string type = typestring(typeNode);
+    return addFunctionFromAst(meta, name, type, bindings, generics);
 }
 
 FunctionDecl addFunctionFromAst(FnMeta meta, string name, string type,
-AstNode[] bindings, string[] generics) {
+        AstNode[] bindings, string[] generics) {
     string[] args;
 
     // FIXME Update because sometimes the types are now optional
     for (int i = 0; i < bindings.size; i += 2) { // +2 skips name
-        args ~= typeToString( bindings[i]);
+        args ~= typeToString(bindings[i]);
     }
 
-    return OutputContext.global.addFunc( meta, name, type, args, generics);
+    return OutputContext.global.addFunc(meta, name, type, args, generics);
 }
 
 // SECTION define-instruction
@@ -144,7 +144,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         type = meta.returnType;
     }
     if (ast[nameIndex].type == TknType.litType) {
-        type = typeToString( ast[nameIndex]);
+        type = typeToString(ast[nameIndex]);
         nameIndex++; // Type found, name comes later.
     }
 
@@ -158,9 +158,9 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         auto genericsNodes = ast[nameIndex].nodes;
         foreach (node; genericsNodes) {
             if (node.type != TknType.litType) {
-                throw new CompilerError( "Expected type: " ~ node.tknstr());
+                throw new CompilerError("Expected type: " ~ node.tknstr());
             }
-            generics ~= typeToString( node.text);
+            generics ~= typeToString(node.text);
         }
 
         nameIndex++;
@@ -172,7 +172,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (nameNode.type != TknType.symbol) {
         string msg = "Token " ~ nameNode.tknstr();
         msg ~= " not allowed as a variable/function name. Token must be a symbol!";
-        throw new CompilerError( msg);
+        throw new CompilerError(msg);
     }
     string name = nameNode.text;
 
@@ -199,7 +199,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (!isFunctionDef) {
         if (meta !is null) {
             // TODO Enable meta for variables
-            warning( "Metadata ignored because here a variable is defined. " ~ ast[0].tknstr());
+            warning("Metadata ignored because here a variable is defined. " ~ ast[0].tknstr());
         }
 
         string val;
@@ -207,13 +207,13 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
             assert(type != "auto");
             val = type ~ ".init";
         } else {
-            val = createOutput( ast[nameIndex + 1]);
+            val = createOutput(ast[nameIndex + 1]);
         }
 
-        auto result = appender( "");
+        auto result = appender("");
         result ~= type;
         result ~= " ";
-        result ~= symbolToString( nameNode);
+        result ~= symbolToString(nameNode);
         result ~= " = ";
         result ~= val; // Value
         result ~= ";\n";
@@ -226,7 +226,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (ast[nameIndex + 1].type != TknType.closedScope) {
         string msg = "Token " ~ ast[nameIndex + 1].tkn.as_readable;
         msg ~= " not allowed as function argument list. Please surround arguments with '(...)'.";
-        throw new CompilerError( msg);
+        throw new CompilerError(msg);
     }
 
     auto bindings = ast[nameIndex + 1].nodes;
@@ -246,7 +246,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
         if (bindings[i].text == "::") { // Anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode( Token( TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
             generics ~= sym;
             i++;
         } else if (bindings[i].type == TknType.litType) { // Normal case
@@ -255,31 +255,31 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         } else if (bindings[i].text == "_") { // Parameter type and name are anonymous; name can still be accessed as $n
             // Write anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode( Token( TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
             generics ~= sym;
 
             // Write anonymous name
             sym = gensym();
             argNames ~= sym;
-            bindings2 ~= new AstNode( Token( TknType.symbol, sym));
+            bindings2 ~= new AstNode(Token(TknType.symbol, sym));
             usedAnonymousName = true;
 
             // Go on
-            continue ;
+            continue;
         } else if (bindings[i].type == TknType.symbol) {
             // No type given
             auto sym = gensym();
-            bindings2 ~= new AstNode( Token( TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
             generics ~= sym;
 
             // Add generic, anonymous type
             // Let the next part handle the parameter name :)
         } else {
-            throw new CompilerError( "define: Expecting type or symbol. " ~ bindings[i].tknstr());
+            throw new CompilerError("define: Expecting type or symbol. " ~ bindings[i].tknstr());
         }
 
         if (i >= bindings.size) {
-            throw new CompilerError( "Expecting more tokens in bindings. " ~ ast[0].tknstr());
+            throw new CompilerError("Expecting more tokens in bindings. " ~ ast[0].tknstr());
         }
 
         // SUBSECT Handle parameter name
@@ -288,7 +288,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         if (bindings[i].type == TknType.symbol) {
             if (b == "$") { // Anonymous
                 auto sym = gensym();
-                bindings2 ~= new AstNode( Token( TknType.symbol, sym));
+                bindings2 ~= new AstNode(Token(TknType.symbol, sym));
                 argNames ~= sym;
                 usedAnonymousName = true;
             } else {
@@ -296,7 +296,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
                 argNames ~= bindings[i].text;
             }
         } else {
-            throw new CompilerError( "define: Expecting symbol. " ~ bindings[i].tknstr());
+            throw new CompilerError("define: Expecting symbol. " ~ bindings[i].tknstr());
         }
     }
 
@@ -304,19 +304,19 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     if (usedAnonymousName) {
         foreach (node; ast.nodes[3 .. $]) {
-            replaceAnonymousNames( node, argNames);
+            replaceAnonymousNames(node, argNames);
         }
     }
 
     // SUBSECT Add function to globals
 
     if (meta is null)
-        meta = new FnMeta( szNameToHostName( name), generics, type);
-    auto fndeclaration = addFunctionFromAst( meta, name, type, bindings2, generics);
+        meta = new FnMeta(szNameToHostName(name), generics, type);
+    auto fndeclaration = addFunctionFromAst(meta, name, type, bindings2, generics);
 
     // SUBSECT Write name and (if given) generic types.
 
-    auto result = appender( "");
+    auto result = appender("");
     if (fndeclaration.visibility != "") {
         result ~= fndeclaration.visibility;
         result ~= ' ';
@@ -339,8 +339,8 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
     // SUBSECT Write rest of arguments and body and return
 
-    result ~= generalFunctionBindingsToString( bindings2,meta);
-    result ~= defineFnToString( type, argNames, bodyNodes, ast);
+    result ~= generalFunctionBindingsToString(bindings2, meta);
+    result ~= defineFnToString(type, argNames, bodyNodes, ast);
     result ~= '\n';
 
     /*
@@ -360,7 +360,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 // SUBSECT Helper for body of the define-instruction
 
 string defineFnToString(string type, string[] argNames, AstCtx[] bodyNodes, AstCtx ast) {
-    auto result = appender( "{\n");
+    auto result = appender("{\n");
 
     // If the body is empty, return the default value of the return-type
     // or, if the type is void, leave an empty body
@@ -376,26 +376,26 @@ string defineFnToString(string type, string[] argNames, AstCtx[] bodyNodes, AstC
     // Add jump-label
     bool doAddLabel = false;
     foreach (n; bodyNodes) {
-        if (nodeContainsRecur( n)) {
+        if (nodeContainsRecur(n)) {
             doAddLabel = true;
-            break ;
+            break;
         }
     }
     if (doAddLabel) {
-        result ~= OutputContext.global.newLabel( argNames);
+        result ~= OutputContext.global.newLabel(argNames);
     }
 
     // Write all but the last statement
     foreach (bodyNode; bodyNodes[0 .. $ - 1]) {
-        result ~= createOutput( bodyNode);
-        insertSemicolon( result, bodyNode);
+        result ~= createOutput(bodyNode);
+        insertSemicolon(result, bodyNode);
         result ~= '\n';
     }
 
     auto lastStmt = bodyNodes[bodyNodes.size - 1];
     auto _needReturn = type != "void";
-    result ~= createOutput( lastStmt.needReturn( _needReturn));
-    insertSemicolon( result, lastStmt);
+    result ~= createOutput(lastStmt.needReturn(_needReturn));
+    insertSemicolon(result, lastStmt);
 
     // Pop jump label
     if (doAddLabel)

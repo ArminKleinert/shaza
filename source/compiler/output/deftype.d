@@ -85,7 +85,11 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
     //result ~= typeSettersToString(typename, fieldTypes,fieldNames);
 
     // SUBSECT Write clone method
-    result ~= typeCopyMethodToString(typename, fieldTypes, fieldNames);
+    if (isValueTypeDefinition) {
+        result ~= structCopyMethodToString(typename, fieldTypes, fieldNames);
+    } else {
+        result ~= typeCopyMethodToString(typename, fieldTypes, fieldNames);
+    }
 
     // Close class
     result ~= "}\n\n";
@@ -164,6 +168,23 @@ private string typeCopyMethodToString(string typename, string[] fieldTypes, stri
     result ~= typename;
     result ~= " clone(){\n";
     result ~= "return new " ~ typename;
+    result ~= "(";
+
+    for (auto j = 0; j < fieldNames.size; j++) {
+        result ~= szNameToHostName(fieldNames[j]);
+        if (j < fieldNames.size - 1)
+            result ~= ", ";
+    }
+
+    result ~= ");\n}\n";
+    return result.get();
+}
+
+private string structCopyMethodToString(string typename, string[] fieldTypes, string[] fieldNames) {
+    auto result = appender("");
+    result ~= typename;
+    result ~= " clone(){\n";
+    result ~= "return " ~ typename;
     result ~= "(";
 
     for (auto j = 0; j < fieldNames.size; j++) {

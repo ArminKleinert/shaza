@@ -4,6 +4,6 @@
 	],
 	"copyright": "Copyright © 2020, Armin Kleinert",
 	"description": "A minimal D application.",
-	"license": "BSD-3",
+	"license": "BSD 2-Clause License",
 	"name": "shaza"
 }

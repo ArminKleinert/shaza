@@ -126,8 +126,8 @@ Basic operations that will be needed in probably EVERY SINGLE shaza file.
         (when (! (&& b0 b1)) #f
         (loop (b b2 _rest bs)
           (when (! b) #f
-          (when (llr bs.length == 0) #t
-          (recur (llr "bs[0]") (llr "bs[1..$]"))))))))
+          (when (llr _rest.length == 0) #t
+          (recur (llr "_rest[0]") (llr "_rest[1..$]"))))))))
   )
   (meta (:export-as "nand")
     (define !&& (::lazy:bool b0 ::lazy:bool b1)
@@ -144,8 +144,8 @@ Basic operations that will be needed in probably EVERY SINGLE shaza file.
         (when (|| b0 b1) #t
         (loop (b b2 _rest bs)
           (when b #t
-          (when (llr bs.length == 0) #f
-          (recur (llr "bs[0]") (llr "bs[1..$]"))))))))
+          (when (llr _rest.length == 0) #f
+          (recur (llr "_rest[0]") (llr "_rest[1..$]"))))))))
   )
   (meta (:export-as "nor")
     (define !|| (::lazy:bool b0 ::lazy:bool b1)
@@ -155,8 +155,8 @@ Basic operations that will be needed in probably EVERY SINGLE shaza file.
         (when b0 #f
         (when b1 #f
         (loop (b #f _rest bs)
-          (when (llr bs.length == 0) #t
-          (recur (llr "bs[0]") (llr "bs[1..$]"))))))))
+          (when (llr _rest.length == 0) #t
+          (recur (llr "_rest[0]") (llr "_rest[1..$]"))))))))
   )
   (meta (:export-as "xor")
     (define ^^ (::lazy:bool b0 ::lazy:bool b1)

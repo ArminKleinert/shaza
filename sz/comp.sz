@@ -1,21 +1,21 @@
-(module compiler)
+(module shaza-compiler)
 
 (import-sz sz/stdlib)
 
-(def-struct Token
+(def-type Token
   ::string text
   ::Keyword type
   ::size_t line
   ::size_t index)
 
-(def-struct Node
+(def-type Node
   ::string text
   ::Keyword type
   ::size_t line
   ::size_t index
   ::Node[] children)
 
-(def-struct Context
+(def-type Context
   ::Token[] tokens
   ::Node ast
   ::int curr-tkn-line
@@ -24,7 +24,7 @@
   ::int curr-tkn-start-char
   ::bool next-escaped
   ::string curr-tkn-text
-  ::bool is-in-stringb
+  ::bool is-in-string
   ::bool is-in-type-literal)
 
 (comment TokenTypes:
@@ -54,20 +54,7 @@
     :ln-comment
 )
 
-(define ::Token[] tokens [])
-(define ::size_t line 0)
-(define ::size_t chIndex 0)
-(define ::size_t start-line 0)
-(define ::size_t start-char 0)
-(define ::bool next-escaped #f)
-(define ::string curr-text "")
-(define ::bool is-in-string #f)
-(define ::bool is-in-type-literal #f)
-
-(define start-context
-  (new ::Context [] nil 0 0 0 0 #f "" #f #f))
-
-(define ::char quot-mark (ch "\""))
+(define ::char quot-mark (first "\""))
 
 (meta (:returns ::bool)
 (define is-string-literal? (::string text)
@@ -76,14 +63,12 @@
        (= (last text) quot-mark)))
 
 (define is-valid-symbol? (::string text)
-  (if (< (size text) 2)
+  (when (< (size text) 2)
     (return false))
-  (loop (curr (first text) ::string rst "")
-    (if (empty? rst)
-      (return true))
-    (if (in? "\";()[]{}#:" curr)
-      (return false)
-      (recur (first rst) (slice rst 1)))))
+  (loop (::char curr (first text) ::string rst "")
+    (when (empty? rst) #t
+    (when (in? "\";()[]{}#:" curr)
+      #f (recur (first rst) (slice rst 1))))))
 
 (define is-valid-integral? (::string text)
   (to-long-valid? text))
@@ -106,10 +91,11 @@
 (define is-char-literal? (::string text)
   (and (not-empty? text)
     (or (in? ["\\space" "\\newline" "\\tab"] text)
-        (and (= (first text) (first "\\")) (= (size text) 2)))))
+        (and (= (first text) (first "\\_")) (= (size text) 2)))))
 
+; FIXME
 (define is-type-literal? (::string text)
-  (if (! (starts_with? text "::")) (return #f))
+  (when (! (starts_with? text "::")) (return #f))
   (let (idx-of-ob  (index-of text (first "("))
         idx-of-cb  (index-of text (first ")"))
         idx-of-ocb (index-of text (first "{"))
@@ -124,18 +110,19 @@
         )
     (return (not res2))))
 
+; FIXME
 (define last-char-must-be-separated (::string text)
   (||
-    (&& (== (last text) (ch ")")) (not (contains? text (ch "("))))
-    (&& (== (last text) (ch "]")) (not (contains? text (ch "["))))
-    (&& (== (last text) (ch "}")) (not (contains? text (ch "{"))))
-    (== (last text) (ch ";"))))
+    (&& (== (last text) (first ")")) (not (contains? text (first "("))))
+    (&& (== (last text) (first "]")) (not (contains? text (first "["))))
+    (&& (== (last text) (first "}")) (not (contains? text (first "{"))))
+    (== (last text) (first ";"))))
 
 (define is-tagged-list-opener? (::string text)
   (or (= text "Set[") (or (= text "Map[") (= text "Lst["))))
 )
 
-(define ::Keyword tknTypeByText (::string text)
+(define ::Keyword tkn-type-by-text (::string text)
   (if (is-valid-integral? text) :lit-int
   (if (is-valid-unsigned? text) :lit-uint
   (if (is-valid-float? text) :lit-flt
@@ -152,33 +139,69 @@
   (if (= text ";") :ln-comment
   :unknown)))))))))))))))
 
+; TODO
+(define ::Token[] create-tokens (::Context ctx ::string s)
+  [])
+
+(define ::Context add-tokens (::Context ctx ::Token[] tkns)
+  (new ::Context
+    (append ctx.tokens tkns) ctx.ast
+    ctx.curr-tkn-line ctx.curr-tkn-char
+    ctx.curr-tkn-line ctx.curr-tkn-char
+    #f "" #f #f))
+
+(define ::Context close-token (::Context ctx ::string c)
+  (add-tokens ctx (create-tokens ctx (append ctx.curr-tkn-text c))))
+
 (define ::Context close-token (::Context ctx)
-  ; TODO
+  (add-tokens ctx (create-tokens ctx ctx.curr-tkn-text)))
+
+; TODO
+(define ::Context tokenize-sub-next-char-in-string (::Context ctx ::string c)
   ctx)
 
-(define ::Context tokenize-sub-next-char-in-string (::Context ctx ::char c)
-  ;TODO
-  ctx)
-
-(define ::Context tokenize-sub-next-char (::Context ctx ::char c)
-  ;TODO
-  ctx)
+(define ::Context tokenize-sub-next-char (::Context ctx ::string c)
+  (when (= c "\"")
+    (let ()
+      (when (! ctx.is-in-type-literal)
+        (setv! ctx (close-token ctx)))
+      (setv! ctx.is-in-string #t)
+      (setv! ctx.curr-tkn-text (append ctx.curr-tkn-text c))
+      ctx)
+  (when (and (= c ":") (= ctx.curr-tkn-text ":"))
+    (let ()
+      (setv! ctx.is-in-type-literal #t)
+      (setv! ctx.curr-tkn-text (append ctx.curr-tkn-text c))
+      ctx)
+  (when (or (or (= c " ") (= c "\t")) (= c "\n"))
+    (close-token ctx c)
+  (when (or
+          (and (= c "]") (! (includes? ctx.curr-tkn-text "[")))
+          (and (= c ")") (! (includes? ctx.curr-tkn-text "(")))
+          (and (= c "}") (! (includes? ctx.curr-tkn-text "{"))))
+    (close-token ctx c)
+  (when (and (! ctx.is-in-type-literal)
+             (or (= c "(") (= c ")") (= c "]")))
+    ctx
+    ctx
+    ))))))
 
 (define ::Context next-char (::Context ctx ::char c)
   (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char))
-  (if (= c \newline)
+  (when (= c \newline)
     (setv! ctx curr-tkn-line (inc ctx.curr_tkn_line))
     (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char)))
-  (if (ctx.is_in_string)
-    (tokenize-sub-next-char-in-string ctx c)
-    (tokenize-sub-next-char ctx c)))
+  (when ctx.is_in_string
+    (tokenize-sub-next-char-in-string ctx (append "" c))
+    (tokenize-sub-next-char ctx (append "" c))))
 
+(comment
 (define ::Context tokenize (::Context ctx ::string source)
   (close-token
     (reduce
-      (lambda ::Context (::char c ::Context ctx) (next-char ctx c))
+      (lambda ::Context (::char c ::Context ctx1) (next-char ctx1 c))
       source ctx)))
-
+)
 
 
 

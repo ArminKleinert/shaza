@@ -15,45 +15,51 @@
 
 (meta (:returns ::bool)
 
-; SECTION Test defaults
+; SECTION Test basic math, bit-operators, comparisons and boolean-stuff
+
+; SUBSECT Test defaults
 
 (define test-defaults ()
-  (and (= default-int 0)
-  (and (= default-uint 0)
-  (and (= default-long 0)
-  (and (= default-ulong 0)
-  (and (= default-bool #f)
-  (and (= default-float 0.0)
-  (and (= default-double 0.0)
-       (= default-string "")))))))))
+  (and
+    (= default-int 0)
+    (= default-uint 0)
+    (= default-long 0)
+    (= default-ulong 0)
+    (= default-bool #f)
+    (= default-float 0.0)
+    (= default-double 0.0)
+    (= default-string "")))
 
 (define test-default-types ()
-  (and (= (typestr default-int) "int")
-  (and (= (typestr default-uint) "uint")
-  (and (= (typestr default-long) "long")
-  (and (= (typestr default-ulong) "ulong")
-  (and (= (typestr default-bool) "bool")
-  (and (= (typestr default-float) "float")
-  (and (= (typestr default-double) "double")
-       (= (typestr default-string) "string")))))))))
+  (and
+    (= (typestr default-int) "int")
+    (= (typestr default-uint) "uint")
+    (= (typestr default-long) "long")
+    (= (typestr default-ulong) "ulong")
+    (= (typestr default-bool) "bool")
+    (= (typestr default-float) "float")
+    (= (typestr default-double) "double")
+    (= (typestr default-string) "string")))
 
-; SECTION Test +
+; SUBSECT Test +
 
 (define test-addition ()
-  (and (= (+ default-int 15) 15)
-  (and (= (+ default-uint 15) 15)
-  (and (= (+ default-long 15) 15)
-  (and (= (+ default-ulong 15) 15)
-  (and (= (+ default-float 15) 15)
-       (= (+ default-double 15) 15)))))))
+  (and
+    (= (+ default-int 15) 15)
+    (= (+ default-uint 15) 15)
+    (= (+ default-long 15) 15)
+    (= (+ default-ulong 15) 15)
+    (= (+ default-float 15) 15)
+    (= (+ default-double 15) 15)))
 
 (define test-addition-2 ()
-  (and (= (+ default-int 0) 0)
-  (and (= (+ default-uint 0) 0)
-  (and (= (+ default-long 0) 0)
-  (and (= (+ default-ulong 0) 0)
-  (and (= (+ default-float 0) 0)
-       (= (+ default-double 0) 0)))))))
+  (and
+    (= (+ default-int 0) 0)
+    (= (+ default-uint 0) 0)
+    (= (+ default-long 0) 0)
+    (= (+ default-ulong 0) 0)
+    (= (+ default-float 0) 0)
+    (= (+ default-double 0) 0)))
 
 ; Test alias
 (define test-addition-3 ()
@@ -63,58 +69,64 @@
   (= (+ 1000 111) (+ 111 1000)))
 
 (define test-addition-types ()
-  (and (= (typestr (+ default-int 0)) "int")
-  (and (= (typestr (+ default-uint 0)) "uint")
-  (and (= (typestr (+ default-long 0)) "long")
-  (and (= (typestr (+ default-ulong 0)) "ulong")
-  (and (= (typestr (+ default-float 0)) "float")
-       (= (typestr (+ default-double 0)) "double")))))))
+  (and
+    (= (typestr (+ default-int 0)) "int")
+    (= (typestr (+ default-uint 0)) "uint")
+    (= (typestr (+ default-long 0)) "long")
+    (= (typestr (+ default-ulong 0)) "ulong")
+    (= (typestr (+ default-float 0)) "float")
+    (= (typestr (+ default-double 0)) "double")))
 
-; SECTION Test -
+; SUBSECT Test -
 
 (define test-subtraction ()
-  (and (= (- default-int 15) -15)
-  (and (= (- default-long 15) -15)
-  (and (= (- default-float 15) -15)
-       (= (- default-double 15) -15)))))
+  (and
+    (= (- default-int 15) -15)
+    (= (- default-long 15) -15)
+    (= (- default-float 15) -15)
+    (= (- default-double 15) -15)))
 
 (define test-subtraction-2 ()
-  (and (= (- default-int 0) 0)
-  (and (= (- default-uint 0) 0)
-  (and (= (- default-long 0) 0)
-  (and (= (- default-ulong 0) 0)
-  (and (= (- default-float 0) 0)
-       (= (- default-double 0) 0)))))))
+  (and
+    (= (- default-int 0) 0)
+    (= (- default-uint 0) 0)
+    (= (- default-long 0) 0)
+    (= (- default-ulong 0) 0)
+    (= (- default-float 0) 0)
+    (= (- default-double 0) 0)))
 
 ; Test alias
 (define test-subtraction-3 ()
   (= (sub 1000 111) (- 1000 111)))
 
 (define test-subtraction-types ()
-  (and (= (typestr (- default-int 0)) "int")
-  (and (= (typestr (- default-uint 0)) "uint")
-  (and (= (typestr (- default-long 0)) "long")
-  (and (= (typestr (- default-ulong 0)) "ulong")
-  (and (= (typestr (- default-float 0)) "float")
-       (= (typestr (- default-double 0)) "double")))))))
+  (and
+    (= (typestr (- default-int 0)) "int")
+    (= (typestr (- default-uint 0)) "uint")
+    (= (typestr (- default-long 0)) "long")
+    (= (typestr (- default-ulong 0)) "ulong")
+    (= (typestr (- default-float 0)) "float")
+    (= (typestr (- default-double 0)) "double")))
 
-; SECTION Test *
+; SUBSECT Test *
 
 (define test-multiplication ()
-  (and (= (* default-int 15) 0)
-  (and (= (* default-uint 15) 0)
-  (and (= (* default-long 15) 0)
-  (and (= (* default-ulong 15) 0)
-  (and (= (* default-float 15) 0)
-       (= (* default-double 15) 0)))))))
+  (and
+    (= (* default-int 15) 0)
+    (= (* default-uint 15) 0)
+    (= (* default-long 15) 0)
+    (= (* default-ulong 15) 0)
+    (= (* default-float 15) 0)
+    (= (* default-double 15) 0)))
 
 (define test-multiplication-2 ()
-  (and (= (* (+ 1 default-int) 15) 15)
-  (and (= (* (+ 1 default-uint) 15) 15)
-  (and (= (* (+ 1 default-long) 15) 15)
-  (and (= (* (+ 1 default-ulong) 15) 15)
-  (and (= (* (+ 1 default-float) 15) 15)
-       (= (* (+ 1 default-double) 15) 15)))))))
+  (and
+    (= (* (+ 1 default-int) 15) 15)
+    (= (* (+ 1 default-uint) 15) 15)
+    (= (* (+ 1 default-long) 15) 15)
+    (= (* (+ 1 default-ulong) 15) 15)
+    (= (* (+ 1 default-float) 15) 15)
+    (= (* (+ 1 default-double) 15) 15)))
 
 ; Test alias
 (define test-multiplication-3 ()
@@ -124,251 +136,545 @@
   (= (* 1000 111) (* 111 1000)))
 
 (define test-multiplication-types ()
-  (and (= (typestr (* default-int 0)) "int")
-  (and (= (typestr (* default-uint 0)) "uint")
-  (and (= (typestr (* default-long 0)) "long")
-  (and (= (typestr (* default-ulong 0)) "ulong")
-  (and (= (typestr (* default-float 0)) "float")
-       (= (typestr (* default-double 0)) "double")))))))
+  (and
+    (= (typestr (* default-int 0)) "int")
+    (= (typestr (* default-uint 0)) "uint")
+    (= (typestr (* default-long 0)) "long")
+    (= (typestr (* default-ulong 0)) "ulong")
+    (= (typestr (* default-float 0)) "float")
+    (= (typestr (* default-double 0)) "double")))
 
-; SECTION Test /
+; SUBSECT Test /
 
 (define test-division ()
-  (and (= (/ default-int 15) 0)
-  (and (= (/ default-uint 15) 0)
-  (and (= (/ default-long 15) 0)
-  (and (= (/ default-ulong 15) 0)
-  (and (= (/ default-float 15) 0)
-       (= (/ default-double 15) 0)))))))
+  (and
+    (= (/ default-int 15) 0)
+    (= (/ default-uint 15) 0)
+    (= (/ default-long 15) 0)
+    (= (/ default-ulong 15) 0)
+    (= (/ default-float 15) 0)
+    (= (/ default-double 15) 0)))
 
 (define test-division-2 ()
-  (and (= (/ (+ 10 default-int) 2) 5)
-  (and (= (/ (+ 10 default-uint) 2) 5)
-  (and (= (/ (+ 10 default-long) 2) 5)
-  (and (= (/ (+ 10 default-ulong) 2) 5)
-  (and (= (/ (+ 10 default-float) 2) 5)
-       (= (/ (+ 10 default-double) 2) 5)))))))
+  (and
+    (= (/ (+ 10 default-int) 2) 5)
+    (= (/ (+ 10 default-uint) 2) 5)
+    (= (/ (+ 10 default-long) 2) 5)
+    (= (/ (+ 10 default-ulong) 2) 5)
+    (= (/ (+ 10 default-float) 2) 5)
+    (= (/ (+ 10 default-double) 2) 5)))
 
 ; Test alias
 (define test-division-3 ()
   (= (div 1000 111) (/ 1000 111)))
 
 (define test-division-types ()
-  (and (= (typestr (/ default-int 1)) "int")
-  (and (= (typestr (/ default-uint 1)) "uint")
-  (and (= (typestr (/ default-long 1)) "long")
-  (and (= (typestr (/ default-ulong 1)) "ulong")
-  (and (= (typestr (/ default-float 1)) "float")
-       (= (typestr (/ default-double 1)) "double")))))))
+  (and
+    (= (typestr (/ default-int 1)) "int")
+    (= (typestr (/ default-uint 1)) "uint")
+    (= (typestr (/ default-long 1)) "long")
+    (= (typestr (/ default-ulong 1)) "ulong")
+    (= (typestr (/ default-float 1)) "float")
+    (= (typestr (/ default-double 1)) "double")))
 
-; SECTION Test %
+; SUBSECT Test %
 
 (define test-modulo()
-  (and (= (% default-int 15) 0)
-  (and (= (% default-uint 15) 0)
-  (and (= (% default-long 15) 0)
-  (and (= (% default-ulong 15) 0)
-  (and (= (% default-float 15) 0)
-       (= (% default-double 15) 0)))))))
+  (and
+    (= (% default-int 15) 0)
+    (= (% default-uint 15) 0)
+    (= (% default-long 15) 0)
+    (= (% default-ulong 15) 0)
+    (= (% default-float 15) 0)
+    (= (% default-double 15) 0)))
 
 (define test-modulo-2 ()
-  (and (= (% (+ 10 default-int) 2) 0)
-  (and (= (% (+ 10 default-uint) 2) 0)
-  (and (= (% (+ 10 default-long) 2) 0)
-  (and (= (% (+ 10 default-ulong) 2) 0)
-  (and (= (% (+ 10 default-float) 2) 0)
-       (= (% (+ 10 default-double) 2) 0)))))))
+  (and
+    (= (% (+ 10 default-int) 2) 0)
+    (= (% (+ 10 default-uint) 2) 0)
+    (= (% (+ 10 default-long) 2) 0)
+    (= (% (+ 10 default-ulong) 2) 0)
+    (= (% (+ 10 default-float) 2) 0)
+    (= (% (+ 10 default-double) 2) 0)))
 
 (define test-modulo-3 ()
-  (and (= (% (+ 10 default-int) 3) 1)
-  (and (= (% (+ 10 default-uint) 3) 1)
-  (and (= (% (+ 10 default-long) 3) 1)
-  (and (= (% (+ 10 default-ulong) 3) 1)
-  (and (= (% (+ 10 default-float) 3) 1)
-       (= (% (+ 10 default-double) 3) 1)))))))
+  (and
+    (= (% (+ 10 default-int) 3) 1)
+    (= (% (+ 10 default-uint) 3) 1)
+    (= (% (+ 10 default-long) 3) 1)
+    (= (% (+ 10 default-ulong) 3) 1)
+    (= (% (+ 10 default-float) 3) 1)
+    (= (% (+ 10 default-double) 3) 1)))
 
 ; Test alias
 (define test-modulo-4 ()
   (= (mod 1000 111) (% 1000 111)))
 
 (define test-modulo-types ()
-  (and (= (typestr (/ default-int 1)) "int")
-  (and (= (typestr (/ default-uint 1)) "uint")
-  (and (= (typestr (/ default-long 1)) "long")
-  (and (= (typestr (/ default-ulong 1)) "ulong")
-  (and (= (typestr (/ default-float 1)) "float")
-       (= (typestr (/ default-double 1)) "double")))))))
+  (and
+    (= (typestr (/ default-int 1)) "int")
+    (= (typestr (/ default-uint 1)) "uint")
+    (= (typestr (/ default-long 1)) "long")
+    (= (typestr (/ default-ulong 1)) "ulong")
+    (= (typestr (/ default-float 1)) "float")
+    (= (typestr (/ default-double 1)) "double")))
 
-; SECTION Test increment
+; SUBSECT Test increment
 
 (define test-inc ()
-  (and (= (++ default-int) 1)
-  (and (= (++ default-uint) 1)
-  (and (= (++ default-long) 1)
-  (and (= (++ default-ulong) 1)
-  (and (= (++ default-float) 1)
-       (= (++ default-double) 1)))))))
+  (and
+    (= (++ default-int) 1)
+    (= (++ default-uint) 1)
+    (= (++ default-long) 1)
+    (= (++ default-ulong) 1)
+    (= (++ default-float) 1)
+    (= (++ default-double) 1)))
 
 (define test-inc-2 ()
-  (and (= (++ (++ default-int)) 2)
-  (and (= (++ (++ default-uint)) 2)
-  (and (= (++ (++ default-long)) 2)
-  (and (= (++ (++ default-ulong)) 2)
-  (and (= (++ (++ default-float)) 2)
-       (= (++ (++ default-double)) 2)))))))
+  (and
+    (= (++ (++ default-int)) 2)
+    (= (++ (++ default-uint)) 2)
+    (= (++ (++ default-long)) 2)
+    (= (++ (++ default-ulong)) 2)
+    (= (++ (++ default-float)) 2)
+    (= (++ (++ default-double)) 2)))
 
 ; Test alias
 (define test-inc-3 ()
   (= (++ 1000) (inc 1000)))
 
 (define test-inc-types ()
-  (and (= (typestr (+ default-int 0)) "int")
-  (and (= (typestr (+ default-uint 0)) "uint")
-  (and (= (typestr (+ default-long 0)) "long")
-  (and (= (typestr (+ default-ulong 0)) "ulong")
-  (and (= (typestr (+ default-float 0)) "float")
-       (= (typestr (+ default-double 0)) "double")))))))
+  (and
+    (= (typestr (+ default-int 0)) "int")
+    (= (typestr (+ default-uint 0)) "uint")
+    (= (typestr (+ default-long 0)) "long")
+    (= (typestr (+ default-ulong 0)) "ulong")
+    (= (typestr (+ default-float 0)) "float")
+    (= (typestr (+ default-double 0)) "double")))
 
-; SECTION Test decrement
+; SUBSECT Test decrement
 
 (define test-dec ()
-  (and (= (-- default-int) -1)
-  (and (= (-- default-long) -1)
-  (and (= (-- default-float) -1)
-       (= (-- default-double) -1)))))
+  (and
+    (= (-- default-int) -1)
+    (= (-- default-long) -1)
+    (= (-- default-float) -1)
+    (= (-- default-double) -1)))
 
 (define test-dec-2 ()
-  (and (= (-- (++ default-int)) 0)
-  (and (= (-- (++ default-uint)) 0)
-  (and (= (-- (++ default-long)) 0)
-  (and (= (-- (++ default-ulong)) 0)
-  (and (= (-- (++ default-float)) 0)
-       (= (-- (++ default-double)) 0)))))))
+  (and
+    (= (-- (++ default-int)) 0)
+    (= (-- (++ default-uint)) 0)
+    (= (-- (++ default-long)) 0)
+    (= (-- (++ default-ulong)) 0)
+    (= (-- (++ default-float)) 0)
+    (= (-- (++ default-double)) 0)))
 
 ; Test alias
 (define test-dec-3 ()
   (= (-- 1000) (dec 1000)))
 
 (define test-dec-types ()
-  (and (= (typestr (-- (++ default-int))) "int")
-  (and (= (typestr (-- (++ default-uint))) "uint")
-  (and (= (typestr (-- (++ default-long))) "long")
-  (and (= (typestr (-- (++ default-ulong))) "ulong")
-  (and (= (typestr (-- (++ default-float))) "float")
-       (= (typestr (-- (++ default-double))) "double")))))))
+  (and
+    (= (typestr (-- (++ default-int))) "int")
+    (= (typestr (-- (++ default-uint))) "uint")
+    (= (typestr (-- (++ default-long))) "long")
+    (= (typestr (-- (++ default-ulong))) "ulong")
+    (= (typestr (-- (++ default-float))) "float")
+    (= (typestr (-- (++ default-double))) "double")))
 
-; SECTION Test binary and
+; SUBSECT Test binary and
 
 (define test-bit-and ()
-  (and (= (& 3 1) 1)
-  (and (= (& 3 3) 3)
-  (and (= (& 3 0) 0)
-       (= (& #t 1) 1)))))
+  (and
+    (= (& 3 1) 1)
+    (= (& 3 3) 3)
+    (= (& 3 0) 0)
+    (= (& #t 1) 1)))
 
 (define test-bit-and-2 ()
   (= (bit-and 3 1) (& 3 1)))
 
-; SECTION Test binary or
+; SUBSECT Test binary or
 
 (define test-bit-or ()
-  (and (= (| 3 1) 3)
-  (and (= (| 3 3) 3)
-  (and (= (| 3 0) 3)
-       (= (| #t 1) 1)))))
+  (and
+    (= (| 3 1) 3)
+    (= (| 3 3) 3)
+    (= (| 3 0) 3)
+    (= (| #t 1) 1)))
 
 (define test-bit-or-2 ()
   (= (bit-or 3 1) (| 3 1)))
 
-; SECTION Test binary xor
+; SUBSECT Test binary xor
 
 (define test-bit-xor ()
-  (and (= (^ 3 1) 2)
-  (and (= (^ 3 3) 0)
-  (and (= (^ 3 0) 3)
-       (= (^ #t 1) 0)))))
+  (and
+    (= (^ 3 1) 2)
+    (= (^ 3 3) 0)
+    (= (^ 3 0) 3)
+    (= (^ #t 1) 0)))
 
 (define test-bit-xor-2 ()
   (= (bit-xor 33 3) (^ 33 3)))
 
-; SECTION Test binary negation
+; SUBSECT Test binary negation
 
-; TODO!!!
+(define test-bit-neg ()
+  #t)
 
-; SECTION Test bit-shift-left
+; SUBSECT Test bit-shift-left
 
 (define test-bit-shl ()
-  (and (= (<< 3 1) 6)
-  (and (= (<< 0 3) 0)
-       (= (<< 3 0) 3))))
+  (and
+    (= (<< 3 1) 6)
+    (= (<< 0 3) 0)
+    (= (<< 3 0) 3)))
 
 (define test-bit-shl-2 ()
   (= (shl 33 1) (<< 33 1)))
 
-; SECTION Test bit-shift-right
+; SUBSECT Test bit-shift-right
 
 (define test-bit-shr ()
-  (and (= (>> 6 1) 3)
-  (and (= (>> 0 3) 0)
-       (= (>> 3 0) 3))))
+  (and
+    (= (>> 6 1) 3)
+    (= (>> 0 3) 0)
+    (= (>> 3 0) 3)))
 
 (define test-bit-shr-2 ()
   (= (shr 33 1) (>> 33 1)))
 
-; SECTION Test equality
+; SUBSECT Test equality
 
 (define test-equals ()
-  (and (= 3 3)
-  (and (= 3000 3000)
-  (and (= "abc" "abc")
-  (and (= #t #t)
-  (and (= #f #f)
-       (= 3.0 3.0)))))))
+  (and
+    (= 3 3)
+    (= 3000 3000)
+    (= "abc" "abc")
+    (= #t #t)
+    (= #f #f)
+    (= [] [])
+    (= 3.0 3.0)))
+
+(define test-equals-2 ()
+   (and
+    (not (= 3 3.5))
+    (not (= 1 2))
+    (not (= "abc" "def"))
+    (not (= #t #f))
+    (not (= #f #t))
+    (not (= 3.0 3.1))))
+
+; SUBSECT Test non-equality
+
+(define test-not-equals ()
+  (and
+    (not (not= 3 3))
+    (not (not= 3000 3000))
+    (not (not= "abc" "abc"))
+    (not (not= #t #t))
+    (not (not= #f #f))
+    (not (not= [] []))
+    (not (not= 3.0 3.0))))
+
+(define test-not-equals-2 ()
+  (and
+    (not= 3 3.5)
+    (not= 1 2)
+    (not= "abc" "def")
+    (not= #t #f)
+    (not= #f #t)
+    (not= 3.0 3.1)))
+
+(define test-not-equals-3 ()
+  (and
+    (!= 3 3.5)
+    (!= 1 2)
+    (!= "abc" "def")
+    (!= #t #f)
+    (!= #f #t)
+    (!= 3.0 3.1)))
+
+; SUBSECT Test comparisons
+
+(define test-comparisons ()
+  (and
+    (< 0 3)
+    (> 3 0)
+    (<= 0 3)
+    (<= 3 3)
+    (== 0 0)
+    (>= 3 0)
+    (>= 3 3)
+    (pos? 0)
+    (pos? 1)
+    (! (pos? -1))
+    (neg? -1)
+    (! (neg? 0))
+    (== (<=> 15 15) 0)
+    (== (<=> 15 0) 1)
+    (== (<=> 0 15) -1)))
+
+(define test-comparisons-2 ()
+  (and
+    (< 0.5 3.5)
+    (> 3.5 0.5)
+    (<= 0.5 3.5)
+    (<= 3.5 3.5)
+    (== 0.5 0.5)
+    (>= 3.5 0.5)
+    (>= 3.5 3.5)
+    (pos? 0.0)
+    (pos? 1.5)
+    (! (pos? -1.5))
+    (neg? -1.5)
+    (! (neg? 0.0))
+    (== (<=> 15.5 15.5) 0)
+    (== (<=> 15.5 0.5) 1)
+    (== (<=> 0.5 15.5) -1)))
+
+(define test-comparisons-3 ()
+  (and
+    (< "" "a")
+    (> "a" "")
+    (<= "" "a")
+    (<= "" "")
+    (== "" "")
+    (>= "a" "")
+    (>= "a" "a")
+    (== (<=> "a" "a") 0)
+    (== (<=> "a" "") 1)
+    (== (<=> "" "a") -1)))
+
+; SUBSECT Test bool not
+
+(define test-bool-not ()
+  (and (! (! #t)) (! #f) (! 0)))
+
+; SUBSECT Test bool and
+
+(define test-bool-and ()
+  (and
+    (&& #t #t)
+    (! (&& #t #f))
+    (! (&& #f #t))
+    (! (&& #f #f))
+    (&& 1 1)
+    (! (&& 1 0))
+    (! (&& 0 1))
+    (! (&& 0 0))
+    (&& #t #t #t #t)
+    (! (&& #t #f #t #t))
+    (! (&& #f #t #t #t))
+    (! (&& #f #f #f #f))))
+
+; SUBSECT Test bool nand
+
+(define test-bool-nand ()
+  (and
+    (! (!&& #t #t))
+    (!&& #t #f)
+    (!&& #f #t)
+    (!&& #f #f)
+    (! (!&& 1 1))
+    (!&& 1 0)
+    (!&& 0 1)
+    (!&& 0 0)
+    (! (!&& #t #t #t #t))
+    (!&& #t #f #t #t)
+    (!&& #f #t #t #t)
+    (!&& #f #f #f #f)))
+
+; SUBSECT Test bool or
+
+(define test-bool-or ()
+  (and
+    (|| #t #t)
+    (|| #t #f)
+    (|| #f #t)
+    (! (|| #f #f))
+    (|| 1 1)
+    (|| 1 0)
+    (|| 0 1)
+    (! (|| 0 0))
+    (|| #t #t #t #t #t)
+    (|| #t #t #t #t #f)
+    (|| #f #t #t #t #t)
+    (! (|| #f #f #f #f))))
+
+; SUBSECT Test bool nor
+
+(define test-bool-nor ()
+  (and
+    (! (!|| #t #t))
+    (! (!|| #t #f))
+    (! (!|| #f #t))
+    (!|| #f #f)
+    (! (!|| 1 1))
+    (! (!|| 1 0))
+    (! (!|| 0 1))
+    (!|| 0 0)
+    (! (!|| #t #t #t #t #t))
+    (! (!|| #t #t #t #t #f))
+    (! (!|| #f #t #t #t #t))
+    (!|| #f #f #f #f)))
+
+; SUBSECT Test bool xor
+
+(define test-bool-xor ()
+  (and
+    (! (xor #t #t))
+    (xor #t #f)
+    (xor #f #t)
+    (! (xor #f #f))
+    (! (xor 1 1))
+    (xor 1 0)
+    (xor 0 1)
+    (! (xor 0 0))))
+
+; SECTION Test collection stuff
+
+; SUBSECT Test size
+
+(define test-size ()
+  (and
+    (= (size []) 0)
+    (= (size [1 2 3]) 3)
+    (= (size "") 0)
+    (= (size "111") 3)))
+
+; SUBSECT Test values function
+
+(define test-values ()
+  (let (v [1 2 3] v2 (values v)
+        s "123"   s2 (values s))
+    (and (= v v2) (= s s2))))
+
+; SUBSECT Test append
+
+(define test-append ()
+  (let (v0 [1 2 3] v1 [4 5 6]
+        v2 (append v0 v1)
+        s0 "123" s1 "456"
+        s2 (append s0 s1))
+    (and (= v0 [1 2 3]) (= v1 [4 5 6]) (= v2 [1 2 3 4 5 6])
+         (= s0 "123") (= s1 "456") (= s2 "123456"))))
+
+(define test-append-1 ()
+  (let (v0 [1 2 3] v1 (append v0 4)
+        s0 "123" s1 (append s0 \4))
+    (and (= v0 [1 2 3]) (= v1 [1 2 3 4]) (= s0 "123") (= s1 "1234"))))
+
+; SUBSECT Test append!
+
+(define test-append! ()
+  (let (v0 [1 2 3] v1 (append! v0 4)
+        s0 "123" s1 (append! s0 \4))
+    (and (= v0 [1 2 3 4]) (= s0 "1234")
+         (= v1 [1 2 3 4]) (= s1 "1234"))))
+
+(define test-append-1! ()
+  (let (v0 [1 2 3] v1 [4 5 6] v2 (append! v0 v1)
+        s0 "123" s1 "456" s2 (append! s0 s1))
+    (and (= v2 [1 2 3 4 5 6]) (= v1 [4 5 6])
+         (= s2 "123456") (= s1 "456"))))
+
+; SUBSECT Test prepend
+
+(define test-prepend ()
+  (let (v0 [1 2 3] v1 (prepend 4 v0)
+        s0 "123" s1 (prepend \4 s0))
+    (and (= v0 [1 2 3]) (= v1 [4 1 2 3]) (= s0 "123") (= s1 "4123"))))
+
+; SUBSECT Test coll-clone
+
+(define test-coll-clone ()
+  (let (v0 [1 2 3] v1 (coll-clone v0)
+        s0 "123" s1 (coll-clone s0))
+    (and (= v0 [1 2 3]) (= v1 [1 2 3]) (= s0 "123") (= s1 "123"))))
+
+
+
+
 
 )
 
+; SECTION Run tests
+
 (define ::void main1 ()
-    (println! (append "test-defaults " (to_s (test-defaults ))))
-    (println! (append "test-default-types " (to_s (test-default-types ))))
-    (println! (append "test-addition " (to_s (test-addition ))))
-    (println! (append "test-addition-2 " (to_s (test-addition-2 ))))
-    (println! (append "test-addition-3 " (to_s (test-addition-3 ))))
-    (println! (append "test-addition-4 " (to_s (test-addition-4 ))))
-    (println! (append "test-addition-types " (to_s (test-addition-types ))))
-    (println! (append "test-subtraction " (to_s (test-subtraction ))))
-    (println! (append "test-subtraction-2 " (to_s (test-subtraction-2 ))))
-    (println! (append "test-subtraction-3 " (to_s (test-subtraction-3 ))))
-    (println! (append "test-subtraction-types " (to_s (test-subtraction-types ))))
-    (println! (append "test-multiplication " (to_s (test-multiplication ))))
-    (println! (append "test-multiplication-2 " (to_s (test-multiplication-2 ))))
-    (println! (append "test-multiplication-3 " (to_s (test-multiplication-3 ))))
-    (println! (append "test-multiplication-4 " (to_s (test-multiplication-4 ))))
-    (println! (append "test-multiplication-types " (to_s (test-multiplication-types ))))
-    (println! (append "test-division " (to_s (test-division ))))
-    (println! (append "test-division-2 " (to_s (test-division-2 ))))
-    (println! (append "test-division-3 " (to_s (test-division-3 ))))
-    (println! (append "test-division-types " (to_s (test-division-types ))))
-    (println! (append "test-modulo" (to_s (test-modulo))))
-    (println! (append "test-modulo-2 " (to_s (test-modulo-2 ))))
-    (println! (append "test-modulo-3 " (to_s (test-modulo-3 ))))
-    (println! (append "test-modulo-4 " (to_s (test-modulo-4 ))))
-    (println! (append "test-modulo-types " (to_s (test-modulo-types ))))
-    (println! (append "test-inc " (to_s (test-inc ))))
-    (println! (append "test-inc-2 " (to_s (test-inc-2 ))))
-    (println! (append "test-inc-3 " (to_s (test-inc-3 ))))
-    (println! (append "test-inc-types " (to_s (test-inc-types ))))
-    (println! (append "test-dec " (to_s (test-dec ))))
-    (println! (append "test-dec-2 " (to_s (test-dec-2 ))))
-    (println! (append "test-dec-3 " (to_s (test-dec-3 ))))
-    (println! (append "test-dec-types " (to_s (test-dec-types ))))
-    (println! (append "test-bit-and " (to_s (test-bit-and ))))
-    (println! (append "test-bit-and-2 " (to_s (test-bit-and-2 ))))
-    (println! (append "test-bit-or " (to_s (test-bit-or ))))
-    (println! (append "test-bit-and-2 " (to_s (test-bit-and-2 ))))
-    (println! (append "test-bit-xor " (to_s (test-bit-xor ))))
-    (println! (append "test-bit-xor-2 " (to_s (test-bit-xor-2 ))))
-    (println! (append "test-bit-shl " (to_s (test-bit-shl ))))
-    (println! (append "test-bit-shl-2 " (to_s (test-bit-shl-2 ))))
-    (println! (append "test-bit-shr " (to_s (test-bit-shr ))))
-    (println! (append "test-bit-shr-2 " (to_s (test-bit-shr-2 ))))
-    (println! (append "test-equals " (to_s (test-equals ))))
+    (println! (append "test-defaults      " (to_s (test-defaults))))
+    (println! (append "test-default-types " (to_s (test-default-types))))
+    (println! "")
+    (println! (append "test-add           " (to_s (test-addition))))
+    (println! (append "test-add-2         " (to_s (test-addition-2))))
+    (println! (append "test-add-3         " (to_s (test-addition-3))))
+    (println! (append "test-add-4         " (to_s (test-addition-4))))
+    (println! (append "test-add-types     " (to_s (test-addition-types))))
+    (println! (append "test-sub           " (to_s (test-subtraction))))
+    (println! (append "test-sub-2         " (to_s (test-subtraction-2))))
+    (println! (append "test-sub-3         " (to_s (test-subtraction-3))))
+    (println! (append "test-sub-types     " (to_s (test-subtraction-types))))
+    (println! (append "test-mul           " (to_s (test-multiplication))))
+    (println! (append "test-mul-2         " (to_s (test-multiplication-2))))
+    (println! (append "test-mul-3         " (to_s (test-multiplication-3))))
+    (println! (append "test-mul-4         " (to_s (test-multiplication-4))))
+    (println! (append "test-mul-types     " (to_s (test-multiplication-types))))
+    (println! (append "test-div           " (to_s (test-division))))
+    (println! (append "test-div-2         " (to_s (test-division-2))))
+    (println! (append "test-div-3         " (to_s (test-division-3))))
+    (println! (append "test-div-types     " (to_s (test-division-types))))
+    (println! (append "test-mod           " (to_s (test-modulo))))
+    (println! (append "test-mod-2         " (to_s (test-modulo-2))))
+    (println! (append "test-mod-3         " (to_s (test-modulo-3))))
+    (println! (append "test-mod-4         " (to_s (test-modulo-4))))
+    (println! (append "test-mod-types     " (to_s (test-modulo-types))))
+    (println! "")
+    (println! (append "test-inc           " (to_s (test-inc))))
+    (println! (append "test-inc-2         " (to_s (test-inc-2))))
+    (println! (append "test-inc-3         " (to_s (test-inc-3))))
+    (println! (append "test-inc-types     " (to_s (test-inc-types))))
+    (println! (append "test-dec           " (to_s (test-dec))))
+    (println! (append "test-dec-2         " (to_s (test-dec-2))))
+    (println! (append "test-dec-3         " (to_s (test-dec-3))))
+    (println! (append "test-dec-types     " (to_s (test-dec-types))))
+    (println! "")
+    (println! (append "test-bit-and       " (to_s (test-bit-and))))
+    (println! (append "test-bit-and-2     " (to_s (test-bit-and-2))))
+    (println! (append "test-bit-or        " (to_s (test-bit-or))))
+    (println! (append "test-bit-and-2     " (to_s (test-bit-and-2))))
+    (println! (append "test-bit-xor       " (to_s (test-bit-xor))))
+    (println! (append "test-bit-xor-2     " (to_s (test-bit-xor-2))))
+    (println! "")
+    (println! (append "test-bit-neg       " (to_s (test-bit-neg))))
+    (println! (append "test-bit-shl       " (to_s (test-bit-shl))))
+    (println! (append "test-bit-shl-2     " (to_s (test-bit-shl-2))))
+    (println! (append "test-bit-shr       " (to_s (test-bit-shr))))
+    (println! (append "test-bit-shr-2     " (to_s (test-bit-shr-2))))
+    (println! "")
+    (println! (append "test-equals        " (to_s (test-equals))))
+    (println! (append "test-equals-2      " (to_s (test-equals-2))))
+    (println! (append "test-not-equals    " (to_s (test-not-equals))))
+    (println! (append "test-not-equals-2  " (to_s (test-not-equals-2))))
+    (println! "")
+    (println! (append "test-comparisons   " (to_s (test-comparisons))))
+    (println! (append "test-comparisons-2 " (to_s (test-comparisons-2))))
+    (println! (append "test-comparisons-3 " (to_s (test-comparisons-3))))
+    (println! "")
+    (println! (append "test-bool-not      " (to_s (test-bool-not))))
+    (println! (append "test-bool-and      " (to_s (test-bool-and))))
+    (println! (append "test-bool-nand     " (to_s (test-bool-nand))))
+    (println! (append "test-bool-or       " (to_s (test-bool-or))))
+    (println! (append "test-bool-nor      " (to_s (test-bool-nor))))
+    (println! (append "test-bool-xor      " (to_s (test-bool-xor))))
+    (println! "")
+    (println! (append "test-size          " (to_s (test-size))))
+    (println! (append "test-values        " (to_s (test-values))))
+    (println! (append "test-append        " (to_s (test-append))))
+    (println! (append "test-append-1      " (to_s (test-append-1))))
+    (println! (append "test-append-!      " (to_s (test-append!))))
+    (println! (append "test-append-!-1    " (to_s (test-append-1!))))
+    (println! (append "test-prepend       " (to_s (test-prepend))))
+    (println! (append "test-coll-clone    " (to_s (test-coll-clone))))
 )

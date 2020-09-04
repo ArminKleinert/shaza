@@ -18,7 +18,7 @@ WIP
     r))
 
 (define ::LazySeq(T) enumerator (::T[] coll)
-  (new LazySeq
+  (new ::LazySeq
     0
     (lambda ::bool (::Enumerator!T en) (empty? c))
     (lambda ::T (::Enumerator!T en)
@@ -26,13 +26,13 @@ WIP
         (setv! en current (rest en.current)) r)))))
 
 (define ::LazySeq(T) (::T) range (::T start ::T last)
-  (new LazySeq
+  (new ::LazySeq
     start
     (lambda ::bool (::Enumerator!T en) (< start last))
     (lambda ::T (::Enumerator!T en) (setv! en current (++ en.current)) en.current)))
 
 (define ::LazySeq(T) (::T) repeat (::T e)
-  (new LazySeq e
+  (new ::LazySeq e
     (lambda ::bool (::LazyT lt) #t)
     (lambda ::T next ())))
 )

@@ -25,7 +25,7 @@ string[string] parseFully(string script) {
 void main() {
     import std.file;
 
-    string txt = readText("./sz/tests.sz");
+    string txt = readText("./sz/math.sz");
     foreach (k, v; parseFully(txt)) {
         auto file = File("source/" ~ k ~ ".d", "w");
         file.writeln(v);
@@ -33,6 +33,7 @@ void main() {
     }
 
     import tests;
+
     tests.main1();
 
     //import stdlib;

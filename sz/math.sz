@@ -9,46 +9,43 @@
     seq 0))
 
 (define ::T min (::T[] coll)
-  (if (= (size coll) 0) (return (llr "T.init")))
-  (if (= (size coll) 1) (return (first coll)))
+  (when (= (size coll) 0) (llr "T.init")
+  (when (= (size coll) 1) (first coll)
   (loop (::T[] c (rest coll)
          ::T res (first coll))
-    (if (empty? c) (return res)
-    (if (< (first c) res)
+    (when (empty? c) res
+    (when (< (first c) res)
       (recur (rest c) (first c))
-      (recur (rest c) res)))))
+      (recur (rest c) res)))))))
 
 (define ::T max (::T[] coll)
-  (if (= (size coll) 0) (return (llr "T.init")))
-  (if (= (size coll) 1) (return (first coll)))
+  (when (= (size coll) 0) (llr "T.init")
+  (when (= (size coll) 1) (first coll)
   (loop (::T[] c (rest coll)
          ::T res (first coll))
-    (if (empty? c) (return res)
-    (if (> (first c) res)
+    (when (empty? c) res
+    (when (> (first c) res)
       (recur (rest c) (first c))
-      (recur (rest c) res)))))
+      (recur (rest c) res)))))))
 
 (define ::T fib (::T _n)
-  (loop (n _n
-         a 1
-         b 0)
-    (if (= n 0)
-      (return b)
-      (recur (dec n) (+ a b) a))))
+  (loop (n _n a 1 b 0)
+    (when (= n 0)
+      b (recur (dec n) (+ a b) a))))
 )
 
 (define ::long[] divisors (::long l)
   (loop (::long[] res []
          n (>> l (ll "1L")))
-    (if (= n 0) (return res)
-    (if (= (% l n) 0)
+    (when (= n 0) res
+    (when (= (% l n) 0)
         (recur (append res n) (dec n))
         (recur res (dec n))))))
 
 (define ::long sum-of-divisors (::long l)
   (loop (::long res 0 n (/ l 2))
-    (if (= n 0) (return res)
-    (if (= (% l n) 0)
+    (when (= n 0) res
+    (when (= (% l n) 0)
       (recur (+ res n) (dec n))
       (recur res (dec n))))))
 
@@ -57,3 +54,4 @@
 
 (define ::double approx-euler (::long l)
     (/ 1.0 (fib l)))
+

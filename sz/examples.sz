@@ -5,6 +5,7 @@
 (import-host "std.string")
 (import-host "std.stdio")
 (import-host "std.conv")
+(import-host "std.functional")
 
 ; Simple assignment with type induction
 (define abc "def")
@@ -210,18 +211,15 @@
 (define ::int accept-func-pointer (::int:delegate(int) f ::int i0)
   (f i0))
 (define ::int apply-func-pointer ()
-  (import-host "std.functional")
   (accept-func-pointer (fp next) 1))
 ;(define ::int apply-func-pointer-1 ()
 ;  (accept-func-pointer (fp export_next) 1))
 (define ::int apply-func-pointer-alias ()
-  (import-host "std.functional")
   (accept-func-pointer (fp succ) 1))
 
 (define ::int (::FUNC) accept-anonymous-func-type (::FUNC f ::int i0)
   (f i0))
 (define ::int apply-func-pointer-anonymous-func-type ()
-  (import-host "std.functional")
   (accept-func-pointer (fp next) 1))
 
 (define ::auto (::T) plus2 (::T i) (+ i i))

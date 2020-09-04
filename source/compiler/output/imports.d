@@ -111,6 +111,8 @@ string includeToString(AstNode ast) {
 
     import std.file : exists, readText;
 
+    warning("Including " ~ fname);
+
     if (!exists(fname)) {
         throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
     }
