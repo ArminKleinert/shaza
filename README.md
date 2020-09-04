@@ -153,7 +153,7 @@ Implemented:
 one of "public", "private", "protected".  
 
 Implemented but not tested enough:
-- ``:alias [...]`` Defines a list of aliases for the function. 
+- ``:aliases [...]`` Defines a list of aliases for the function. 
 If an alias is used, the name is resolved to point back to the original. 
 It is currently not tested enough to be used safely.
 - ``:export-as <string>`` If set, the functions' name will be converted 
@@ -205,7 +205,6 @@ A byte further in the future:
 - type-specifications on generics  
 - Modifiers on functions and vars (private, const, etc.)  
 - Automatic type induction for functions.  
-- ``lambda`` with automatic type induction.  
 - ``define-macro, define-tk-macro``  
 - ``quote, pseudo-quote, unquote``
   (Shaza is transpiled to D at the moment, so doing these is hard.)  
@@ -217,6 +216,8 @@ A byte further in the future:
 
 ## TODO List
 
+- Enable type induction for lambdas:  
+  ``delegate (i) {...}``  
 - Make the compiler accept arguments and create output and stuff...
 - Write documentation for `meta` and anonymous arguments.
 - Make Shaza self-hosting step-by-step.  
@@ -236,7 +237,6 @@ A byte further in the future:
 - Go down the "missing features" list.  
 - Implement tests.  
 
-
 ## Example
 
 ```
@@ -251,7 +251,7 @@ A byte further in the future:
     seq 0))
 
 ; An eager sum-function using meta attributes.
-(meta (:generics [::T] :returns ::T :aliases ["sum-elems"])
+(meta (:generics [::T] :returns ::T :aliases [sum-elems])
 (define sum (::T[] seq)
   (reduce
     (lambda ::T (::T l0 ::T l1) (+ l0 l1))
@@ -260,7 +260,7 @@ A byte further in the future:
 
 ; An eager sum-function using an anonymous parameter, return-type induction
 ; and the fp-command to point to another function. 
-(define (::T) sum (::T[])
+(define (::T) sum (::T[] $)
   (reduce (fp plus) $0 0))  
 
 ; An even more condensed version of the above. It's getting hard to read now...

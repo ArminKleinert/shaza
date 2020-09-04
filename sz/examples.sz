@@ -261,3 +261,24 @@
     (define varargs1 (::int i) (println! i)))
 (meta (:variadic #f)
     (define not-varargs (::int i) (println! i)))
+
+; Test lambda with implicit return type
+
+(define foo15 () (println! ((lambda (::int i) (+ i i)) 5)))
+
+(define ::T (::T) sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
+
+(meta (:generics [::T] :returns ::T :aliases [sum-elems])
+(define sum (::T[] seq)
+  (reduce
+    (lambda ::T (::T l0 ::T l1) (+ l0 l1))
+    seq 0))
+)
+
+(define (::T) sum (::T[] $)
+  (reduce (fp plus) $0 0))
+
+(define sum (_) (reduce (fp plus) $0 0))
