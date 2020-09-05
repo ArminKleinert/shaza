@@ -61,6 +61,9 @@ int n;
 this(int _n){
 n = _n;
 }
+MyType with_n(int n){
+return new MyType(n);
+}
 MyType clone(){
 return new MyType(n);
 }
@@ -78,6 +81,18 @@ n = _n;
 o = _o;
 p = _p;
 }
+MyTypeWithMoreFields with_m(int m){
+return new MyTypeWithMoreFields(m, n, o, p);
+}
+MyTypeWithMoreFields with_n(int n){
+return new MyTypeWithMoreFields(m, n, o, p);
+}
+MyTypeWithMoreFields with_o(string o){
+return new MyTypeWithMoreFields(m, n, o, p);
+}
+MyTypeWithMoreFields with_p(float p){
+return new MyTypeWithMoreFields(m, n, o, p);
+}
 MyTypeWithMoreFields clone(){
 return new MyTypeWithMoreFields(m, n, o, p);
 }
@@ -89,6 +104,9 @@ T entry;
 this(T _entry){
 entry = _entry;
 }
+GenericType with_entry(T entry){
+return new GenericType(entry);
+}
 GenericType clone(){
 return new GenericType(entry);
 }
@@ -96,26 +114,27 @@ return new GenericType(entry);
 
 
 class EmptyType {
-this(){
-}
 EmptyType clone(){
 return new EmptyType();
 }
 }
 
 
-class MyStruct {
+struct MyStruct {
 int n;
 this(int _n){
 n = _n;
 }
+MyStruct with_n(int n){
+return MyStruct(n);
+}
 MyStruct clone(){
-return new MyStruct(n);
+return MyStruct(n);
 }
 }
 
 
-class MyStructWithMoreFields {
+struct MyStructWithMoreFields {
 int m;
 int n;
 string o;
@@ -126,28 +145,126 @@ n = _n;
 o = _o;
 p = _p;
 }
+MyStructWithMoreFields with_m(int m){
+return MyStructWithMoreFields(m, n, o, p);
+}
+MyStructWithMoreFields with_n(int n){
+return MyStructWithMoreFields(m, n, o, p);
+}
+MyStructWithMoreFields with_o(string o){
+return MyStructWithMoreFields(m, n, o, p);
+}
+MyStructWithMoreFields with_p(float p){
+return MyStructWithMoreFields(m, n, o, p);
+}
 MyStructWithMoreFields clone(){
-return new MyStructWithMoreFields(m, n, o, p);
+return MyStructWithMoreFields(m, n, o, p);
 }
 }
 
 
-class GenericStruct(T) {
+struct GenericStruct(T) {
 T entry;
 this(T _entry){
 entry = _entry;
 }
+GenericStruct with_entry(T entry){
+return GenericStruct(entry);
+}
 GenericStruct clone(){
-return new GenericStruct(entry);
+return GenericStruct(entry);
 }
 }
 
 
-class EmptyStruct {
-this(){
-}
+struct EmptyStruct {
 EmptyStruct clone(){
-return new EmptyStruct();
+return EmptyStruct();
+}
+}
+
+
+class MyTypeWithAlias {
+string text;
+alias text this;
+this(string _text){
+text = _text;
+}
+MyTypeWithAlias with_text(string text){
+return new MyTypeWithAlias(text);
+}
+MyTypeWithAlias clone(){
+return new MyTypeWithAlias(text);
+}
+}
+
+
+struct StructWithAlias {
+string text;
+alias text this;
+this(string _text){
+text = _text;
+}
+StructWithAlias with_text(string text){
+return StructWithAlias(text);
+}
+StructWithAlias clone(){
+return StructWithAlias(text);
+}
+}
+
+
+class MyTypeWithAlias2 {
+string alias_var;
+int not_alias;
+alias alias_var this;
+this(string _alias_var, int _not_alias){
+alias_var = _alias_var;
+not_alias = _not_alias;
+}
+MyTypeWithAlias2 with_alias_var(string alias_var){
+return new MyTypeWithAlias2(alias_var, not_alias);
+}
+MyTypeWithAlias2 with_not_alias(int not_alias){
+return new MyTypeWithAlias2(alias_var, not_alias);
+}
+MyTypeWithAlias2 clone(){
+return new MyTypeWithAlias2(alias_var, not_alias);
+}
+}
+
+
+struct StructWithAlias2 {
+string alias_var;
+int not_alias;
+alias alias_var this;
+this(string _alias_var, int _not_alias){
+alias_var = _alias_var;
+not_alias = _not_alias;
+}
+StructWithAlias2 with_alias_var(string alias_var){
+return StructWithAlias2(alias_var, not_alias);
+}
+StructWithAlias2 with_not_alias(int not_alias){
+return StructWithAlias2(alias_var, not_alias);
+}
+StructWithAlias2 clone(){
+return StructWithAlias2(alias_var, not_alias);
+}
+}
+
+
+class MyBox(T) {
+T inner;
+alias inner this;
+this(T _inner){
+inner = _inner;
+}
+MyBox with_inner(T inner){
+return new MyBox(inner);
+}
+MyBox clone(){
+return new MyBox(inner);
 }
 }
 
@@ -381,37 +498,37 @@ auto addAny(T, T1)(T i, T1 j){
 return i+j;
 }
 
-auto anon_params_1(_gensym_637348207335596875, _gensym_637348207335596905)(_gensym_637348207335596875 _gensym_637348207335596891, _gensym_637348207335596905 _gensym_637348207335596917){
-return _gensym_637348207335596891+_gensym_637348207335596917;
+auto anon_params_1(_gensym_637349066722424887, _gensym_637349066722424919)(_gensym_637349066722424887 _gensym_637349066722424904, _gensym_637349066722424919 _gensym_637349066722424932){
+return _gensym_637349066722424904+_gensym_637349066722424932;
 }
 
-auto anon_params_2(int _gensym_637348207335597914, float _gensym_637348207335597929, int _gensym_637348207335597941){
-return _gensym_637348207335597914+_gensym_637348207335597929+_gensym_637348207335597941;
+auto anon_params_2(int _gensym_637349066722426010, float _gensym_637349066722426025, int _gensym_637349066722426038){
+return _gensym_637349066722426010+_gensym_637349066722426025+_gensym_637349066722426038;
 }
 
-auto anon_params_nested(int _gensym_637348207335599333){
+auto anon_params_nested(int _gensym_637349066722427561){
 return delegate int(){
-return _gensym_637348207335599333;
+return _gensym_637349066722427561;
 };
 }
 
-auto anon_types_0(_gensym_637348207335599852)(_gensym_637348207335599852 i){
+auto anon_types_0(_gensym_637349066722428129)(_gensym_637349066722428129 i){
 return i+1;
 }
 
-auto anon_types_1(_gensym_637348207335599912)(_gensym_637348207335599912 i, int j){
+auto anon_types_1(_gensym_637349066722428197)(_gensym_637349066722428197 i, int j){
 return i+j;
 }
 
-auto anon_types_2(_gensym_637348207335599986, _gensym_637348207335600002)(_gensym_637348207335599986 i, _gensym_637348207335600002 j){
+auto anon_types_2(_gensym_637349066722428278, _gensym_637349066722428293)(_gensym_637349066722428278 i, _gensym_637349066722428293 j){
 return i+j;
 }
 
-auto anon_types_3(_gensym_637348207335600073)(_gensym_637348207335600073 i, int j){
+auto anon_types_3(_gensym_637349066722428363)(_gensym_637349066722428363 i, int j){
 return i+j;
 }
 
-auto anon_types_4(_gensym_637348207335600139, _gensym_637348207335600154)(_gensym_637348207335600139 i, _gensym_637348207335600154 j){
+auto anon_types_4(_gensym_637349066722428437, _gensym_637349066722428453)(_gensym_637349066722428437 i, _gensym_637349066722428453 j){
 return i+j;
 }
 
@@ -450,12 +567,12 @@ return plus(l0, l1);
 }, seq, 0);
 }
 
-auto sum(T)(T[] _gensym_637348207335611630){
-return reduce((std.functional.toDelegate(&plus)), _gensym_637348207335611630, 0);
+auto sum(T)(T[] _gensym_637349066722441379){
+return reduce((std.functional.toDelegate(&plus)), _gensym_637349066722441379, 0);
 }
 
-auto sum(_gensym_637348207335612197)(_gensym_637348207335612197 _gensym_637348207335612211){
-return reduce((std.functional.toDelegate(&plus)), _gensym_637348207335612211, 0);
+auto sum(_gensym_637349066722442214)(_gensym_637349066722442214 _gensym_637349066722442230){
+return reduce((std.functional.toDelegate(&plus)), _gensym_637349066722442230, 0);
 }
 
 

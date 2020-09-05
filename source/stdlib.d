@@ -9,8 +9,12 @@ import std.array;
 import std.functional;
 struct Keyword {
 string text;
+alias text this;
 this(string _text){
 text = _text;
+}
+Keyword with_text(string text){
+return Keyword(text);
 }
 Keyword clone(){
 return Keyword(text);

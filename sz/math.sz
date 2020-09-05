@@ -55,3 +55,44 @@
 (define ::double approx-euler (::long l)
     (/ 1.0 (fib l)))
 
+(meta (:generics [::T] :returns :T)
+  (define limit (::T val ::T max)
+    (% val max))
+  (define limit (::T val ::T min ::T max)
+    (- (% val (+ max min)) min)))
+
+; SECTION Pseudo-Randomness
+
+(comment
+  To handle randomness in a functional way, Shaza provides a struct-type
+  "Random", which is returned by all the below functions.
+  )
+
+(def-struct Random ::ulong value ::ulong seed)
+(define ::ulong default-seed 8678280846964778612)
+
+(define ::Random rseed (::ulong seed)
+  (new ::Random (inc seed) seed))
+
+(define ::Random random(::ulong seed)
+  (let (seed1 (bit-xor seed (>> seed 12))
+        seed2 (bit-xor seed1 (<< seed1 25))
+        seed3 (bit-xor seed2 (>> seed2 27)))
+    (new ::Random (bit-xor seed 0x2545F4914F6CDD1D) seed)))
+
+(define ::Random random (::Random r)
+  (with_seed (random r.value) r.value))
+
+(define ::Random random (::Random r ::ulong max)
+  (let (r2 (random r))
+    (with_value r2 (limit r2.value max))))
+
+(define ::Random random (::Random r ::ulong min ::ulong max)
+  (let (r2 (random r))
+     (limit r2.value min max)))
+
+(define ::ulong ulong-value (::Random r) r.value)
+(define ::long long-value (::Random r) (cast ::long r.value))
+(define ::uint uint-value (::Random r) (cast ::uinu r.value))
+(define ::int int-value (::Random r) (cast ::int r.value))
+(define ::double double-value (::Random r) (cast ::double r.value))

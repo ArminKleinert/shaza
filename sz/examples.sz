@@ -51,15 +51,21 @@
     (writefln "%s %s %s" i j abc)))
 
 ; Test type-definitions
-(def-type MyType ::int n)
-(def-type MyTypeWithMoreFields ::int m ::int n ::string o ::float p)
-(def-type GenericType (::T) ::T entry)
+(def-type MyType _ ::int n)
+(def-type MyTypeWithMoreFields _ ::int m ::int n ::string o ::float p)
+(def-type GenericType (::T) _ ::T entry)
 (def-type EmptyType)
 
-(def-type MyStruct ::int n)
-(def-type MyStructWithMoreFields ::int m ::int n ::string o ::float p)
-(def-type GenericStruct (::T) ::T entry)
-(def-type EmptyStruct)
+(def-struct MyStruct _ ::int n)
+(def-struct MyStructWithMoreFields _ ::int m ::int n ::string o ::float p)
+(def-struct GenericStruct (::T) _ ::T entry)
+(def-struct EmptyStruct)
+
+(def-type MyTypeWithAlias ::string text)
+(def-struct StructWithAlias ::string text)
+(def-type MyTypeWithAlias2 ::string alias_var ::int not_alias)
+(def-struct StructWithAlias2 ::string alias_var ::int not_alias)
+(def-type MyBox (::T) ::T inner)
 
 ; Test the if statement
 (define ::bool if-test ()
