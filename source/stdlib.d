@@ -327,10 +327,10 @@ cc.length = newsize;
 return cc;}
 }
 
-T[] vector(T)(T[] elements...){
-return elements;
+T[] vector(T)(T first_elem, T[] elements...){
+return prepend(first_elem, elements);
 }
-T[K] entries(T)(T[] c){
+T[K] entries(T, K)(T[] c){
 jumplbl1:
 if(eql_Q(size(c), 0)) {
 {

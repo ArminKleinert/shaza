@@ -88,18 +88,18 @@ The implementations given here are for arrays specifically.
   ; SECTION array creation
 
   (meta (:variadic #t)
-    (define ::T[] vector (::T elements)
-      elements)
+    (define ::T[] vector (::T first-elem ::T elements)
+      (prepend first-elem elements))
   )
 
   ; SECTION entries
 
-  ; Return a native (associative array) with the keys and values of a
+  ; Return a native map (associative array) with the keys and values of a
   ; collection. If the collection type is sequential, the keys will be
   ; numbers.
   ; If the collection type is a map, this can be overridden by 
   ; returning a copy of the collection.
-  (define ::T[K] entries (::T[] c)
+  (define ::T[K] (::T ::K) entries (::T[] c)
     (when (= (size c) 0)
       (let (::T[K] res []) (return res)))
     (loop (keyseq (keys c)

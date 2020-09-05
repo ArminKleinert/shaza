@@ -263,6 +263,81 @@ auto s0 = "123";
 auto s1 = coll_clone(s0);
 return and(eql_Q(v0, [1,2,3]), eql_Q(v1, [1,2,3]), eql_Q(s0, "123"), eql_Q(s1, "123"));}
 }
+bool test_keys(){
+{
+auto coll = [1,2,3];
+auto s = "123";
+return and(eql_Q(keys(coll), [0,1,2]), eql_Q(keys(s), [0,1,2]));}
+}
+bool test_assoc_E(){
+{
+auto coll = [1,3,3];
+auto coll1 = [1,4,5];
+return and(eql_Q(assoc_E(coll, 1, 2), [1,2,3]), eql_Q(coll, [1,2,3]), eql_Q(assoc_E(coll1, 0, 5), coll1));}
+}
+bool test_assoc(){
+{
+auto coll = [1,3,3];
+return and(eql_Q(assoc(coll, 1, 2), [1,2,3]), eql_Q(coll, [1,3,3]));}
+}
+bool test_slice(){
+{
+auto coll = [1,2,3,4,5,6];
+auto text = "123456";
+return and(eql_Q(coll, slice(coll, 0)), eql_Q(slice(coll, 2), slice(coll, 2)), eql_Q(size(slice(coll, 1)), 5), eql_Q(text, slice(text, 0)), eql_Q(slice(text, 2), slice(text, 2)), eql_Q(size(slice(text, 1)), 5));}
+}
+bool test_slice_1(){
+{
+auto coll = [1,2,3,4,5,6];
+auto text = "123456";
+return and(eql_Q(coll, slice(coll, 0, 0)), eql_Q(slice(coll, 2, 0), [3,4,5,6]), eql_Q(slice(coll, 2, 1), [3,4,5]), eql_Q(slice(coll, 2, 1), slice(coll, 2, 1)), eql_Q(size(slice(coll, 1, 1)), 4), eql_Q(text, slice(text, 0, 0)), eql_Q(slice(text, 2, 2), slice(text, 2, 2)), eql_Q(size(slice(text, 1, 1)), 4));}
+}
+bool test_get(){
+{
+auto coll = [1,2,3,4];
+auto text = "1234";
+return and(eql_Q(get(coll, 0), 1), eql_Q(get(coll, 1), 2), eql_Q(get(coll, 2), 3), eql_Q(get(text, 0), '1'), eql_Q(get(text, 1), '2'), eql_Q(get(text, 2), '3'));}
+}
+private bool is_int_array_Q(int[] a){
+return true;
+}
+bool test_cleared(){
+{
+auto coll = [1,2,3,4,5];
+return and(eql_Q(cleared(coll), []), is_int_array_Q(cleared(coll)), eql_Q(append(cleared(coll), coll), coll));}
+}
+bool test_resized(){
+{
+auto coll = [1,1,1];
+return and(eql_Q(resized(coll, 0), []), eql_Q(resized(coll, 1), [1]), eql_Q(resized(coll, 4), [1,1,1,0]), eql_Q(resized(resized(coll, 0), 5), [0,0,0,0,0]), is_int_array_Q(resized(coll, 8)));}
+}
+bool test_vector(){
+return and(eql_Q(vector(1, 2, 3, 4), [1,2,3,4]), is_int_array_Q(vector(1, 2, 3)), eql_Q(size(vector()), 0), eql_Q(size(vector(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)), 13));
+}
+bool test_first(){
+{
+auto coll = [1,2,3,4];
+return and(eql_Q(first(coll), 1), eql_Q(first(coll), get(coll, 0)));}
+}
+bool test_second(){
+{
+auto coll = [1,2,3,4];
+return and(eql_Q(second(coll), 2), eql_Q(second(coll), get(coll, 1)));}
+}
+bool test_last(){
+{
+auto coll = [1,2,3,4];
+return eql_Q(last(coll), 4);}
+}
+bool test_rest(){
+return and(eql_Q(rest([1,2,3]), [2,3]), eql_Q(rest([1]), []));
+}
+bool test_empty(){
+return and(empty_Q([]), not(empty_Q([1])), empty_Q(""));
+}
+bool test_not_empty(){
+return and(not_empty_Q([1]), not(not_empty_Q([])), not_empty_Q("1"));
+}
 
 void main1(){
 println_E(append("test-defaults      ", to_s(test_defaults())));
@@ -338,6 +413,23 @@ println_E(append("test-append-!      ", to_s(test_append_E())));
 println_E(append("test-append-!-1    ", to_s(test_append_1_E())));
 println_E(append("test-prepend       ", to_s(test_prepend())));
 println_E(append("test-coll-clone    ", to_s(test_coll_clone())));
+println_E("");
+println_E(append("test-keys          ", to_s(test_keys())));
+println_E(append("test-assoc!        ", to_s(test_assoc_E())));
+println_E(append("test-assoc         ", to_s(test_assoc())));
+println_E(append("test-slice         ", to_s(test_slice())));
+println_E(append("test-slice-1       ", to_s(test_slice_1())));
+println_E(append("test-get           ", to_s(test_get())));
+println_E(append("test-cleared       ", to_s(test_cleared())));
+println_E(append("test-resized       ", to_s(test_resized())));
+println_E(append("test-vector        ", to_s(test_vector())));
+println_E("");
+println_E(append("test-first         ", to_s(test_first())));
+println_E(append("test-second        ", to_s(test_second())));
+println_E(append("test-last          ", to_s(test_last())));
+println_E(append("test-rest          ", to_s(test_rest())));
+println_E(append("test-empty         ", to_s(test_empty())));
+println_E(append("test-not-empty     ", to_s(test_not_empty())));
 }
 
 
