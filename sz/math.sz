@@ -1,6 +1,6 @@
 (module math)
 
-(import-sz sz/stdlib)
+(import-sz stdlib)
 
 (meta (:generics [::T])
 (define ::T sum (::T[] seq)

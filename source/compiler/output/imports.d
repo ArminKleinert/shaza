@@ -66,7 +66,7 @@ string importShazaToString(AstNode ast) {
     if (node.type == TknType.litString) {
         fname = node.tkn.text[1 .. $ - 1];
     } else if (node.type == TknType.symbol) {
-        fname = "./" ~ node.tkn.text ~ ".sz";
+        fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";
     } else {
         warning("Import: Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");
         return "";
@@ -75,7 +75,8 @@ string importShazaToString(AstNode ast) {
     import std.file : exists, readText;
 
     if (!exists(fname)) {
-        throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
+        throw new CompilerError(
+                "Import: Shaza file " ~ fname ~ " could not be found." ~ ast.nodes[1].tknstr());
     }
 
     import compiler.types : Context;
@@ -103,7 +104,7 @@ string includeToString(AstNode ast) {
     if (node.type == TknType.litString) {
         fname = node.tkn.text[1 .. $ - 1];
     } else if (node.type == TknType.symbol) {
-        fname = "./" ~ node.tkn.text ~ ".sz";
+        fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";
     } else {
         warning("Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");
         return "";
@@ -114,7 +115,8 @@ string includeToString(AstNode ast) {
     warning("Including " ~ fname);
 
     if (!exists(fname)) {
-        throw new CompilerError("Import: Shaza file could not be found." ~ ast.nodes[1].tknstr());
+        throw new CompilerError(
+                "Import: Shazafile " ~ fname ~ " could not be found." ~ ast.nodes[1].tknstr());
     }
 
     import compiler.types : Context;

@@ -31,7 +31,7 @@ string lambdaToString(AstCtx ast) {
     if (returnTypeNode.type == TknType.closedScope) {
         returnTypeNode = null;
     } else {
-        returnType=typeToString(returnTypeNode);
+        returnType = typeToString(returnTypeNode);
         i++;
     }
 

@@ -8,11 +8,11 @@ import shaza.std;
 import std.array;
 
 string defStructToString(AstNode ast) {
-    return defTypeOrStructToString( ast, true, "def-struct");
+    return defTypeOrStructToString(ast, true, "def-struct");
 }
 
 string defTypeToString(AstNode ast) {
-    return defTypeOrStructToString( ast, false, "def-type");
+    return defTypeOrStructToString(ast, false, "def-type");
 }
 
 // This should really be made into a macro once possible...
@@ -21,7 +21,7 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
 
     if (ast.size < 2) {
         auto msg = defName ~ ": Not enough parameters. ";
-        throw new CompilerError( msg ~ ast.tknstr);
+        throw new CompilerError(msg ~ ast.tknstr);
     }
 
     // SUBSECT Get type name
@@ -30,7 +30,7 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
 
     if (typeNode.type != TknType.symbol) {
         auto msg = defName ~ ": First argument must be a symbol. ";
-        throw new CompilerError( msg ~ typeNode.tknstr);
+        throw new CompilerError(msg ~ typeNode.tknstr);
     }
 
     // SUBSECT find generics (if given) and fields
@@ -58,45 +58,45 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
 
     if (attrList.size > 0 && attrList[i].type == TknType.symbol && attrList[i].text == "_") {
         hasAliasThis = false;
-        i ++;
+        i++;
     }
 
     for (; i < attrList.size; i += 2) {
-        fieldTypes ~= typeToString( attrList[i]);
+        fieldTypes ~= typeToString(attrList[i]);
         if (i >= attrList.size) {
             auto msg = defName ~ ": fields must be a sequence of types and symbols.";
-            throw new CompilerError( msg ~ typeNode.tknstr);
+            throw new CompilerError(msg ~ typeNode.tknstr);
         }
-        fieldNames ~= symbolToString( attrList[i + 1]);
+        fieldNames ~= symbolToString(attrList[i + 1]);
     }
 
     // SUBSECT Retrieve methods
 
     // SUBSECT Write header
-    string typename = symbolToString( typeNode);
-    auto result = appender( isValueTypeDefinition ? "struct " : "class ");
+    string typename = symbolToString(typeNode);
+    auto result = appender(isValueTypeDefinition ? "struct " : "class ");
     result ~= typename; // Write typename
 
     // SUBSECT Generate list of generics (if given).
-    result ~= typeGenericsListToString( generics);
+    result ~= typeGenericsListToString(generics);
 
     result ~= " {\n";
 
     // SUBSECT Write list of attributes
-    result ~= typeAttributesToString( fieldTypes, fieldNames, hasAliasThis);
+    result ~= typeAttributesToString(fieldTypes, fieldNames, hasAliasThis);
 
     // SUBSECT Write constructor
     if (fieldTypes.size > 0)
-        result ~= typeConstructorToString( fieldTypes, fieldNames);
+        result ~= typeConstructorToString(fieldTypes, fieldNames);
 
     // SUBSECT Write "with_" methods
-    result ~= typeSettersToString(typename,fieldTypes,fieldNames,isValueTypeDefinition);
+    result ~= typeSettersToString(typename, fieldTypes, fieldNames, isValueTypeDefinition);
 
     // SUBSECT Write clone method
     if (isValueTypeDefinition) {
-        result ~= structCopyMethodToString( typename, fieldTypes, fieldNames);
+        result ~= structCopyMethodToString(typename, fieldTypes, fieldNames);
     } else {
-        result ~= typeCopyMethodToString( typename, fieldTypes, fieldNames);
+        result ~= typeCopyMethodToString(typename, fieldTypes, fieldNames);
     }
 
     // Close class
@@ -110,7 +110,7 @@ private string typeGenericsListToString(AstNode generics) {
         return "";
     auto result = "(";
     for (int i = 0; i < generics.size; i++) {
-        result ~= typeToString( generics.nodes[i]);
+        result ~= typeToString(generics.nodes[i]);
         if (i < generics.size - 1)
             result ~= ", ";
     }
@@ -155,20 +155,22 @@ private string typeConstructorToString(string[] fieldTypes, string[] fieldNames)
     return result ~ "}\n";
 }
 
-private string typeSettersToString(string typename, string[] fieldTypes, string[] fieldNames, bool isValueTypeDefinition) {
-    auto result = appender( "");
+private string typeSettersToString(string typename, string[] fieldTypes,
+        string[] fieldNames, bool isValueTypeDefinition) {
+    auto result = appender("");
     for (auto i = 0; i < fieldNames.size; i++) {
         result ~= typename;
-        result ~= " with_" ~ szNameToHostName( fieldNames[i]);
-        result ~= '(' ~ fieldTypes[i] ~ ' ' ~ szNameToHostName( fieldNames[i]);
+        result ~= " with_" ~ szNameToHostName(fieldNames[i]);
+        result ~= '(' ~ fieldTypes[i] ~ ' ' ~ szNameToHostName(fieldNames[i]);
         result ~= "){\n";
         result ~= "return ";
-        if (!isValueTypeDefinition) result ~= "new ";
+        if (!isValueTypeDefinition)
+            result ~= "new ";
         result ~= typename;
         result ~= "(";
 
         for (auto j = 0; j < fieldNames.size; j++) {
-            result ~= szNameToHostName( fieldNames[j]);
+            result ~= szNameToHostName(fieldNames[j]);
             if (j < fieldNames.size - 1)
                 result ~= ", ";
         }
@@ -179,14 +181,14 @@ private string typeSettersToString(string typename, string[] fieldTypes, string[
 }
 
 private string typeCopyMethodToString(string typename, string[] fieldTypes, string[] fieldNames) {
-    auto result = appender( "");
+    auto result = appender("");
     result ~= typename;
     result ~= " clone(){\n";
     result ~= "return new " ~ typename;
     result ~= "(";
 
     for (auto j = 0; j < fieldNames.size; j++) {
-        result ~= szNameToHostName( fieldNames[j]);
+        result ~= szNameToHostName(fieldNames[j]);
         if (j < fieldNames.size - 1)
             result ~= ", ";
     }
@@ -196,14 +198,14 @@ private string typeCopyMethodToString(string typename, string[] fieldTypes, stri
 }
 
 private string structCopyMethodToString(string typename, string[] fieldTypes, string[] fieldNames) {
-    auto result = appender( "");
+    auto result = appender("");
     result ~= typename;
     result ~= " clone(){\n";
     result ~= "return " ~ typename;
     result ~= "(";
 
     for (auto j = 0; j < fieldNames.size; j++) {
-        result ~= szNameToHostName( fieldNames[j]);
+        result ~= szNameToHostName(fieldNames[j]);
         if (j < fieldNames.size - 1)
             result ~= ", ";
     }

@@ -17,10 +17,10 @@
 ; SECTION Important imports
 
 ; Import basic stuff
-(include sz/basics)
+(include basics)
 
 ; Import basic collection functions
-(include sz/basic_collection)
+(include basic_collection)
 
 ; SECTION Type convertions
 

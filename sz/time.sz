@@ -1,6 +1,6 @@
 (module time)
 
-(import-sz sz/stdlib)
+(import-sz stdlib)
 (import-host std.datetime.systime)
 
 (alias ::timeunit ::long)

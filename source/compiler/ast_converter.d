@@ -22,6 +22,11 @@ string[string] getAllTexts() {
 
 // SECTION Main switch-table for string-creation of ast.
 
+string createOutput(Context ctx) {
+    OutputContext.global.sourcedir = ctx.sourcedir;
+    return createOutput(AstCtx(ctx.ast, ctx.ast));
+}
+
 string createOutput(AstNode ast) {
     return createOutput(AstCtx(ast, ast));
 }

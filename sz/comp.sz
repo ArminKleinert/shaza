@@ -1,6 +1,6 @@
 (module shaza-compiler)
 
-(import-sz sz/stdlib)
+(import-sz stdlib)
 
 (def-type Token
   ::string text

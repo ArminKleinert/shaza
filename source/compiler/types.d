@@ -135,6 +135,8 @@ class Context {
     string currTknText = "";
     bool isInString = false;
     bool isInTypeLiteral = false;
+
+    string sourcedir = ".";
 }
 
 // SECTION Helpers

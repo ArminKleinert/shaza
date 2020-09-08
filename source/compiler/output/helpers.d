@@ -120,6 +120,7 @@ class OutputContext {
     private FunctionDecl[string] aliasedFunctions;
     private Jumplabel[] jumpLabelStack;
     string[string] fullModuleTexts;
+    string sourcedir = "";
 
     private __gshared OutputContext _global;
 
