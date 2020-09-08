@@ -376,9 +376,6 @@ return and(ends_with_Q(coll, 4), ends_with_Q(slice(coll, 0, 1), 3), ends_with_Q(
 auto test_reduce(){
 {
 auto coll = [1,2,3,4,5,6];
-println_E(reduce(delegate (int i, int j){
-return plus(i, j);
-}, coll, 0));
 return eql_Q(reduce(delegate (int i, int j){
 return plus(i, j);
 }, coll, 0), 21);}

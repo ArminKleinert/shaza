@@ -61,9 +61,14 @@ jumplbl1:
 if(nums.length==0) {
 return n;
 } else {
-accumulator_fn = accumulator_fn;
-n = accumulator_fn(n, nums[0]);
-nums = nums[1..$];
+{
+auto accumulator_fn_0 = accumulator_fn;
+auto n_1 = accumulator_fn(n, nums[0]);
+auto nums_2 = nums[1..$];
+accumulator_fn = accumulator_fn_0;
+n = n_1;
+nums = nums_2;
+}
 goto jumplbl1;
 }
 }
@@ -191,8 +196,12 @@ return false;
 if(_rest.length==0) {
 return true;
 } else {
-b = _rest[0];
-_rest = _rest[1..$];
+{
+auto b_0 = _rest[0];
+auto _rest_1 = _rest[1..$];
+b = b_0;
+_rest = _rest_1;
+}
 goto jumplbl1;
 }
 }
@@ -220,8 +229,12 @@ return true;
 if(_rest.length==0) {
 return false;
 } else {
-b = _rest[0];
-_rest = _rest[1..$];
+{
+auto b_0 = _rest[0];
+auto _rest_1 = _rest[1..$];
+b = b_0;
+_rest = _rest_1;
+}
 goto jumplbl1;
 }
 }
@@ -243,8 +256,12 @@ jumplbl1:
 if(_rest.length==0) {
 return true;
 } else {
-b = _rest[0];
-_rest = _rest[1..$];
+{
+auto b_0 = _rest[0];
+auto _rest_1 = _rest[1..$];
+b = b_0;
+_rest = _rest_1;
+}
 goto jumplbl1;
 }
 }
@@ -294,8 +311,12 @@ jumplbl2:
 if(eql_Q(temp, size(coll))) {
 return n;
 } else {
-n = append_E(n, temp);
-temp = inc(temp);
+{
+auto n_0 = append_E(n, temp);
+auto temp_1 = inc(temp);
+n = n_0;
+temp = temp_1;
+}
 goto jumplbl2;
 }
 }
@@ -344,9 +365,14 @@ jumplbl2:
 if(eql_Q(size(keyseq), 1)) {
 return assoc_E(res, first_key, get(c, first_key));
 } else {
-keyseq = slice(keyseq, 1);
-res = assoc_E(res, first_key, get(c, first_key));
-first_key = get(keyseq, 1);
+{
+auto keyseq_0 = slice(keyseq, 1);
+auto res_1 = assoc_E(res, first_key, get(c, first_key));
+auto first_key_2 = get(keyseq, 1);
+keyseq = keyseq_0;
+res = res_1;
+first_key = first_key_2;
+}
 goto jumplbl2;
 }
 }
@@ -378,7 +404,10 @@ return default_key;
 if(eql_Q(get(c, first(r)), value)) {
 return first(r);
 } else {
-r = rest(r);
+{
+auto r_0 = rest(r);
+r = r_0;
+}
 goto jumplbl2;
 }
 }
@@ -397,8 +426,12 @@ return -1;
 if(eql_Q(first(r), value)) {
 return i;
 } else {
-r = rest(r);
-i = inc(i);
+{
+auto r_0 = rest(r);
+auto i_1 = inc(i);
+r = r_0;
+i = i_1;
+}
 goto jumplbl2;
 }
 }
@@ -417,8 +450,12 @@ return false;
 if(not_eql_Q(first(c), first(c1))) {
 return false;
 } else {
-c = rest(c);
-c1 = rest(c1);
+{
+auto c_0 = rest(c);
+auto c1_1 = rest(c1);
+c = c_0;
+c1 = c1_1;
+}
 goto jumplbl1;
 }
 }
@@ -442,13 +479,15 @@ jumplbl1:
 auto _res = res;
 auto _rest = c;
 jumplbl2:
-println_E(_rest);
-println_E(_res);
 if(empty_Q(_rest)) {
-return res;
+return _res;
 } else {
-_res = func(first(_rest), _res);
-_rest = rest(_rest);
+{
+auto _res_0 = func(first(_rest), _res);
+auto _rest_1 = rest(_rest);
+_res = _res_0;
+_rest = _rest_1;
+}
 goto jumplbl2;
 }
 }
@@ -473,8 +512,12 @@ return false;
 if(pred(first(c))) {
 return true;
 } else {
-pred = pred;
-c = rest(c);
+{
+auto pred_0 = pred;
+auto c_1 = rest(c);
+pred = pred_0;
+c = c_1;
+}
 goto jumplbl1;
 }
 }
@@ -487,8 +530,12 @@ return true;
 if(not(pred(first(c)))) {
 return true;
 } else {
-pred = pred;
-c = rest(c);
+{
+auto pred_0 = pred;
+auto c_1 = rest(c);
+pred = pred_0;
+c = c_1;
+}
 goto jumplbl1;
 }
 }
@@ -511,7 +558,10 @@ return false;
 if(starts_with_Q(_rest, other)) {
 return true;
 } else {
-_rest = rest(_rest);
+{
+auto _rest_0 = rest(_rest);
+_rest = _rest_0;
+}
 goto jumplbl2;
 }
 }
@@ -543,7 +593,10 @@ return c;
 } else {
 {
 assoc_E(c, first(keys), func(get(c, first(keys))));
-keys = rest(keys);
+{
+auto keys_0 = rest(keys);
+keys = keys_0;
+}
 goto jumplbl2;}
 }
 }
@@ -562,7 +615,10 @@ return c;
 } else {
 {
 assoc_E(c, first(keys), func(first(keys), get(c, first(keys))));
-keys = rest(keys);
+{
+auto keys_0 = rest(keys);
+keys = keys_0;
+}
 goto jumplbl2;}
 }
 }
@@ -574,8 +630,12 @@ return output;
 if(gt_Q(index_of(output, first(c)), -1)) {
 return output;
 } else {
-c = rest(c);
-output = append_E(output);
+{
+auto c_0 = rest(c);
+auto output_1 = append_E(output);
+c = c_0;
+output = output_1;
+}
 goto jumplbl1;
 }
 }

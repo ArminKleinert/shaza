@@ -259,7 +259,7 @@
 
 ; Test include
 
-(include sz/examples_extra)
+(include examples_extra)
 
 ; Test varargs
 
@@ -288,3 +288,9 @@
   (reduce (fp plus) $0 0))
 
 (define sum (_) (reduce (fp plus) $0 0))
+
+(define (::F ::T ::T1) reduce (::F func ::T[] c ::T1 res)
+  (loop (_rest c _res res)
+    (when (empty? _rest)
+      _res
+      (recur (rest _rest) (func (first _rest) _res)))))

@@ -28,14 +28,13 @@ void main(string[] args) {
     import std.path;
 
     if (args.size != 3) {
-        writeln(stderr,
-                "At the moment, The compiler takes exactly two arguments (The source file and output directory)");
+        auto msg = "At the moment, The compiler takes exactly ";
+        msg ~= "two arguments (The source file and output directory)";
+        writeln(stderr, msg);
     }
 
     string scriptfile = args[1];
     string sourcedir = dirName(scriptfile);
-
-    writeln(sourcedir);
 
     string txt = readText(scriptfile);
     foreach (k, v; parseFully(txt, sourcedir)) {
@@ -48,5 +47,4 @@ void main(string[] args) {
     import tests;
 
     tests.main1();
-
 }

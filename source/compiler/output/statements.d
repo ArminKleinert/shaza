@@ -6,6 +6,7 @@ import compiler.types;
 import shaza.std;
 
 import std.array;
+import std.conv : to;
 
 // SECTION alias-instruction
 
@@ -188,12 +189,24 @@ string recurToString(AstCtx ast) {
 
     auto result = appender("");
 
-    for (auto i = 0; i < lastLabel.vars.size; i++) {
-        result ~= szNameToHostName(lastLabel.vars[i]);
-        result ~= " = ";
-        result ~= createOutput(bindings[i]);
-        insertSemicolon(result, bindings[i]);
-        result ~= '\n';
+    if (lastLabel.vars.size > 0) {
+        result ~= "{\n";
+        for (auto i = 0; i < lastLabel.vars.size; i++) {
+            result ~= "auto ";
+            result ~= szNameToHostName(lastLabel.vars[i]) ~ '_' ~ to!string(i);
+            result ~= " = ";
+            result ~= createOutput(bindings[i]);
+            insertSemicolon(result, bindings[i]);
+            result ~= '\n';
+        }
+
+        for (auto i = 0; i < lastLabel.vars.size; i++) {
+            result ~= szNameToHostName(lastLabel.vars[i]);
+            result ~= " = ";
+            result ~= szNameToHostName(lastLabel.vars[i]) ~ '_' ~ to!string(i);
+            result ~= ";\n";
+        }
+        result ~= "}\n";
     }
 
     result ~= "goto ";
