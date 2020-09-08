@@ -372,11 +372,11 @@ size_t key_of(T)(T[] c, T value, size_t default_key){
 jumplbl1:
 auto r = keys(c);
 jumplbl2:
-if(eql_Q(get(c, first(r)), value)) {
-return get(c, first(r));
-} else {
 if(empty_Q(r)) {
 return default_key;
+} else {
+if(eql_Q(get(c, first(r)), value)) {
+return first(r);
 } else {
 r = rest(r);
 goto jumplbl2;
@@ -384,18 +384,18 @@ goto jumplbl2;
 }
 }
 size_t key_of(T)(T[] c, T value){
-return key_of(c, size_t.init);
+return key_of(c, value, size_t.init);
 }
-long index_of(T)(T[] c, T value){
+size_t index_of(T)(T[] c, T value){
 jumplbl1:
 auto r = values(c);
-auto i = 0;
+size_t i = 0;
 jumplbl2:
-if(eql_Q(first(r), value)) {
-return i;
-} else {
 if(empty_Q(r)) {
 return -1;
+} else {
+if(eql_Q(first(r), value)) {
+return i;
 } else {
 r = rest(r);
 i = inc(i);

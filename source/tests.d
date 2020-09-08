@@ -312,7 +312,7 @@ auto coll = [1,1,1];
 return and(eql_Q(resized(coll, 0), []), eql_Q(resized(coll, 1), [1]), eql_Q(resized(coll, 4), [1,1,1,0]), eql_Q(resized(resized(coll, 0), 5), [0,0,0,0,0]), is_int_array_Q(resized(coll, 8)));}
 }
 bool test_vector(){
-return and(eql_Q(vector(1, 2, 3, 4), [1,2,3,4]), is_int_array_Q(vector(1, 2, 3)), eql_Q(size(vector()), 0), eql_Q(size(vector(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)), 13));
+return and(eql_Q(vector(1, 2, 3, 4), [1,2,3,4]), is_int_array_Q(vector(1, 2, 3)), eql_Q(size(vector(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)), 13));
 }
 bool test_first(){
 {
@@ -337,6 +337,46 @@ return and(empty_Q([]), not(empty_Q([1])), empty_Q(""));
 }
 bool test_not_empty(){
 return and(not_empty_Q([1]), not(not_empty_Q([])), not_empty_Q("1"));
+}
+bool test_key_of(){
+{
+auto coll = [15,16,17];
+return and(eql_Q(key_of(coll, 16), 1), eql_Q(key_of(coll, 61), 0), eql_Q(key_of(coll, 16, 7), 1), eql_Q(key_of(coll, 61, 7), 7));}
+}
+bool test_key_of1(){
+{
+auto coll = "678";
+return and(eql_Q(key_of(coll, '6'), 0), eql_Q(key_of(coll, '6', 7), 0), eql_Q(key_of(coll, '9', 7), 7));}
+}
+
+auto test_index_of(){
+{
+auto coll = [15,16,17];
+return and(eql_Q(index_of(coll, 16), 1), eql_Q(index_of(coll, 61), -1), eql_Q(index_of(coll, 16), 1), eql_Q(index_of(coll, 61), -1));}
+}
+
+auto test_index_of1(){
+{
+auto coll = "678";
+return and(eql_Q(index_of(coll, '6'), 0), eql_Q(index_of(coll, '9'), -1), eql_Q(index_of(coll, '6'), 0), eql_Q(index_of(coll, '9'), -1));}
+}
+
+auto test_starts_with(){
+{
+auto coll = [1,2,3,4];
+println_E(starts_with_Q(coll, 1));
+println_E(starts_with_Q(rest(coll), 2));
+println_E(starts_with_Q(coll, [1,2]));
+println_E(not(starts_with_Q(coll, 2)));
+println_E(not(starts_with_Q(coll, [1,2,3,4,5])));
+println_E(starts_with_Q(coll, coll));
+return and(starts_with_Q(coll, 1), starts_with_Q(rest(coll), 2), starts_with_Q(coll, [1,2]), not(starts_with_Q(coll, 2)), not(starts_with_Q(coll, [1,2,3,4,5])), starts_with_Q(coll, coll));}
+}
+
+auto test_ends_with(){
+{
+auto coll = [1,2,3,4];
+return and(ends_with_Q(coll, 4), ends_with_Q(slice(coll, 0, 1), 3), ends_with_Q(coll, coll), ends_with_Q(coll, [3,4]));}
 }
 
 void main1(){
@@ -430,6 +470,13 @@ println_E(append("test-last          ", to_s(test_last())));
 println_E(append("test-rest          ", to_s(test_rest())));
 println_E(append("test-empty         ", to_s(test_empty())));
 println_E(append("test-not-empty     ", to_s(test_not_empty())));
+println_E(append("test-key-of        ", to_s(test_key_of())));
+println_E(append("test-key-of1       ", to_s(test_key_of1())));
+println_E(append("test-index-of      ", to_s(test_index_of())));
+println_E(append("test-index-of1     ", to_s(test_index_of1())));
+println_E("");
+println_E(append("test-starts-with   ", to_s(test_starts_with())));
+println_E(append("test-ends-with     ", to_s(test_ends_with())));
 }
 
 

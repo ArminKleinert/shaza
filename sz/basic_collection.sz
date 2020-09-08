@@ -138,20 +138,20 @@ The implementations given here are for arrays specifically.
   (meta (:generics [::T] :returns ::size_t)
     (define key-of (::T[] c ::T value ::size_t default-key)
       (loop (r (keys c))
-        (when (= (get c (first r)) value) (get c (first r))
         (when (empty? r) default-key
+        (when (= (get c (first r)) value) (first r)
         (recur (rest r))))))
 
     (define key-of (::T[] c ::T value)
-      (key-of c (llr size_t.init)))
+      (key-of c value (llr size_t.init)))
   )
 
   ; Index of value; For maps, this might rather search for the
   ; index of a key.
-  (define ::long index-of (::T[] c ::T value)
-    (loop (r (values c) i 0)
-      (when (= (first r) value) i
+  (define ::size_t index-of (::T[] c ::T value)
+    (loop (r (values c) ::size_t i 0)
       (when (empty? r) -1
+      (when (= (first r) value) i
       (recur (rest r) (++ i))))))
 
   ; SECTION starts-with / ends-with

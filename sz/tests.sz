@@ -598,69 +598,69 @@
 ; SUBSECT Test keys
 
 (define test-keys ()
-(let (coll [1 2 3]
-      s "123")
-(and (= (keys coll) [0 1 2]) (= (keys s) [0 1 2]))))
+  (let (coll [1 2 3]
+        s "123")
+    (and (= (keys coll) [0 1 2]) (= (keys s) [0 1 2]))))
 
 ; SUBSECT Test assoc
 
 (define test-assoc! ()
-(let (coll [1 3 3] coll1 [1 4 5])
-(and (= (assoc! coll 1 2) [1 2 3]) ; Element is changed
-     (= coll [1 2 3]) ; Collection is changed
-     (= (assoc! coll1 0 5) coll1)))) ; It is changed in place
+  (let (coll [1 3 3] coll1 [1 4 5])
+  (and (= (assoc! coll 1 2) [1 2 3]) ; Element is changed
+       (= coll [1 2 3]) ; Collection is changed
+       (= (assoc! coll1 0 5) coll1)))) ; It is changed in place
 
 (define test-assoc ()
-(let (coll [1 3 3])
-(and (= (assoc coll 1 2) [1 2 3]) ; Value is assigned
-     (= coll [1 3 3])))) ; Original is unchanged
+  (let (coll [1 3 3])
+    (and (= (assoc coll 1 2) [1 2 3]) ; Value is assigned
+         (= coll [1 3 3])))) ; Original is unchanged
 
 ; SUBSECT Test slices
 
 (define test-slice ()
-(let (coll [1 2 3 4 5 6]
-      text "123456")
-  (and (= coll (slice coll 0))
-       (= (slice coll 2) (slice coll 2))
-       (= (size (slice coll 1)) 5)
-       (= text (slice text 0))
-       (= (slice text 2) (slice text 2))
-       (= (size (slice text 1)) 5))))
+  (let (coll [1 2 3 4 5 6]
+        text "123456")
+    (and (= coll (slice coll 0))
+         (= (slice coll 2) (slice coll 2))
+         (= (size (slice coll 1)) 5)
+         (= text (slice text 0))
+         (= (slice text 2) (slice text 2))
+         (= (size (slice text 1)) 5))))
 
 (define test-slice-1 ()
-(let (coll [1 2 3 4 5 6] text "123456")
-  (and (= coll (slice coll 0 0))
-       (= (slice coll 2 0) [3 4 5 6])
-       (= (slice coll 2 1) [3 4 5])
-       (= (slice coll 2 1) (slice coll 2 1))
-       (= (size (slice coll 1 1)) 4)
-       (= text (slice text 0 0))
-       (= (slice text 2 2) (slice text 2 2))
-       (= (size (slice text 1 1)) 4))))
+  (let (coll [1 2 3 4 5 6] text "123456")
+    (and (= coll (slice coll 0 0))
+         (= (slice coll 2 0) [3 4 5 6])
+         (= (slice coll 2 1) [3 4 5])
+         (= (slice coll 2 1) (slice coll 2 1))
+         (= (size (slice coll 1 1)) 4)
+         (= text (slice text 0 0))
+         (= (slice text 2 2) (slice text 2 2))
+         (= (size (slice text 1 1)) 4))))
 
 ; SUBSECT Test get
 
 (define test-get ()
-(let (coll [1 2 3 4]
-      text "1234")
-  (and (= (get coll 0) 1)
-       (= (get coll 1) 2)
-       (= (get coll 2) 3)
-       (= (get text 0) \1)
-       (= (get text 1) \2)
-       (= (get text 2) \3))))
+  (let (coll [1 2 3 4]
+        text "1234")
+    (and (= (get coll 0) 1)
+         (= (get coll 1) 2)
+         (= (get coll 2) 3)
+         (= (get text 0) \1)
+         (= (get text 1) \2)
+         (= (get text 2) \3))))
 
 ; SUBSECT Test cleared
 
 (meta (:visibility :private :returns ::bool)
 ; Return #t if called with an int-array as its argument.
 ; There is no overload for other types, so it is always #t.
-(define is-int-array? (::int[] a) #t)
+  (define is-int-array? (::int[] a) #t)
 )
 
 (define test-cleared ()
-(let (coll [1 2 3 4 5])
-   (and (= (cleared coll) [])
+  (let (coll [1 2 3 4 5])
+    (and (= (cleared coll) [])
         (is-int-array? (cleared coll))
         (= (append (cleared coll) coll) coll))))
 
@@ -677,10 +677,9 @@
 ; SUBSECT Test vector
 
 (define test-vector ()
-(and (= (vector 1 2 3 4) [1 2 3 4])
-     (is-int-array? (vector 1 2 3))
-     (= (size (vector)) 0)
-     (= (size (vector 0 1 2 3 4 5 6 7 8 9 10 11 12)) 13)))
+  (and (= (vector 1 2 3 4) [1 2 3 4])
+       (is-int-array? (vector 1 2 3))
+       (= (size (vector 0 1 2 3 4 5 6 7 8 9 10 11 12)) 13)))
 
 ; SUBSECT Test first/second/third
 
@@ -716,7 +715,55 @@
        (not (not-empty? []))
        (not-empty? "1")))
 
+; SUBSECT Test key-of and index-of
+
+(define test-key-of ()
+  (let (coll [15 16 17])
+    (and (= (key-of coll 16) 1)
+         (= (key-of coll 61) 0)
+         (= (key-of coll 16 7) 1)
+         (= (key-of coll 61 7) 7))))
+
+(define test-key-of1 ()
+  (let (coll "678")
+    (and (= (key-of coll \6) 0)
+         (= (key-of coll \6 7) 0)
+         (= (key-of coll \9 7) 7))))
+
+
 )
+
+(define test-index-of ()
+  (let (coll [15 16 17])
+    (and (= (index-of coll 16) 1)
+         (= (index-of coll 61) -1)
+         (= (index-of coll 16) 1)
+         (= (index-of coll 61) -1))))
+
+(define test-index-of1 ()
+  (let (coll "678")
+    (and (= (index-of coll \6) 0)
+         (= (index-of coll \9) -1)
+         (= (index-of coll \6) 0)
+         (= (index-of coll \9) -1))))
+
+; SECTION Test starts-with? / ends-with?
+
+(define test-starts-with ()
+  (let (coll [1 2 3 4])
+    (and (starts-with? coll 1)
+         (starts-with? (rest coll) 2)
+         (starts-with? coll [1 2])
+         (not (starts-with? coll 2))
+         (not (starts-with? coll [1 2 3 4 5]))
+         (starts-with? coll coll))))
+
+(define test-ends-with ()
+  (let (coll [1 2 3 4])
+    (and (ends-with? coll 4)
+         (ends-with? (slice coll 0 1) 3)
+         (ends-with? coll coll)
+         (ends-with? coll [3 4]))))
 
 ; SECTION Run tests
 
@@ -811,4 +858,11 @@
     (println! (append "test-rest          " (to_s (test-rest))))
     (println! (append "test-empty         " (to_s (test-empty))))
     (println! (append "test-not-empty     " (to_s (test-not-empty))))
+    (println! (append "test-key-of        " (to_s (test-key-of))))
+    (println! (append "test-key-of1       " (to_s (test-key-of1))))
+    (println! (append "test-index-of      " (to_s (test-index-of))))
+    (println! (append "test-index-of1     " (to_s (test-index-of1))))
+    (println! "")
+    (println! (append "test-starts-with   " (to_s (test-starts-with))))
+    (println! (append "test-ends-with     " (to_s (test-ends-with))))
 )
