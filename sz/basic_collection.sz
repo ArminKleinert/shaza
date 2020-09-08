@@ -184,10 +184,10 @@ The implementations given here are for arrays specifically.
          :tk-aliases [::F ::T:delegate(T,T1)])
     ; Loop 
     (define reduce (::F func ::T[] c ::T1 res)
-      (loop (_rest c _res res)
-        (when (empty? c)
-          res
-          (recur (rest _rest) (func (first _rest) _res)))))
+      (loop (_res res _rest c)
+        (when (empty? _rest)
+          _res
+          (recur (func (first _rest) _res) (rest _rest)))))
 
     (define reduce (::F func ::T[] c)
       (if (> (size c) 1) (reduce func (rest c) (first c))
