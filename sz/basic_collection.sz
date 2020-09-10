@@ -180,19 +180,20 @@ The implementations given here are for arrays specifically.
 
   ; If you need a reduce / foldl function for maps,
   ; you should re-implement this.
-  (meta (:returns ::T1 :generics [::T ::T1]
-         :tk-aliases [::F ::T:delegate(T,T1)])
+  (meta (:tk-aliases [::F ::T1:delegate(T,T1)])
     ; Loop 
-    (define reduce (::F func ::T[] c ::T1 res)
+    (define ::T1 (::T ::T1) reduce (::F func ::T[] c ::T1 res)
       (loop (_res res _rest c)
         (when (empty? _rest)
           _res
           (recur (func (first _rest) _res) (rest _rest)))))
+  )
 
-    (define reduce (::F func ::T[] c)
+  (meta (:tk-aliases [::F ::T:delegate(T,T)])
+    (define ::T (::T) reduce (::F func ::T[] c)
       (if (> (size c) 1) (reduce func (rest c) (first c))
-      (if (= (size c) 1) (first c))
-      (llr "T.init")))
+      (if (= (size c) 1) (first c)
+      (llr "T.init"))))
   )
 
   (meta (:tk-aliases [::F ::"T[] delegate(T)"])
@@ -303,7 +304,7 @@ The implementations given here are for arrays specifically.
   (meta (:aliases [distinct])
     (define ::T[] uniq (::T[] c)
       (let (::T[] output [])
-        (uniq-acc c output element)))
+        (uniq-acc c output)))
   )
 
   (meta (:aliases [is-distinct? is-unique?])

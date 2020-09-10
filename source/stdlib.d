@@ -474,7 +474,7 @@ auto sliced = slice(c, slice_idx);
 return starts_with_Q(sliced, c1);}
 }
 }
-T1 reduce(T, T1)(T delegate(T,T1) func, T[] c, T1 res){
+T1 reduce(T, T1)(T1 delegate(T,T1) func, T[] c, T1 res){
 jumplbl1:
 auto _res = res;
 auto _rest = c;
@@ -491,8 +491,8 @@ _rest = _rest_1;
 goto jumplbl2;
 }
 }
-T1 reduce(T, T1)(T delegate(T,T1) func, T[] c){
-return if2(gt_Q(size(c), 1), reduce(func, rest(c), first(c)), if2(eql_Q(size(c), 1), first(c)), T.init);
+T reduce(T)(T delegate(T,T) func, T[] c){
+return if2(gt_Q(size(c), 1), reduce(func, rest(c), first(c)), if2(eql_Q(size(c), 1), first(c), T.init));
 }
 auto filter(T)(T[] delegate(T) func, T[] c){
 return reduce(delegate T[](T e, T[] res){
@@ -643,7 +643,7 @@ goto jumplbl1;
 T[] uniq(T)(T[] c){
 {
 T[] output = [];
-return uniq_acc(c, output, element);}
+return uniq_acc(c, output);}
 }
 bool uniq_Q(T)(T[] c){
 return eql_Q(size(c), size(uniq(c)));

@@ -378,7 +378,31 @@ auto test_reduce(){
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate (int i, int j){
 return plus(i, j);
-}, coll, 0), 21);}
+}, coll, 1), 21);}
+}
+
+auto test_reduce_1(){
+{
+auto coll = [1,2,3,4,5,6];
+return eql_Q(reduce(delegate int(int i, int j){
+return plus(i, j);
+}, coll), 21);}
+}
+
+auto test_reduce_2(){
+{
+auto coll = [1,2,3,4,5,6];
+return eql_Q(reduce(delegate (int i, int j){
+return sub(i, j);
+}, coll), -19);}
+}
+
+auto test_reduce_3(){
+{
+int[] coll = [1,2,3,4,5,6];
+return eql_Q(reduce(delegate string(int i, string s){
+return append(s, to_s(i));
+}, coll, ""), "123456");}
 }
 
 void main1(){
@@ -480,6 +504,9 @@ println_E("");
 println_E(append("test-starts-with   ", to_s(test_starts_with())));
 println_E(append("test-ends-with     ", to_s(test_ends_with())));
 println_E(append("test-reduce        ", to_s(test_reduce())));
+println_E(append("test-reduce-1      ", to_s(test_reduce_1())));
+println_E(append("test-reduce-2      ", to_s(test_reduce_2())));
+println_E(append("test-reduce-3      ", to_s(test_reduce_3())));
 }
 
 

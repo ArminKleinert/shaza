@@ -84,6 +84,9 @@ string generalFunctionBindingsToString(AstNode[] bindings, FnMeta meta) {
 
     // Write function argument list
     for (int i = 0; i < bindings.size; i++) {
+        if (bindings[i].type != TknType.litType) {
+            throw new CompilerError("Function bindings: Type expected. " ~ bindings[i].tknstr);
+        }
         result ~= typeToString(bindings[i]);
 
         // Variadic type

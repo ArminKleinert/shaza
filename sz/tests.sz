@@ -768,9 +768,23 @@
 ; SECTION Test functional fundamentals
 
 (define test-reduce ()
-(let (coll [1 2 3 4 5 6])
-(= (reduce (lambda (::int i ::int j) (+ i j)) coll 0) 21)
-))
+  (let (coll [1 2 3 4 5 6])
+    (= (reduce (lambda (::int i ::int j) (+ i j)) coll 1) 21)))
+
+(define test-reduce-1 ()
+  (let (coll [1 2 3 4 5 6])
+    (= (reduce (lambda ::int (::int i ::int j) (+ i j)) coll) 21)))
+
+(define test-reduce-2 ()
+  (let (coll [1 2 3 4 5 6])
+    (= (reduce (lambda (::int i ::int j) (- i j)) coll) -19)))
+
+(define test-reduce-3 ()
+  (let (::int[] coll [1 2 3 4 5 6])
+    (= (reduce 
+         (lambda ::string (::int i ::string s) (append s (to_s i)))
+         coll "")
+       "123456")))
 
 ; SECTION Run tests
 
@@ -873,4 +887,7 @@
     (println! (append "test-starts-with   " (to_s (test-starts-with))))
     (println! (append "test-ends-with     " (to_s (test-ends-with))))
     (println! (append "test-reduce        " (to_s (test-reduce))))
+    (println! (append "test-reduce-1      " (to_s (test-reduce-1))))
+    (println! (append "test-reduce-2      " (to_s (test-reduce-2))))
+    (println! (append "test-reduce-3      " (to_s (test-reduce-3))))
 )
