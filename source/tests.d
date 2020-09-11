@@ -378,7 +378,7 @@ auto test_reduce(){
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate (int i, int j){
 return plus(i, j);
-}, coll, 1), 21);}
+}, coll, 0), 21);}
 }
 
 auto test_reduce_1(){
@@ -392,8 +392,15 @@ return plus(i, j);
 auto test_reduce_2(){
 {
 auto coll = [1,2,3,4,5,6];
+println_E(reduce(delegate (int i, int j){
+return sub(j, i);
+}, coll));
+println_E(reduce(delegate (int i, int j){
+println_E(sub(j, i));
+return sub(j, i);
+}, coll));
 return eql_Q(reduce(delegate (int i, int j){
-return sub(i, j);
+return sub(j, i);
 }, coll), -19);}
 }
 
