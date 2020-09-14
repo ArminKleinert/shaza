@@ -13,130 +13,78 @@ import compiler.types;
 
 // SECTION Literal identifiers
 
-bool isStringLiteral(string text) {
-    return text.size >= 2 && text[0] == '"' && text[$ - 1] == '"' && text[$ - 2] != 92;
-}
-
-auto isValidSymbolText(string text){
-    return none_Q(delegate bool(immutable(char) c){
-        return includes_Q(text, c);
-    }, "\";()[]{}#:");
-}
-
-bool isTypeLiteral(string text) {
-    return text.size >= 2 && text[0] == ':' && text[1] == ':';
-}
-
-bool isKeywordLiteral(string text) {
-    return text.size > 1 && text[0] == ':' && isValidSymbolText(text[1 .. $]);
-}
-
-bool isBoolLiteral(string text) {
-    return text == "#t" || text == "#f";
-}
-
-bool isCharLiteral(string text) {
-    if (text.size < 2)
-        return false;
-    return text == "\\space" || text == "\\newline" || text == "\\tab"
-        || (text[0] == "\\"[0] && text.size == 2);
-}
-
-bool isValidTypeLiteral(string text) {
-    // Handle bracket
-    auto idx_of_ob = index_of(text,'(');
-    auto idx_of_cb = index_of(text,')');
-    if (idx_of_ob >= 0 && idx_of_ob > idx_of_cb)
-        return false;
-
-    // Handle curly brace
-    auto idx_of_ocb = index_of(text,'{');
-    auto idx_of_ccb = index_of(text,'}');
-    if (idx_of_ocb >= 0 && idx_of_ocb > idx_of_ccb)
-        return false;
-
-    // Handle square brackets
-    auto idx_of_osb = index_of(text,'[');
-    auto idx_of_csb = index_of(text,']');
-    if (idx_of_osb >= 0 && idx_of_osb > idx_of_csb)
-        return false;
-
-    // When a closing bracket, closing curly brace or square
-    // brace is at the end, we are fine also.
-    auto last_text_idx = text.size - 1;
-    if (idx_of_ob < 0 && idx_of_cb >= 0 && idx_of_cb != last_text_idx)
-        return false;
-    if (idx_of_ocb < 0 && idx_of_ccb >= 0 && idx_of_ccb != last_text_idx)
-        return false;
-    if (idx_of_osb < 0 && idx_of_csb >= 0 && idx_of_csb != last_text_idx)
-        return false;
-
-    return true;
-}
-
 bool lastCharMustBeSeperated(string text) {
     return (text[$ - 1] == ')' && !text.canFind('(')) || (text[$ - 1] == ']'
             && !text.canFind('[')) || (text[$ - 1] == '}' && !text.canFind('{')) || text[$ - 1] == ';';
 }
 
+auto last_char_must_separated_Q(string text) {
+    return or(and(ends_with_Q(text, ")"), not(in_Q(text, "("))), and(ends_with_Q(text,
+            "]"), not(in_Q(text, "["))), and(ends_with_Q(text, "}"), not(in_Q(text, "{"))));
+}
+
 // SUBSECT Token-type-table
 
-TknType tknTypeByText(string text) {
-    if (!toIntOrNull(text).isNull()) {
-        return TknType.litInt;
-    } else if (!toUIntOrNull(text).isNull()) {
-        return TknType.litUInt;
-    } else if (!toUIntOrNull(text).isNull()) {
-        return TknType.litUInt;
-    } else if (!toFloatOrNull(text).isNull()) {
-        return TknType.litFlt;
-    } else if (isBoolLiteral(text)) {
-        return TknType.litBool;
-    } else if (isKeywordLiteral(text)) {
-        return TknType.litKeyword;
-    } else if (isTypeLiteral(text)) {
-        return TknType.litType;
-    } else if (isCharLiteral(text)) {
-        return TknType.litChar;
-    } else if (isValidSymbolText(text)) {
-        return TknType.symbol;
-    } else if (isStringLiteral(text)) {
-        return TknType.litString;
-    } else if (text == "Set[" || text == "Map[" || text == "Lst[") {
-        return TknType.lstTaggedOpen;
-    } else if (text == "[") {
-        return TknType.lstOpen;
-    } else if (text == "]") {
-        return TknType.lstClose;
-    } else if (text == "(") {
-        return TknType.scopeOpen;
-    } else if (text == ")") {
-        return TknType.scopeClose;
-    } else if (text == ";") {
-        return TknType.lnComment;
-    }
-    return TknType.unknown;
+bool is_string_literal_Q(string text) {
+    return and(ge_Q(size(text), 2), starts_with_Q(text, "\""),
+            ends_with_Q(text, "\""), not(ends_with_Q(text, "\\\"")));
+}
+
+bool is_valid_symbol_text_Q(string text) {
+    return none_Q(delegate bool(immutable(char) c) { return includes_Q(text, c); }, "\";()[]{}#:");
+}
+
+bool is_type_literal_Q(string text) {
+    return starts_with_Q(text, "::");
+}
+
+bool is_keyword_literal_Q(string text) {
+    return and(ge_Q(size(text), 1), starts_with_Q(text, ":"), is_valid_symbol_text_Q(rest(text)));
+}
+
+bool is_bool_literal_Q(string text) {
+    return or(eql_Q(text, "#t"), eql_Q(text, "#f"));
+}
+
+bool is_char_literal_Q(string text) {
+    return if2(eql_Q(size(text), 2), starts_with_Q(text, "\\"),
+            and(gt_Q(size(text), 2), in_Q([
+                    "\\space", "\\newline", "\\tab", "\\colon"
+                ], text)));
+}
+
+Keyword tkn_type_by_text(string text) {
+    return if2(to_ulong_valid_Q(text), Keyword(":litUInt"), if2(to_long_valid_Q(text),
+            Keyword(":litInt"), if2(to_double_valid_Q(text), Keyword(":litFlt"),
+            if2(is_bool_literal_Q(text), Keyword(":litBool"), if2(is_keyword_literal_Q(text),
+            Keyword(":litKeyword"), if2(is_type_literal_Q(text), Keyword(":litType"),
+            if2(is_char_literal_Q(text), Keyword(":litChar"), if2(is_valid_symbol_text_Q(text),
+            Keyword(":symbol"), if2(is_string_literal_Q(text), Keyword(":litString"),
+            if2(eql_Q(text, "["), Keyword(":lstOpen"), if2(eql_Q(text, "]"),
+            Keyword(":lstClose"), if2(eql_Q(text, "("), Keyword(":scopeOpen"),
+            if2(eql_Q(text, ")"), Keyword(":scopeClose"), if2(eql_Q(text, ";"),
+            Keyword(":lnComment"), Keyword(":unknown")))))))))))))));
 }
 
 // SECTION Token-creation methods
 
 // SUBSECT Close token; Reset context
 
-Context closeToken(Context ctx) {
+Context close_token(Context ctx) {
     auto txt = ctx.currTknText;
     if (ctx.isInTypeLiteral) {
-        if (!isValidTypeLiteral(txt)) {
+        if (!is_type_literal_Q(txt)) {
             auto tknTextForErrors = Token(ctx.currTknStartLine,
                     ctx.currTknStartChar, TknType.litType, txt).as_readable();
             throw new CompilerError("Illegal type literal: " ~ tknTextForErrors);
-        } else if (lastCharMustBeSeperated(txt)) {
+        } else if (last_char_must_separated_Q(txt)) {
             auto tkntxt = txt[0 .. $ - 1];
-            auto type = tknTypeByText(tkntxt);
+            auto type = tkn_type_by_text(tkntxt);
             auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, tkntxt);
             ctx.tokens ~= tkn;
 
             tkntxt = "" ~ txt[$ - 1];
-            type = tknTypeByText(tkntxt);
+            type = tkn_type_by_text(tkntxt);
             auto tkn2 = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, tkntxt);
             ctx.tokens ~= tkn2;
 
@@ -144,7 +92,7 @@ Context closeToken(Context ctx) {
         }
     }
     if (txt.size > 0) {
-        auto type = tknTypeByText(ctx.currTknText);
+        auto type = tkn_type_by_text(ctx.currTknText);
         auto tkn = Token(ctx.currTknStartLine, ctx.currTknStartChar, type, txt);
         ctx.tokens ~= tkn;
     }
@@ -164,17 +112,17 @@ Context tokenizeSubNextCharInString(Context ctx, char c) {
     if (ctx.nextEscaped) {
         ctx.nextEscaped = false;
     } else if (c == '"' && !ctx.nextEscaped) {
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
     } else if (!ctx.nextEscaped && c == '\\') {
         ctx.nextEscaped = true;
     }
     return ctx;
 }
 
-Context tokenizeSubNextChar(Context ctx, char c) {
+Context tokenize_sub_next_char(Context ctx, char c) {
     if (c == '"') {
         if (!ctx.isInTypeLiteral) {
-            ctx = closeToken(ctx);
+            ctx = close_token(ctx);
         }
         ctx.isInString = true;
         ctx.currTknText = ctx.currTknText ~ c;
@@ -182,24 +130,24 @@ Context tokenizeSubNextChar(Context ctx, char c) {
         ctx.isInTypeLiteral = true;
         ctx.currTknText ~= c;
     } else if (c == ' ' || c == '\t' || c == '\n') {
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
     } else if ((c == ']' && !ctx.currTknText.canFind('[')) || (c == ')'
             && !ctx.currTknText.canFind('(')) || (c == '}' && !ctx.currTknText.canFind('{'))) {
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
     } else if (!ctx.isInTypeLiteral && (c == '(' || c == ')' || c == ']')) {
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
         ctx.currTknText = ctx.currTknText ~ c;
-        ctx = closeToken(ctx);
+        ctx = close_token(ctx);
     } else if (!ctx.isInTypeLiteral && c == '[') {
         auto txt = ctx.currTknText;
         if (txt == "Set" || txt == "Map" || txt == "Lst" || txt == "Vec") {
             ctx.currTknText = ctx.currTknText ~ c;
-            ctx = closeToken(ctx);
+            ctx = close_token(ctx);
         } else {
             ctx.currTknText = ctx.currTknText ~ c;
-            ctx = closeToken(ctx);
+            ctx = close_token(ctx);
         }
     } else {
         ctx.currTknText = ctx.currTknText ~ c;
@@ -217,10 +165,10 @@ Context tokenize(Context ctx, string source) {
         if (ctx.isInString) {
             ctx = tokenizeSubNextCharInString(ctx, c);
         } else {
-            ctx = tokenizeSubNextChar(ctx, c);
+            ctx = tokenize_sub_next_char(ctx, c);
         }
     }
-    ctx = closeToken(ctx);
+    ctx = close_token(ctx);
 
     return ctx;
 }

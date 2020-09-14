@@ -28,7 +28,7 @@ void replaceAnonymousNames(AstNode root, string[] anonymousParamNames) {
         import compiler.tokenizer;
 
         root.tkn.text = anonymousParamNames[i];
-        root.tkn.type = tknTypeByText(anonymousParamNames[i]);
+        root.tkn.type = tkn_type_by_text(anonymousParamNames[i]);
     }
     foreach (child; root.nodes) {
         replaceAnonymousNames(child, anonymousParamNames);

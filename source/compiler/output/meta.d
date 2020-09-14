@@ -17,7 +17,7 @@ void replaceTkAliases(AstNode root, string replacement, string orig) {
         import compiler.tokenizer;
 
         root.tkn.text = replacement;
-        root.tkn.type = tknTypeByText(replacement);
+        root.tkn.type = tkn_type_by_text(replacement);
     }
     foreach (child; root.nodes) {
         replaceTkAliases(child, replacement, orig);
