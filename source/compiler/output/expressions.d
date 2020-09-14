@@ -67,12 +67,12 @@ string simpleSetvToString(string name, AstCtx newVal) {
 }
 
 string attrSetvToString(string name, AstCtx attr, AstCtx newVal) {
-    expectType(attr, keyword(":symbol"), TknType.litKeyword, TknType.litString);
+    expectType(attr, keyword(":symbol"), keyword(":litKeyword"), keyword(":litString"));
 
     string s;
-    if (attr.type == TknType.litKeyword)
+    if (attr.type == keyword(":litKeyword"))
         s = keywordToString(attr);
-    else if (attr.type == TknType.litString)
+    else if (attr.type == keyword(":litString"))
         s = attr.text[1 .. $ - 1];
     else
         s = symbolToString(attr);
@@ -105,7 +105,7 @@ string newToString(AstCtx ast) {
         throw new CompilerError("new requires at least one parameter. " ~ ast.tknstr);
     }
 
-    if (ast.nodes[1].type != TknType.litType) {
+    if (ast.nodes[1].type != keyword(":litType")) {
         throw new CompilerError("new: First parameter must be type literal. " ~ ast.nodes[1].tknstr);
     }
 
@@ -136,7 +136,7 @@ string toOrCastToString(AstCtx ast, string start) {
     if (ast.size < 3) {
         throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
-    expectType(ast.nodes[1], TknType.litType);
+    expectType(ast.nodes[1], keyword(":litType"));
 
     auto result = appender(start);
     result ~= "(";

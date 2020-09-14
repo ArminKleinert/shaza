@@ -320,7 +320,7 @@ string typestring(AstNode node) {
 }
 
 string keywordToString(AstNode node) {
-    if (node.type != TknType.litKeyword)
+    if (node.type != keyword(":litKeyword"))
         throw new CompilerError("Expected symbol: " ~ node.tknstr);
     return szNameToHostName(node.text[1 .. $]);
 }
@@ -329,7 +329,7 @@ string keywordToString(AstNode node) {
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
     bool allow = result[][$ - 1] != ';' && result[][$ - 1] != '{' && result[][$ - 1] != '}';
-    if (node.type == TknType.closedScope && node.size > 0) {
+    if (node.type == keyword(":closedScope") && node.size > 0) {
         allow = allow && node.nodes[0].text != "ll" && node.nodes[0].text != "loop";
     }
     if (allow || (node.size > 0 && node.nodes[0].text == "lambda"))
@@ -358,7 +358,7 @@ bool nodesContainRecur(AstNode[] astNodes) {
         return false;
 
     foreach (node; astNodes) {
-        if (node.type == TknType.closedScope && node.size > 0
+        if (node.type == keyword(":closedScope") && node.size > 0
                 && (node.nodes[0].text == "loop" || node.nodes[0].text == "define")) {
             return false;
         }

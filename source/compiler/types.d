@@ -19,33 +19,6 @@ class CompilerError : Error {
 
 // SUBSECT Token
 
-enum TknType : Keyword {
-    unknown = keyword(":unknown"),
-//    root = keyword(":root"),
-    litInt = keyword(":litInt"),
-    litUInt = keyword(":litUInt"),
-    litFlt = keyword(":litFlt"),
-    litBool = keyword(":litBool"),
-    litString = keyword(":litString"),
-    litChar = keyword(":litChar"),
-    litList = keyword(":litList"),
-    litMap = keyword(":litMap"),
-    litKeyword = keyword(":litKeyword"),
-    litType = keyword(":litType"),
-//    symbol = keyword(":symbol"),
-    buildinFnCall = keyword(":buildinFnCall"),
-    buildinMacroCall = keyword(":buildinMacroCall"),
-    scopeOpen = keyword(":scopeOpen"),
-    scopeClose = keyword(":scopeClose"),
-    lstOpen = keyword(":lstOpen"),
-    lstTaggedOpen = keyword(":lstTaggedOpen"),
-    lstClose = keyword(":lstClose"),
-    closedScope = keyword(":closedScope"),
-    closedTaggedList = keyword(":closedTaggedList"),
-    closedList = keyword(":closedList"),
-    lnComment = keyword(":lnComment"),
-}
-
 struct Token {
     const int lineIdx;
     const int charIdx;

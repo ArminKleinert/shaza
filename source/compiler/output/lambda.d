@@ -18,7 +18,7 @@ string lambdaToString(AstCtx ast) {
     //    string msg = "Lambda without explicit return type not supported yet. ";
     //    throw new CompilerError(msg ~ ast.nodes[0].tknstr());
     //}
-    if (ast.nodes[1].type != TknType.closedScope && ast.nodes[2].type != TknType.closedScope) {
+    if (ast.nodes[1].type != keyword(":closedScope") && ast.nodes[2].type != keyword(":closedScope")) {
         string msg = "Lambda argument must given in brackets. " ~ ast.nodes[0].tknstr();
         throw new CompilerError(msg);
     }
@@ -28,7 +28,7 @@ string lambdaToString(AstCtx ast) {
     AstNode returnTypeNode = ast.nodes[i];
     string returnType = null;
 
-    if (returnTypeNode.type == TknType.closedScope) {
+    if (returnTypeNode.type == keyword(":closedScope")) {
         returnTypeNode = null;
     } else {
         returnType = typeToString(returnTypeNode);

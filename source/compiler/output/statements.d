@@ -19,7 +19,7 @@ string aliasToString(AstCtx ast) {
 
     if (ast[2].type == keyword(":symbol"))
         return "alias " ~ symbolToString(ast[1]) ~ " = " ~ symbolToString(ast[2]) ~ ";";
-    else if (ast[2].type == TknType.litType)
+    else if (ast[2].type == keyword(":litType"))
         return "alias " ~ symbolToString(ast[1]) ~ " = " ~ typeToString(ast[2]) ~ ";";
     else
         throw new CompilerError(
@@ -31,7 +31,7 @@ string aliasToString(AstCtx ast) {
 string letBindingsToString(AstCtx ast, AstNode[] bindings) {
     auto result = appender!string("");
     for (int i = 0; i < bindings.size; i += 2) {
-        if (bindings[i].type == TknType.litType) {
+        if (bindings[i].type == keyword(":litType")) {
             result ~= typeToString(bindings[i]);
             result ~= ' ';
             i++;
@@ -49,7 +49,7 @@ string letBindingsToString(AstCtx ast, AstNode[] bindings) {
 string letToString(AstCtx ast) {
     if (ast.nodes.size < 2)
         throw new CompilerError("let: Too few arguments. " ~ ast.nodes[0].tknstr());
-    if (ast.nodes[1].type != TknType.closedList && ast.nodes[1].type != TknType.closedScope)
+    if (ast.nodes[1].type != keyword(":closedList") && ast.nodes[1].type != keyword(":closedScope"))
         throw new CompilerError("let: Bindings must be a list literal. " ~ ast.nodes[1].tknstr());
 
     AstNode[] bindings = ast.nodes[1].nodes;
@@ -110,7 +110,7 @@ string loopToString(AstCtx ast) {
     if (ast.size < 3) {
         throw new CompilerError("Loop: not enough arguments. " ~ ast.nodes[0].tknstr);
     }
-    if (ast.nodes[1].type != TknType.closedScope) {
+    if (ast.nodes[1].type != keyword(":closedScope")) {
         throw new CompilerError("Loop: First argument must be a scope. " ~ ast.nodes[1].tknstr());
     }
 
@@ -127,7 +127,7 @@ string loopToString(AstCtx ast) {
 
     for (auto i = 0; i < bindings.size; i += 2) {
         // Type
-        if (bindings[i].type == TknType.litType) {
+        if (bindings[i].type == keyword(":litType")) {
             result ~= typeToString(bindings[i]);
             i++;
         } else {

@@ -31,35 +31,35 @@ Context buildBasicAst(Context ctx) {
         }
 
         switch (current.type) {
-        case TknType.scopeOpen:
+        case keyword(":scopeOpen"):
             stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, TknType.closedScope, ""));
+                    current.charIdx, keyword(":closedScope"), ""));
             break;
-        case TknType.lstOpen:
+        case keyword(":lstOpen"):
             stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, TknType.closedList, ""));
+                    current.charIdx, keyword(":closedList"), ""));
             break;
-        case TknType.lstTaggedOpen:
+        case keyword(":lstTaggedOpen"):
             stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, TknType.closedTaggedList, current.text[0 .. $ - 1]));
+                    current.charIdx, keyword(":closedTaggedList"), current.text[0 .. $ - 1]));
             break;
-        case TknType.lnComment:
+        case keyword(":lnComment"):
             comment_line = current.lineIdx;
             break;
-        case TknType.scopeClose:
-        case TknType.lstClose:
+        case keyword(":scopeClose"):
+        case keyword(":lstClose"):
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
                 auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
-            auto is_valid = list_token.type == TknType.closedList && current.type
-                == TknType.lstClose;
-            is_valid = is_valid || (list_token.type == TknType.closedTaggedList
-                    && current.type == TknType.lstClose);
-            is_valid = is_valid || (list_token.type == TknType.closedScope
-                    && current.type == TknType.scopeClose);
+            auto is_valid = list_token.type == keyword(":closedList") && current.type
+                == keyword(":lstClose");
+            is_valid = is_valid || (list_token.type == keyword(":closedTaggedList")
+                    && current.type == keyword(":lstClose"));
+            is_valid = is_valid || (list_token.type == keyword(":closedScope")
+                    && current.type == keyword(":scopeClose"));
             if (is_valid) {
                 stack = mergeTopElements(stack);
             } else {

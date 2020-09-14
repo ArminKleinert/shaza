@@ -41,7 +41,7 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
     // If the type is not empty
     if (ast.nodes.size > 2) {
         // If the type has generics
-        if (ast.nodes[2].type == TknType.closedScope) {
+        if (ast.nodes[2].type == keyword(":closedScope")) {
             generics = ast.nodes[2];
             attrList = ast.nodes[3 .. $];
         } else {

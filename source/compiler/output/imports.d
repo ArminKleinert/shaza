@@ -15,13 +15,13 @@ string importHostToString(AstNode ast) {
     // Handle some errors
     if (nodes.size == 0)
         throw new CompilerError("Too few arguments for import-host.");
-    if (nodes[0].type != keyword(":symbol") && nodes[0].type != TknType.litString) {
+    if (nodes[0].type != keyword(":symbol") && nodes[0].type != keyword(":litString")) {
         throw new CompilerError("import-host: Module name must be string or symbol.");
     }
 
     // Parse name of import
     string nameText;
-    if (nodes[0].type == TknType.litString) {
+    if (nodes[0].type == keyword(":litString")) {
         nameText = nodes[0].text[1 .. $ - 1];
     } else {
         nameText = symbolToString(nodes[0]);
@@ -32,7 +32,7 @@ string importHostToString(AstNode ast) {
         return "import " ~ nameText ~ ";";
     } else if (nodes.size == 2) {
         // Import only specific list of functions.
-        if (nodes[1].type != TknType.closedList && nodes[1].type != TknType.closedScope)
+        if (nodes[1].type != keyword(":closedList") && nodes[1].type != keyword("closedScope"))
             throw new CompilerError(
                     "import-host: list of imported functions must be a list. '(...)' or '[...]'");
 
@@ -63,7 +63,7 @@ string importShazaToString(AstNode ast) {
     auto node = ast.nodes[1];
     auto fname = "";
 
-    if (node.type == TknType.litString) {
+    if (node.type == keyword(":litString")) {
         fname = node.tkn.text[1 .. $ - 1];
     } else if (node.type == keyword(":symbol")) {
         fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";
@@ -101,7 +101,7 @@ string includeToString(AstNode ast) {
     auto node = ast.nodes[1];
     auto fname = "";
 
-    if (node.type == TknType.litString) {
+    if (node.type == keyword(":litString")) {
         fname = node.tkn.text[1 .. $ - 1];
     } else if (node.type == keyword(":symbol")) {
         fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";

@@ -37,7 +37,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
     auto wrapped = ast.nodes[2 .. $];
 
     // Crash if attribute list is invalid
-    expectType(attribs, TknType.closedScope);
+    expectType(attribs, keyword(":closedScope"));
 
     // SUBSECT Parse attributes
 
@@ -51,21 +51,21 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
 
     // Currently accepted options are :generics, :visibility, :aliases, :export-as
     for (auto i = 0; i < attribs.size; i++) {
-        expectType(attribs.nodes[i], TknType.litKeyword);
+        expectType(attribs.nodes[i], keyword(":litKeyword"));
         if (attribs.nodes[i].text == ":generics") {
             i++;
-            expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
+            expectType(attribs.nodes[i], keyword(":litList"), keyword(":closedList"));
             foreach (genNode; attribs.nodes[i].nodes) {
-                expectType(genNode, TknType.litType);
+                expectType(genNode, keyword(":litType"));
                 generics ~= typeToString(genNode);
             }
         } else if (attribs.nodes[i].text == ":visibility") {
             i++;
-            expectType(attribs.nodes[i], TknType.litKeyword);
+            expectType(attribs.nodes[i], keyword(":litKeyword"));
             visibility = keywordToString(attribs.nodes[i]);
         } else if (attribs.nodes[i].text == ":returns") {
             i++;
-            expectType(attribs.nodes[i], TknType.litType);
+            expectType(attribs.nodes[i], keyword(":litType"));
             returnType = typeToString(attribs.nodes[i]);
         } else if (attribs.nodes[i].text == ":aliases") {
             i++;
@@ -73,7 +73,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
             //    stderr.writeln(
             //            ":aliases only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
             //} else {
-            expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
+            expectType(attribs.nodes[i], keyword(":litList"), keyword(":closedList"));
             foreach (aliasNode; attribs.nodes[i].nodes) {
                 expectType(aliasNode, keyword(":symbol"));
                 aliases ~= aliasNode.text;
@@ -85,12 +85,12 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
             //    stderr.writeln(
             //            ":export-as only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
             //} else {
-            expectType(attribs.nodes[i], TknType.litString);
+            expectType(attribs.nodes[i], keyword(":litString"));
             exportName = attribs.nodes[i].text[1 .. $ - 1];
             //}
         } else if (attribs.nodes[i].text == ":tk-aliases") {
             i++;
-            if (attribs.nodes[i].type != TknType.closedList) {
+            if (attribs.nodes[i].type != keyword(":closedList")) {
                 throw new CompilerError(
                         "meta: Expected list for attribute tk-aliases. " ~ attribs.nodes[i].tknstr);
             } else if (attribs.nodes[i].size % 2 != 0) {
@@ -117,7 +117,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
             }
         } else if (attribs.nodes[i].text == ":variadic") {
             i++;
-            if (attribs.nodes[i].type != TknType.litBool) {
+            if (attribs.nodes[i].type != keyword(":litBool")) {
                 warning(
                         "meta: The :variadic option required a boolean (#t/#f) " ~ attribs.nodes[i].tknstr());
             } else {

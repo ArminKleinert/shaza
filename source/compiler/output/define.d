@@ -46,7 +46,7 @@ string[] getVarNamesFromLoopBindings(AstCtx[] bindings) {
         //if (bindings[i].type == keyword(":symbol")) {
         //    names ~= szNameToHostName(symbolToString(bindings[i]));
         //}
-        if (bindings[i].type == TknType.litType) {
+        if (bindings[i].type == keyword(":litType")) {
             i++;
         }
         if (i >= bindings.size) {
@@ -65,7 +65,7 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
     string[] names;
 
     for (int i = 0; i < bindings.size; i++) {
-        if (bindings[i].type == TknType.litType) {
+        if (bindings[i].type == keyword(":litType")) {
             i++;
         }
         if (i >= bindings.size) {
@@ -84,7 +84,7 @@ string generalFunctionBindingsToString(AstNode[] bindings, FnMeta meta) {
 
     // Write function argument list
     for (int i = 0; i < bindings.size; i++) {
-        if (bindings[i].type != TknType.litType) {
+        if (bindings[i].type != keyword(":litType")) {
             throw new CompilerError("Function bindings: Type expected. " ~ bindings[i].tknstr);
         }
         result ~= typeToString(bindings[i]);
@@ -146,7 +146,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     if (meta !is null) {
         type = meta.returnType;
     }
-    if (ast[nameIndex].type == TknType.litType) {
+    if (ast[nameIndex].type == keyword(":litType")) {
         type = typeToString(ast[nameIndex]);
         nameIndex++; // Type found, name comes later.
     }
@@ -154,13 +154,13 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     // SUBSECT Generics
 
     string[] generics = []; // None if not given
-    if (ast[nameIndex].type == TknType.closedScope) {
+    if (ast[nameIndex].type == keyword(":closedScope")) {
         generics = [];
         isFunctionDef = true;
 
         auto genericsNodes = ast[nameIndex].nodes;
         foreach (node; genericsNodes) {
-            if (node.type != TknType.litType) {
+            if (node.type != keyword(":litType")) {
                 throw new CompilerError("Expected type: " ~ node.tknstr());
             }
             generics ~= typeToString(node.text);
@@ -226,7 +226,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     // SUBSECT Bindings and body
 
     // Arguments must be in (...)
-    if (ast[nameIndex + 1].type != TknType.closedScope) {
+    if (ast[nameIndex + 1].type != keyword(":closedScope")) {
         string msg = "Token " ~ ast[nameIndex + 1].tkn.as_readable;
         msg ~= " not allowed as function argument list. Please surround arguments with '(...)'.";
         throw new CompilerError(msg);
@@ -249,16 +249,16 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
         if (bindings[i].text == "::") { // Anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
             i++;
-        } else if (bindings[i].type == TknType.litType) { // Normal case
+        } else if (bindings[i].type == keyword(":litType")) { // Normal case
             bindings2 ~= bindings[i];
             i++;
         } else if (bindings[i].text == "_") { // Parameter type and name are anonymous; name can still be accessed as $n
             // Write anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
 
             // Write anonymous name
@@ -272,7 +272,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         } else if (bindings[i].type == keyword(":symbol")) {
             // No type given
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
+            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
 
             // Add generic, anonymous type
