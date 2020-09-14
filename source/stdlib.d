@@ -9,7 +9,6 @@ import std.array;
 import std.functional;
 struct Keyword {
 string text;
-alias text this;
 this(string _text){
 text = _text;
 }

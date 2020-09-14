@@ -116,21 +116,13 @@ class Context {
 // SUBSECT Token type helpers
 
 bool isLiteral(Token tkn) {
-    switch (tkn.type) {
-    case keyword(":litInt"):
-    case keyword(":litUInt"):
-    case keyword(":litFlt"):
-    case keyword(":litBool"):
-    case keyword(":litString"):
-    case keyword(":litList"):
-    case keyword(":litMap"):
-    case keyword(":litKeyword"):
-    case keyword(":litType"):
-    case keyword(":litChar"):
-        return true;
-    default:
-        return false;
-    }
+    Keyword[] listOfLiteralTypes = [
+        keyword(":litInt"), keyword(":litUInt"), keyword(":litFlt"),
+        keyword(":litBool"), keyword(":litString"), keyword(":litList"),
+        keyword(":litMap"), keyword(":litKeyword"), keyword(":litType"),
+        keyword(":litChar")
+    ];
+    return includes_Q(listOfLiteralTypes, tkn.type);
 }
 
 bool allowImplicitReturn(string returnType, AstNode command) {
@@ -165,36 +157,20 @@ bool isAtom(Token tkn) {
 }
 
 bool isOpener(Token tkn) {
-    switch (tkn.type) {
-    case keyword(":scopeOpen"):
-    case keyword(":lstOpen"):
-    case keyword(":lstTaggedOpen"):
-        return true;
-    default:
-        return false;
-    }
+    return includes_Q([
+            keyword(":scopeOpen"), keyword(":lstOpen"), keyword(":lstTaggedOpen")
+            ], tkn.type);
 }
 
 bool isCloser(Token tkn) {
-    switch (tkn.type) {
-    case keyword(":scopeClose"):
-    case keyword(":lstClose"):
-        return true;
-    default:
-        return false;
-    }
+    return includes_Q([keyword(":scopeClose"), keyword(":lstClose")], tkn.type);
 }
 
 bool isSimpleLiteral(Token tkn) {
-    switch (tkn.type) {
-    case keyword(":litInt"):
-    case keyword(":litUInt"):
-    case keyword(":litFlt"):
-    case keyword(":litBool"):
-        return true;
-    default:
-        return false;
-    }
+    return includes_Q([
+            keyword(":litInt"), keyword(":litUInt"), keyword(":litFlt"),
+            keyword(":litBool")
+            ], tkn.type);
 }
 
 // SUBSECT AST type helper
@@ -285,21 +261,21 @@ string typeToString(string litType) {
 
 void expectType(AstNode node, Keyword type) {
     if (node.type != type) {
-        string msg = "Expected " ~ type ~ " but got " ~ node.tknstr();
+        string msg = "Expected " ~ str(type) ~ " but got " ~ node.tknstr();
         throw new CompilerError(msg);
     }
 }
 
 void expectType(AstNode node, Keyword t1, Keyword t2) {
     if (node.type != t1 && node.type != t2) {
-        string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " but got " ~ node.tknstr();
+        string msg = "Expected " ~ str(t1) ~ " or " ~ str(t2) ~ " but got " ~ node.tknstr();
         throw new CompilerError(msg);
     }
 }
 
 void expectType(AstNode node, Keyword t1, Keyword t2, Keyword t3) {
     if (node.type != t1 && node.type != t2 && node.type != t3) {
-        string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " or " ~ t3;
+        string msg = "Expected " ~ str(t1) ~ " or " ~ str(t2) ~ " or " ~ str(t3);
         throw new CompilerError(msg ~ " but got " ~ node.tknstr());
     }
 }

@@ -29,32 +29,26 @@ Context buildBasicAst(Context ctx) {
             continue;
         }
 
-        switch (current.type) {
-        case keyword(":scopeOpen"):
-            stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, keyword(":closedScope"), ""));
-            break;
-        case keyword(":lstOpen"):
-            stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, keyword(":closedList"), ""));
-            break;
-        case keyword(":lstTaggedOpen"):
-            stack ~= new AstNode(Token(current.lineIdx,
-                    current.charIdx, keyword(":closedTaggedList"), current.text[0 .. $ - 1]));
-            break;
-        case keyword(":lnComment"):
+        if (current.type == keyword(":scopeOpen")) {
+            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
+                    keyword(":closedScope"), ""));
+        } else if (current.type == keyword(":lstOpen")) {
+            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
+                    keyword(":closedList"), ""));
+        } else if (current.type == keyword(":lstTaggedOpen")) {
+            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
+                    keyword(":closedTaggedList"), current.text[0 .. $ - 1]));
+        } else if (current.type == keyword(":lnComment")) {
             comment_line = current.lineIdx;
-            break;
-        case keyword(":scopeClose"):
-        case keyword(":lstClose"):
+        } else if (current.type == keyword(":scopeClose") || current.type == keyword(":lstClose")) {
             auto list_node = stack[$ - 1];
             auto list_token = list_node.tkn;
             if (list_node == root) {
                 auto err = "Attempting to close root node: " ~ to!string(current);
                 throw new CompilerError(err);
             }
-            auto is_valid = list_token.type == keyword(":closedList") && current.type
-                == keyword(":lstClose");
+            auto is_valid = list_token.type == keyword(":closedList")
+                && current.type == keyword(":lstClose");
             is_valid = is_valid || (list_token.type == keyword(":closedTaggedList")
                     && current.type == keyword(":lstClose"));
             is_valid = is_valid || (list_token.type == keyword(":closedScope")
@@ -65,11 +59,9 @@ Context buildBasicAst(Context ctx) {
                 throw new CompilerError("The closing token " ~ to!string(
                         current) ~ " isn't closing anything.");
             }
-            break;
-        default:
+        } else {
             stack ~= new AstNode(current);
             stack = mergeTopElements(stack);
-            break;
         }
 
         tknIndex++;

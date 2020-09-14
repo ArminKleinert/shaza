@@ -152,8 +152,8 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
         return "";
 
     // Try to find module declaration
-    if (ast.nodes[0].type == keyword(":closedScope") && ast.nodes[0].nodes.size > 0
-            && ast.nodes[0].nodes[0].text == "module") {
+    if (ast.nodes[0].type == keyword(":closedScope")
+            && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].text == "module") {
         string temp = moduleToString(ast.nodes[0]);
 
         modulename = retrieveModuleName(ast.nodes[0]);

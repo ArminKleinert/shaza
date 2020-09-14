@@ -10,7 +10,7 @@
 
 ; SECTION Important Shaza types
 
-(def-struct Keyword ::string text)
+(def-struct Keyword _ ::string text)
 (define keyword (::string text) (Keyword text))
 (define str (::Keyword kw) kw.text)
 
