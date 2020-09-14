@@ -12,7 +12,7 @@
 
 (def-struct Keyword ::string text)
 (define keyword (::string text) (Keyword text))
-(define str (::Keyword kw) kw.text)
+(define str (::Keyword kw) (llr "\":\"" ~ "kw.text"))
 
 ; SECTION Important imports
 
@@ -79,5 +79,8 @@ FIXME-List
 - Currently, only one function can be saved under the same name (it still works but might be a problem later)
 )
 
+
+(define isValidSymbolText (::string text)
+  (none? (lambda ::bool (::immutable(char) c) (includes? text c)) "\";()[]{}#:"))
 
 

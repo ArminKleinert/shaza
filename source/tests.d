@@ -1,6 +1,7 @@
 module tests;
 
 import stdlib;
+import std.functional;
 private string typestr(int i){
 return "int";
 }
@@ -392,24 +393,35 @@ return plus(i, j);
 auto test_reduce_2(){
 {
 auto coll = [1,2,3,4,5,6];
-println_E(reduce(delegate (int i, int j){
-return sub(j, i);
-}, coll));
-println_E(reduce(delegate (int i, int j){
-println_E(sub(j, i));
-return sub(j, i);
-}, coll));
 return eql_Q(reduce(delegate (int i, int j){
 return sub(j, i);
 }, coll), -19);}
 }
 
+auto test_reduce_3_sub(int i, int j){
+return sub(j, i);
+}
+
 auto test_reduce_3(){
+{
+auto coll = [1,2,3,4,5,6];
+return eql_Q(reduce((std.functional.toDelegate(&test_reduce_3_sub)), coll), -19);}
+}
+
+auto test_reduce_4(){
 {
 int[] coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate string(int i, string s){
 return append(s, to_s(i));
 }, coll, ""), "123456");}
+}
+
+auto test_reduce_5(){
+{
+auto coll = [1,2,3,4,5,6];
+return eql_Q(reduce(delegate int[][](int i, int[][] res){
+return append(res, [i]);
+}, coll, []), [[1],[2],[3],[4],[5],[6]]);}
 }
 
 void main1(){
@@ -514,6 +526,8 @@ println_E(append("test-reduce        ", to_s(test_reduce())));
 println_E(append("test-reduce-1      ", to_s(test_reduce_1())));
 println_E(append("test-reduce-2      ", to_s(test_reduce_2())));
 println_E(append("test-reduce-3      ", to_s(test_reduce_3())));
+println_E(append("test-reduce-4      ", to_s(test_reduce_4())));
+println_E(append("test-reduce-5      ", to_s(test_reduce_5())));
 }
 
 

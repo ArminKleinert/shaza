@@ -3,7 +3,7 @@ module compiler.output.imports;
 import compiler.output.helpers;
 import compiler.output.define;
 import compiler.types;
-import shaza.std;
+import shaza.stdlib;
 
 import std.array;
 

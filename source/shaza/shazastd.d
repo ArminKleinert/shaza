@@ -1,309 +1,730 @@
-module shaza.std;
+module shaza.stdlib;
 
-import std.variant;
+import std.stdio;
 import std.conv;
 import std.typecons;
-import std.traits;
-import std.stdio;
-
-class Cell {
-    private Object _car;
-    private Cell _cdr;
-
-    public this(Object value) {
-        this._car = value;
-        _cdr = null;
-    }
-
-    static Cell wrap(T)(T val) if (is(T == class)) {
-        return new Cell(val);
-    }
-
-    static Cell wrap(T)(T val) if (is(T == typeof(null))) {
-        return new Cell(null);
-    }
-
-    static Cell wrap(T)(T val) if (is(T == struct) || is(T == union)) {
-        return new Cell(box(val));
-    }
-
-    static Cell wrap(T)(T val) if (isBasicType!T || isArray!(T)) {
-        return new Cell(box(val));
-    }
-
-    static Cell wrap(T)(T val) if (isSomeFunction!(T)) {
-        return new Cell(box(val));
-    }
-
-    public Object car() {
-        return _car;
-    }
-
-    public void setCar(Object val) {
-        this._car = val;
-    }
-
-    public Cell cdr() {
-        return _cdr;
-    }
-
-    public void setCdr(Cell cdr) {
-        this._cdr = cdr;
-    }
-
-    public Object cdar() {
-        return _cdr.car;
-    }
-
-    public Cell cddr() {
-        return _cdr.cdr;
-    }
-
-    public Object caar() {
-        return (cast(Cell) _car).car;
-    }
-
-    Object opIndex(size_t index) {
-        auto current = this;
-        while (index > 0) {
-            current = current.cdr;
-            index--;
-        }
-        return current.car;
-    }
-
-    override string toString() {
-        import std.array;
-
-        Cell current = this;
-        auto result = appender("(");
-
-        while (current !is null) {
-            result ~= to!string(current.car);
-            if (current.cdr !is null)
-                result ~= ", ";
-            current = current.cdr;
-        }
-        result ~= ')';
-
-        return result[];
-    }
-}
-
-/*
-Cell cons(Object[] vars...) {
-    if (vars.length == 0)
-        return null;
-
-    Cell head = Cell.create(vars[0]);
-    Cell tail = head;
-    for (auto i = 1; i < vars.length; i++)
-        head.setCdr(tail = tail._cdr = Cell.create(vars[i]));
-
-    return head;
-}
-*/
-
-Cell cons(T)(T[] vars...) {
-    if (vars.length == 0)
-        return null;
-    writeln(vars);
-
-    Cell head = Cell.wrap(vars[0]);
-
-    Cell tail;
-    if (vars.length >= 2) {
-        tail = Cell.wrap(vars[1]);
-        head.setCdr(tail);
-    }
-
-    for (auto i = 2; i < vars.length; i++) {
-        Cell ncell = Cell.wrap(vars[i]);
-        tail.setCdr(ncell);
-        tail = tail.cdr;
-    }
-
-    return head;
-}
-
-struct Symbol {
-    const string name;
-    alias name this;
-    public this(string _name) {
-        name = _name;
-    }
-}
-
-class ShazaError : Error {
-    public this(string msg, string file = __FILE__, size_t line = __LINE__) {
-        super(msg, file, line);
-    }
-
-    public this(string[] ss...) {
-        string msg = "";
-        foreach (string t; ss) {
-            msg ~= t;
-        }
-        super(msg, __FILE__, __LINE__);
-    }
-}
-
-class Boxed(T) {
-    const T _v;
-    alias _v this;
-
-    this(in T v) {
-        _v = v;
-    }
-
-    T get() {
-        return _v;
-    }
-
-    override string toString() {
-        return to!string(_v);
-    }
-}
-
-Boxed!T box(T)(T val) {
-    return new Boxed!T(val);
-}
+import std.string;
+import std.algorithm;
+import std.array;
+import std.functional;
 
 struct Keyword {
-    const string text;
-
-    this(string text) {
-        this.text = text;
+    string text;
+    alias text this;
+    this(string _text){
+        text = _text;
     }
-
-    string toString() {
-        return text;
+    Keyword with_text(string text){
+        return Keyword(text);
     }
-}
-
-struct ClassKeyword {
-    const string text;
-
-    this(string text) {
-        this.text = text;
-    }
-
-    string toString() {
-        return text;
+    Keyword clone(){
+        return Keyword(text);
     }
 }
 
-alias SzVector(T) = T[];
 
-class SzNull {
-    private this() {
+auto keyword(string text){
+    return Keyword(text);
+}
+
+auto str(Keyword kw){
+    return ":"~kw.text;
+}
+
+
+
+
+int default_int = int.init;
+
+uint default_uint = uint.init;
+
+long default_long = long.init;
+
+ulong default_ulong = ulong.init;
+
+bool default_bool = bool.init;
+
+float default_float = 0.0;
+
+double default_double = 0.0;
+
+string default_string = "";
+
+T if2(T)(lazy bool cond, lazy T branchThen, lazy T branchElse){
+    return (cond?branchThen:branchElse);
+}
+T if2(T)(lazy bool cond, lazy T branchThen){
+    return (cond?branchThen:(T.init));
+}
+
+private N variadic_helper(N)(N delegate(N,N) accumulator_fn, N n, N[] nums...){
+    jumplbl1:
+    if(nums.length==0) {
+        return n;
+    } else {
+        {
+            auto accumulator_fn_0 = accumulator_fn;
+            auto n_1 = accumulator_fn(n, nums[0]);
+            auto nums_2 = nums[1..$];
+            accumulator_fn = accumulator_fn_0;
+            n = n_1;
+            nums = nums_2;
+        }
+        goto jumplbl1;
     }
+}
+auto plus(N, N1)(N i0){
+    return i0;
+}
+auto plus(N, N1)(N i0, N1 i1){
+    return i0+i1;
+}
+auto plus(N)(N[] nums...){
+    return variadic_helper(delegate N(N n, N m){
+        return plus(n, m);
+    }, nums);
+}
+auto sub(N, N1)(N i0){
+    return -i0;
+}
+auto sub(N, N1)(N i0, N1 i1){
+    return i0-i1;
+}
+auto sub(N)(N[] nums...){
+    return variadic_helper(delegate N(N n, N m){
+        return plus(n, m);
+    }, nums);
+}
+auto mul(N, N1)(N i0, N1 i1){
+    return i0*i1;
+}
+auto mul(N)(N[] nums...){
+    return variadic_helper(delegate N(N n, N m){
+        return plus(n, m);
+    }, nums);
+}
+auto div(N, N1)(N i0, N1 i1){
+    return i0/i1;
+}
+auto div(N)(N[] nums...){
+    return variadic_helper(delegate N(N n, N m){
+        return plus(n, m);
+    }, nums);
+}
+auto mod(N, N1)(N i0, N1 i1){
+    return i0%i1;
+}
+auto mod(N)(N[] nums...){
+    return variadic_helper(delegate N(N n, N m){
+        return plus(n, m);
+    }, nums);
+}
 
-    // Cache instantiation flag in thread-local bool
-    // Thread local
-    private static bool instantiated_;
+auto inc(N)(N n){
+    return plus(n, 1);
+}
+auto dec(N)(N n){
+    return sub(n, 1);
+}
 
-    // Thread global
-    private __gshared SzNull instance_;
+auto bit_and(Int1, Int2)(Int1 i0, Int2 i1){
+    return i0&i1;
+}
+auto bit_or(Int1, Int2)(Int1 i0, Int2 i1){
+    return i0|i1;
+}
+auto bit_xor(Int1, Int2)(Int1 i0, Int2 i1){
+    return i0^i1;
+}
+auto shift_left(Int1, Int2)(Int1 i0, Int2 i1){
+    return i0<<i1;
+}
+auto shift_right(Int1, Int2)(Int1 i0, Int2 i1){
+    return i0>>i1;
+}
 
-    static SzNull get() {
-        if (!instantiated_) {
-            synchronized (SzNull.classinfo) {
-                if (!instance_)
-                    instance_ = new SzNull();
-                instantiated_ = true;
+auto bit_negate(Int)(Int i0){
+    return ~i0;
+}
+
+bool eql_Q(T)(T e0, T e1){
+    return e0==e1;
+}
+bool not_eql_Q(T)(T e0, T e1){
+    return e0!=e1;
+}
+bool lt_Q(T)(T e0, T e1){
+    return e0<e1;
+}
+bool le_Q(T)(T e0, T e1){
+    return e0<=e1;
+}
+bool gt_Q(T)(T e0, T e1){
+    return e0>e1;
+}
+bool ge_Q(T)(T e0, T e1){
+    return e0>=e1;
+}
+bool nil_Q(T)(T e){
+    return e is null;
+}
+int compare(T)(T e0, T e1){
+    return if2(eql_Q(e0, e1), 0, if2(lt_Q(e0, e1), -1, 1));
+}
+bool pos_Q(T)(T e0){
+    return ge_Q(e0, 0);
+}
+bool neg_Q(T)(T e0){
+    return lt_Q(e0, 0);
+}
+
+bool not(bool b0){
+    return if2(b0, false, true);
+}
+bool and(lazy bool b0, lazy bool b1){
+    return b0&&b1;
+}
+bool and(lazy bool b0, lazy bool b1, lazy bool b2, lazy bool[] bs...){
+    if(not(and(b0, b1))) {
+        return false;
+    } else {
+        auto b = b2;
+        auto _rest = bs;
+        jumplbl1:
+        if(not(b)) {
+            return false;
+        } else {
+            if(_rest.length==0) {
+                return true;
+            } else {
+                {
+                    auto b_0 = _rest[0];
+                    auto _rest_1 = _rest[1..$];
+                    b = b_0;
+                    _rest = _rest_1;
+                }
+                goto jumplbl1;
             }
         }
-
-        return instance_;
-    }
-
-    static SzNull nil() {
-        return get();
-    }
-
-    override string toString() {
-        return "nil";
     }
 }
-
-alias SzMap(K, V) = V[K];
-
-/*
-class SzVector(T) {
-    T[] val;
-
-    this(T[] val) {
-        this.val = val;
-    }
-
-    public override string toString() {
-        string res = "[";
-        foreach (v; val) {
-            res ~= to!string(v);
-            res ~= ", ";
+bool nand(lazy bool b0, lazy bool b1){
+    return not(and(b0, b1));
+}
+bool nand(lazy bool b0, lazy bool b1, lazy bool b2, lazy bool[] bs...){
+    return not(and(b0, b1, b2));
+}
+bool or(lazy bool b0, lazy bool b1){
+    return b0||b1;
+}
+bool or(lazy bool b0, lazy bool b1, lazy bool b2, lazy bool[] bs...){
+    if(or(b0, b1)) {
+        return true;
+    } else {
+        auto b = b2;
+        auto _rest = bs;
+        jumplbl1:
+        if(b) {
+            return true;
+        } else {
+            if(_rest.length==0) {
+                return false;
+            } else {
+                {
+                    auto b_0 = _rest[0];
+                    auto _rest_1 = _rest[1..$];
+                    b = b_0;
+                    _rest = _rest_1;
+                }
+                goto jumplbl1;
+            }
         }
-        res = res[0 .. $ - 2];
-        res ~= "]";
-        return to!string(val);
-    }
-
-    public SzVector append(T v) {
-        return new SzVector(val ~ v);
-    }
-
-    public SzVector appendAll(SzVector sv) {
-        return new SzVector(val ~ sv.val);
-    }
-
-    public size_t size() {
-        return val.length;
-    }
-
-    public T get(int v) {
-        return val[v];
     }
 }
-
-class SzMap(K, V) {
-    V[K] val;
-
-    this(V[K] val) {
-        this.val = val;
-    }
-
-    this() {
-    }
-
-    public override string toString() {
-        string res = "{";
-        foreach (k, v; val) {
-            res ~= to!string(k);
-            res ~= " ";
-            res ~= to!string(v);
-            res ~= ", ";
+bool nor(lazy bool b0, lazy bool b1){
+    return if2(b0, false, if2(b1, false, true));
+}
+bool nor(lazy bool b0, lazy bool b1, lazy bool[] bs...){
+    if(b0) {
+        return false;
+    } else {
+        if(b1) {
+            return false;
+        } else {
+            auto b = false;
+            auto _rest = bs;
+            jumplbl1:
+            if(_rest.length==0) {
+                return true;
+            } else {
+                {
+                    auto b_0 = _rest[0];
+                    auto _rest_1 = _rest[1..$];
+                    b = b_0;
+                    _rest = _rest_1;
+                }
+                goto jumplbl1;
+            }
         }
-        res = res[0 .. $ - 2];
-        res ~= "}";
-        return to!string(val);
-    }
-
-    public SzMap assoc(K key, V value) {
-        Variable[Variable] newVal = val.dup;
-        newVal[key] = value;
-        return new SzMap(newVal);
-    }
-
-    public size_t size() {
-        return val.length;
-    }
-
-    public Variable get(Variable key) {
-        return val[key];
-    }
-
-    public Variable[] keys(Variable key) {
-        return val.keys;
     }
 }
-*/
+bool xor(lazy bool b0, lazy bool b1){
+    return or(and(b0, not(b1)), and(not(b0), b1));
+}
+
+
+
+
+
+size_t size(T)(T[] coll){
+    return coll.length;
+}
+T[] values(T)(T[] coll){
+    return coll;
+}
+T[] append(T)(T[] coll, T value){
+    return coll~value;
+}
+T[] append_E(T)(ref T[] coll, T value){
+    coll~=value;
+    return coll;
+}
+T[] append(T)(T[] coll, T[] value){
+    return coll~value;
+}
+T[] append_E(T)(ref T[] coll, T[] value){
+    coll~=value;
+    return coll;
+}
+T[] prepend(T)(T value, T[] coll){
+    return [value]~coll;
+}
+T[] coll_clone(T)(T[] coll){
+    {
+        T[] res = [];
+        return append_E(res, coll);}
+}
+size_t[] keys(T)(T[] coll){
+    jumplbl1:
+    size_t[] n = [];
+    size_t temp = 0;
+    jumplbl2:
+    if(eql_Q(temp, size(coll))) {
+        return n;
+    } else {
+        {
+            auto n_0 = append_E(n, temp);
+            auto temp_1 = inc(temp);
+            n = n_0;
+            temp = temp_1;
+        }
+        goto jumplbl2;
+    }
+}
+T[] assoc_E(T)(T[] coll, size_t key, T value){
+    coll[key] = value;
+    return coll;
+}
+T[] assoc(T)(T[] coll, size_t key, T value){
+    return assoc_E(coll_clone(coll), key, value);
+}
+T[] slice(T)(T[] coll, size_t start){
+    return coll[start .. $];
+}
+T[] slice(T)(T[] coll, size_t start, size_t end_offset){
+    return coll[start .. $ - end_offset];
+}
+T get(T)(T[] coll, size_t k){
+    return if2(gt_Q(size(coll), k), coll[k], T.init);
+}
+T[] cleared(T)(T[] c){
+    {
+        T[] output = [];
+        return output;}
+}
+T[] resized(T)(T[] coll, size_t newsize){
+    {
+        auto cc = coll_clone(coll);
+        cc.length = newsize;
+        return cc;}
+}
+
+T[] vector(T)(T first_elem, T[] elements...){
+    return prepend(first_elem, elements);
+}
+T[K] entries(T, K)(T[] c){
+    jumplbl1:
+    if(eql_Q(size(c), 0)) {
+        {
+            T[K] res = [];
+            return res;}
+    }
+    auto keyseq = keys(c);
+    T[K] res = [];
+    auto first_key = get(keyseq, 0);
+    jumplbl2:
+    if(eql_Q(size(keyseq), 1)) {
+        return assoc_E(res, first_key, get(c, first_key));
+    } else {
+        {
+            auto keyseq_0 = slice(keyseq, 1);
+            auto res_1 = assoc_E(res, first_key, get(c, first_key));
+            auto first_key_2 = get(keyseq, 1);
+            keyseq = keyseq_0;
+            res = res_1;
+            first_key = first_key_2;
+        }
+        goto jumplbl2;
+    }
+}
+T first(T)(T[] c){
+    return get(values(c), 0);
+}
+T second(T)(T[] c){
+    return get(values(c), 1);
+}
+T last(T)(T[] c){
+    return get(values(c), dec(size(c)));
+}
+auto rest(T)(T[] c){
+    return slice(values(c), 1);
+}
+auto empty_Q(T)(T[] c){
+    return eql_Q(size(c), 0);
+}
+auto not_empty_Q(T)(T[] c){
+    return not(empty_Q(c));
+}
+size_t key_of(T)(T[] c, T value, size_t default_key){
+    jumplbl1:
+    auto r = keys(c);
+    jumplbl2:
+    if(empty_Q(r)) {
+        return default_key;
+    } else {
+        if(eql_Q(get(c, first(r)), value)) {
+            return first(r);
+        } else {
+            {
+                auto r_0 = rest(r);
+                r = r_0;
+            }
+            goto jumplbl2;
+        }
+    }
+}
+size_t key_of(T)(T[] c, T value){
+    return key_of(c, value, size_t.init);
+}
+size_t index_of(T)(T[] c, T value){
+    jumplbl1:
+    auto r = values(c);
+    size_t i = 0;
+    jumplbl2:
+    if(empty_Q(r)) {
+        return -1;
+    } else {
+        if(eql_Q(first(r), value)) {
+            return i;
+        } else {
+            {
+                auto r_0 = rest(r);
+                auto i_1 = inc(i);
+                r = r_0;
+                i = i_1;
+            }
+            goto jumplbl2;
+        }
+    }
+}
+bool starts_with_Q(T)(T[] c, T e){
+    return eql_Q(first(c), e);
+}
+bool starts_with_Q(T)(T[] c, T[] c1){
+    jumplbl1:
+    if(empty_Q(c1)) {
+        return true;
+    } else {
+        if(lt_Q(size(c), size(c1))) {
+            return false;
+        } else {
+            if(not_eql_Q(first(c), first(c1))) {
+                return false;
+            } else {
+                {
+                    auto c_0 = rest(c);
+                    auto c1_1 = rest(c1);
+                    c = c_0;
+                    c1 = c1_1;
+                }
+                goto jumplbl1;
+            }
+        }
+    }
+}
+bool ends_with_Q(T)(T[] c, T e){
+    return eql_Q(last(c), e);
+}
+bool ends_with_Q(T)(T[] c, T[] c1){
+    if(lt_Q(size(c), size(c1))) {
+        return false;
+    } else {
+        {
+            auto slice_idx = sub(size(c), size(c1));
+            auto sliced = slice(c, slice_idx);
+            return starts_with_Q(sliced, c1);}
+    }
+}
+T1 reduce(T, T1)(T1 delegate(T,T1) func, T[] c, T1 res){
+    jumplbl1:
+    auto _res = res;
+    auto _rest = c;
+    jumplbl2:
+    if(empty_Q(_rest)) {
+        return _res;
+    } else {
+        {
+            auto _res_0 = func(first(_rest), _res);
+            auto _rest_1 = rest(_rest);
+            _res = _res_0;
+            _rest = _rest_1;
+        }
+        goto jumplbl2;
+    }
+}
+T reduce(T)(T delegate(T,T) func, T[] c){
+    return if2(gt_Q(size(c), 1), reduce(func, rest(c), first(c)), if2(eql_Q(size(c), 1), first(c), T.init));
+}
+auto filter(T)(T[] delegate(T) func, T[] c){
+    return reduce(delegate T[](T e, T[] res){
+        return if2(func(e), append_E(res, e), res);
+    }, c, cleared(c));
+}
+auto remove(T)(T[] delegate(T) func, T[] c){
+    return reduce(delegate T[](T e, T[] res){
+        return if2(func(e), res, append_E(res, e));
+    }, c, cleared(c));
+}
+bool any_Q(T)(bool delegate(T) pred, T[] c){
+    jumplbl1:
+    if(empty_Q(c)) {
+        return false;
+    } else {
+        if(pred(first(c))) {
+            return true;
+        } else {
+            {
+                auto pred_0 = pred;
+                auto c_1 = rest(c);
+                pred = pred_0;
+                c = c_1;
+            }
+            goto jumplbl1;
+        }
+    }
+}
+bool all_Q(T)(bool delegate(T) pred, T[] c){
+    jumplbl1:
+    if(empty_Q(c)) {
+        return true;
+    } else {
+        if(not(pred(first(c)))) {
+            return true;
+        } else {
+            {
+                auto pred_0 = pred;
+                auto c_1 = rest(c);
+                pred = pred_0;
+                c = c_1;
+            }
+            goto jumplbl1;
+        }
+    }
+}
+bool none_Q(T)(bool delegate(T) pred, T[] c){
+    return not(any_Q(pred, c));
+}
+bool includes_Q(T)(T[] c, T e){
+    return any_Q(delegate bool(T t1){
+        return eql_Q(t1, e);
+    }, c);
+}
+bool includes_Q(T)(T[] c, T[] other){
+    jumplbl1:
+    auto _rest = c;
+    jumplbl2:
+    if(lt_Q(size(_rest), size(other))) {
+        return false;
+    } else {
+        if(starts_with_Q(_rest, other)) {
+            return true;
+        } else {
+            {
+                auto _rest_0 = rest(_rest);
+                _rest = _rest_0;
+            }
+            goto jumplbl2;
+        }
+    }
+}
+bool in_Q(T)(T[] c, T e){
+    return includes_Q(c, e);
+}
+bool in_Q(T)(T[] c, T[] other){
+    return includes_Q(c, other);
+}
+bool contains_Q(T)(T[] c, T e){
+    return includes_Q(c, e);
+}
+bool contains_Q(T)(T[] c, T[] other){
+    return includes_Q(c, other);
+}
+auto map_into(T)(T delegate(T) func, T[] c, T[] output){
+    return append(output, func(first(c)));
+}
+auto map(T)(T delegate(T) func, T[] c){
+    return map_into(func, c, cleared(c));
+}
+auto map_E(T)(T delegate(T) func, T[] c){
+    jumplbl1:
+    auto keys = keys(c);
+    jumplbl2:
+    if(empty_Q(keys)) {
+        return c;
+    } else {
+        {
+            assoc_E(c, first(keys), func(get(c, first(keys))));
+            {
+                auto keys_0 = rest(keys);
+                keys = keys_0;
+            }
+            goto jumplbl2;}
+    }
+}
+auto map_entries_into(T)(T delegate(K,T) func, T[] c, T[] output){
+    return append(output, func(first(keys(c)), first(keys(c))));
+}
+auto map_entries(T)(T delegate(K,T) func, T[] c){
+    return map_entries_into(func, c, cleared(c));
+}
+auto map_entries_E(T)(T delegate(K,T) func, T[] c){
+    jumplbl1:
+    auto keys = keys(c);
+    jumplbl2:
+    if(empty_Q(keys)) {
+        return c;
+    } else {
+        {
+            assoc_E(c, first(keys), func(first(keys), get(c, first(keys))));
+            {
+                auto keys_0 = rest(keys);
+                keys = keys_0;
+            }
+            goto jumplbl2;}
+    }
+}
+private auto uniq_acc(T)(T[] c, T[] output){
+    jumplbl1:
+    if(empty_Q(c)) {
+        return output;
+    } else {
+        if(gt_Q(index_of(output, first(c)), -1)) {
+            return output;
+        } else {
+            {
+                auto c_0 = rest(c);
+                auto output_1 = append_E(output);
+                c = c_0;
+                output = output_1;
+            }
+            goto jumplbl1;
+        }
+    }
+}
+T[] uniq(T)(T[] c){
+    {
+        T[] output = [];
+        return uniq_acc(c, output);}
+}
+bool uniq_Q(T)(T[] c){
+    return eql_Q(size(c), size(uniq(c)));
+}
+private auto isort_acc(T)(T[] coll, T[] acc){
+    if(empty_Q(coll)) {
+        return acc;
+    } else {
+        return isort_acc(rest(coll), isort_insert(first(coll), acc));
+    }
+}
+private auto isort_insert(T)(T elem, T[] coll){
+    if(empty_Q(coll)) {
+        return [elem];
+    } else {
+        if(lt_Q(elem, first(coll))) {
+            return prepend(elem, coll);
+        } else {
+            return prepend(first(coll), isort_insert(elem, rest(coll)));
+        }
+    }
+}
+auto insertionsort(T)(T[] coll){
+    {
+        T[] acc = [];
+        return isort_acc(coll, acc);}
+}
+
+
+string to_s(T)(T e){
+    return to!string(e);
+}
+
+bool canConvert(toType, fromType)(fromType e) {
+    import std.conv;
+    try { to!toType(e); return true;
+    } catch(ConvException ce) { return false; }}
+bool to_int_valid_Q(T)(T e){
+    return canConvert!int(e);
+}
+bool to_uint_valid_Q(T)(T e){
+    return canConvert!uint(e);
+}
+bool to_long_valid_Q(T)(T e){
+    return canConvert!long(e);
+}
+bool to_ulong_valid_Q(T)(T e){
+    return canConvert!ulong(e);
+}
+bool to_float_valid_Q(T)(T e){
+    return canConvert!float(e);
+}
+bool to_double_valid_Q(T)(T e){
+    return canConvert!double(e);
+}
+
+string str(T)(T obj){
+    return to!string(obj);
+}
+
+void print_E(T)(T text){
+    write(text);
+}
+
+void println_E(T)(T text){
+    writeln(text);
+}
+
+void error_E(T)(T text){
+    write(stderr, text);
+}
+
+void errorln_E(T)(T text){
+    writeln(stderr, text);
+}
+
+string readln_E(){
+    return stdin.readln;
+}
+
+
+
+

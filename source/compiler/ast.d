@@ -5,7 +5,7 @@ import std.stdio;
 
 import compiler.types;
 import shaza.buildins;
-import shaza.std;
+import shaza.stdlib;
 
 // SECTION AST creation
 

@@ -27,7 +27,7 @@ return Keyword(text);
 }
 
 auto str(Keyword kw){
-return kw.text;
+return ":"~kw.text;
 }
 
 
@@ -724,5 +724,11 @@ string readln_E(){
 return stdin.readln;
 }
 
+
+auto isValidSymbolText(string text){
+return none_Q(delegate bool(immutable(char) c){
+return includes_Q(text, c);
+}, "\";()[]{}#:");
+}
 
 

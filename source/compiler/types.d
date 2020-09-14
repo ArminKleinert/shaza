@@ -5,6 +5,8 @@ import std.conv;
 import shaza.buildins;
 import std.stdio;
 
+import shaza.stdlib;
+
 // SECTION Types
 
 // SUBSECT CompilerError
@@ -17,56 +19,52 @@ class CompilerError : Error {
 
 // SUBSECT Token
 
-enum TknType : byte {
-    unknown,
-    root,
-    litInt,
-    litUInt,
-    litFlt,
-    litBool,
-    litString,
-    litChar,
-    litList,
-    litMap,
-    litKeyword,
-    litType,
-    symbol,
-    buildinFnCall,
-    buildinMacroCall,
-    scopeOpen,
-    scopeClose,
-    lstOpen,
-    lstTaggedOpen,
-    lstClose,
-    closedScope,
-    closedTaggedList,
-    closedList,
-    lnComment,
+enum TknType : Keyword {
+    unknown = keyword("unknown"),
+    root= keyword("root"),
+    litInt= keyword("litInt"),
+    litUInt= keyword("litUInt"),
+    litFlt= keyword("litFlt"),
+    litBool= keyword("litBool"),
+    litString= keyword("litString"),
+    litChar= keyword("litChar"),
+    litList= keyword("litList"),
+    litMap= keyword("litMap"),
+    litKeyword= keyword("litKeyword"),
+    litType= keyword("litType"),
+    symbol= keyword("symbol"),
+    buildinFnCall= keyword("buildinFnCall"),
+    buildinMacroCall= keyword("buildinMacroCall"),
+    scopeOpen= keyword("scopeOpen"),
+    scopeClose= keyword("scopeClose"),
+    lstOpen= keyword("lstOpen"),
+    lstTaggedOpen= keyword("lstTaggedOpen"),
+    lstClose= keyword("lstClose"),
+    closedScope= keyword("closedScope"),
+    closedTaggedList= keyword("closedTaggedList"),
+    closedList= keyword("closedList"),
+    lnComment= keyword("lnComment"),
 }
 
 struct Token {
     const int lineIdx;
     const int charIdx;
-    TknType type;
+    Keyword type;
     string text;
 
-    this(int lineIdx, int charIdx, TknType type, string text) {
+    this(int lineIdx, int charIdx, Keyword type, string text) {
         this.lineIdx = lineIdx;
         this.charIdx = charIdx;
         this.type = type;
         this.text = text;
     }
 
-    this(TknType type, string text) {
+    this(Keyword type, string text) {
         this(0, 0, type, text);
     }
-
-    const string as_readable() @property {
-        import std.conv : to;
-
-        return to!string(this);
-    }
 }
+
+string as_readable(Token t) {return to_s(t);}
 
 // SUBSECT Abstract Syntax Tree (AST)
 
@@ -87,7 +85,7 @@ class AstNode {
         return tkn.text;
     }
 
-    TknType type() {
+    Keyword type() {
         return tkn.type;
     }
 
@@ -336,10 +334,6 @@ void expectType(AstNode node, TknType t1, TknType t2, TknType t3) {
 
 T get(T)(Appender!T ap) {
     return ap[];
-}
-
-size_t size(T)(T[] arr) {
-    return arr.length;
 }
 
 bool isValidDIdentifier(string s) {

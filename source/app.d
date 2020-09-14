@@ -5,7 +5,7 @@ import std.string;
 import std.algorithm;
 
 import shaza.buildins;
-import shaza.std;
+import shaza.stdlib;
 
 import compiler.types;
 import compiler.tokenizer;

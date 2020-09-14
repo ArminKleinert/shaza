@@ -8,10 +8,20 @@ import std.string;
 import std.algorithm;
 import std.array;
 
+import std.conv;
+import compiler.output.ll;
+import compiler.output.define;
+import compiler.output.lambda;
+import compiler.output.imports;
+import compiler.output.deftype;
+import compiler.output.statements;
+import compiler.output.expressions;
+import compiler.output.meta;
+
 import compiler.types;
 import compiler.ast;
 import shaza.buildins;
-import shaza.std;
+import shaza.stdlib;
 
 import compiler.output.create_module;
 import compiler.output.helpers;
@@ -35,16 +45,6 @@ string createOutput(AstCtx ast) {
     if (!initialized) {
         initialize(&createOutput, &parseRootNodeIntoContextAndReturnModulename);
     }
-
-    import std.conv;
-    import compiler.output.ll;
-    import compiler.output.define;
-    import compiler.output.lambda;
-    import compiler.output.imports;
-    import compiler.output.deftype;
-    import compiler.output.statements;
-    import compiler.output.expressions;
-    import compiler.output.meta;
 
     if (isAtom(ast.tkn)) {
         return prependReturn(ast.requestReturn, atomToString(ast));

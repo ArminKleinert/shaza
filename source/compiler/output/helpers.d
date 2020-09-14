@@ -3,7 +3,7 @@ module compiler.output.helpers;
 import std.array;
 
 import compiler.types;
-import shaza.std;
+import shaza.stdlib;
 
 // SECTION class for meta-info about functions
 

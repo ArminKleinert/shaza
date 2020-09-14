@@ -7,18 +7,9 @@ import std.string;
 import std.algorithm;
 
 import shaza.buildins;
-import shaza.std;
+import shaza.stdlib;
 
 import compiler.types;
-
-// Helper, delete when possible
-int idxOf(string text, char c) {
-    for (auto i = 0; i < text.size; i++) {
-        if (text[i] == c)
-            return i;
-    }
-    return -1;
-}
 
 // SECTION Literal identifiers
 
@@ -26,13 +17,10 @@ bool isStringLiteral(string text) {
     return text.size >= 2 && text[0] == '"' && text[$ - 1] == '"' && text[$ - 2] != 92;
 }
 
-bool isValidSymbolText(string text) {
-    // Not allowed: '"', ';', '(', ')', '[', ']', '{', '}', '#', ':'
-    foreach (char c; "\";()[]{}#:") {
-        if (text.canFind(c))
-            return false;
-    }
-    return true;
+auto isValidSymbolText(string text){
+    return none_Q(delegate bool(immutable(char) c){
+        return includes_Q(text, c);
+    }, "\";()[]{}#:");
 }
 
 bool isTypeLiteral(string text) {
@@ -56,20 +44,20 @@ bool isCharLiteral(string text) {
 
 bool isValidTypeLiteral(string text) {
     // Handle bracket
-    auto idx_of_ob = text.idxOf('(');
-    auto idx_of_cb = text.idxOf(')');
+    auto idx_of_ob = index_of(text,'(');
+    auto idx_of_cb = index_of(text,')');
     if (idx_of_ob >= 0 && idx_of_ob > idx_of_cb)
         return false;
 
     // Handle curly brace
-    auto idx_of_ocb = text.idxOf('{');
-    auto idx_of_ccb = text.idxOf('}');
+    auto idx_of_ocb = index_of(text,'{');
+    auto idx_of_ccb = index_of(text,'}');
     if (idx_of_ocb >= 0 && idx_of_ocb > idx_of_ccb)
         return false;
 
     // Handle square brackets
-    auto idx_of_osb = text.idxOf('[');
-    auto idx_of_csb = text.idxOf(']');
+    auto idx_of_osb = index_of(text,'[');
+    auto idx_of_csb = index_of(text,']');
     if (idx_of_osb >= 0 && idx_of_osb > idx_of_csb)
         return false;
 
