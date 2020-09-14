@@ -6,7 +6,6 @@ import std.typecons;
 import std.string;
 import std.algorithm;
 
-import shaza.buildins;
 import shaza.stdlib;
 
 import compiler.types;

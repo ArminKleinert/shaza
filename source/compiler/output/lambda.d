@@ -4,7 +4,6 @@ import compiler.output.helpers;
 import compiler.output.define;
 import compiler.types;
 import shaza.stdlib;
-import shaza.buildins;
 
 import std.array;
 

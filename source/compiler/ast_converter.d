@@ -20,7 +20,6 @@ import compiler.output.meta;
 
 import compiler.types;
 import compiler.ast;
-import shaza.buildins;
 import shaza.stdlib;
 
 import compiler.output.create_module;

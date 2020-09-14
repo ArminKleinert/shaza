@@ -4,7 +4,6 @@ import std.algorithm.mutation;
 import std.stdio;
 
 import compiler.types;
-import shaza.buildins;
 import shaza.stdlib;
 
 // SECTION AST creation

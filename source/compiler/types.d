@@ -2,7 +2,6 @@ module compiler.types;
 
 import std.array;
 import std.conv;
-import shaza.buildins;
 import std.stdio;
 
 import shaza.stdlib;

@@ -4,7 +4,6 @@ import std.typecons;
 import std.string;
 import std.algorithm;
 
-import shaza.buildins;
 import stdlib;
 
 import compiler.types;
