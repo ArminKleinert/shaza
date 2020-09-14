@@ -50,13 +50,13 @@ string createOutput(AstCtx ast) {
         return prependReturn(ast.requestReturn, atomToString(ast));
     }
 
-    if (ast.type == TknType.closedTaggedList || ast.type == TknType.closedList) {
+    if (ast.type == keyword(":closedTaggedList") || ast.type == keyword(":closedList")) {
         return prependReturn(ast.requestReturn, listLiteralToString(ast));
     }
 
-    if (ast.type == TknType.closedScope) {
+    if (ast.type == keyword(":closedScope")) {
         Token firstTkn = ast.nodes[0].tkn;
-        if (firstTkn.type == TknType.symbol) {
+        if (firstTkn.type == keyword(":symbol")) {
             switch (firstTkn.text) {
             case "module":
                 // Only 1 module declaration per file is allowed and it must be the very first token!
@@ -131,7 +131,7 @@ string createOutput(AstCtx ast) {
         return callToString(ast);
     }
 
-    if (ast.type == TknType.root) {
+    if (ast.type == keyword(":root")) {
         auto modulename = parseRootNodeIntoContextAndReturnModulename(ast);
         return OutputContext.global.fullModuleTexts[modulename];
     }
@@ -153,7 +153,7 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
         return "";
 
     // Try to find module declaration
-    if (ast.nodes[0].type == TknType.closedScope && ast.nodes[0].nodes.size > 0
+    if (ast.nodes[0].type == keyword(":closedScope") && ast.nodes[0].nodes.size > 0
             && ast.nodes[0].nodes[0].text == "module") {
         string temp = moduleToString(ast.nodes[0]);
 

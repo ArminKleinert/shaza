@@ -14,10 +14,10 @@ string aliasToString(AstCtx ast) {
     if (ast.size != 3)
         throw new CompilerError("alias: Needs exactly 2 arguments. " ~ ast[0].tknstr());
 
-    if (ast[1].type != TknType.symbol)
+    if (ast[1].type != keyword(":symbol"))
         throw new CompilerError("alias: First argument must be a symbol. " ~ ast[1].tknstr());
 
-    if (ast[2].type == TknType.symbol)
+    if (ast[2].type == keyword(":symbol"))
         return "alias " ~ symbolToString(ast[1]) ~ " = " ~ symbolToString(ast[2]) ~ ";";
     else if (ast[2].type == TknType.litType)
         return "alias " ~ symbolToString(ast[1]) ~ " = " ~ typeToString(ast[2]) ~ ";";
@@ -136,7 +136,7 @@ string loopToString(AstCtx ast) {
         result ~= ' ';
 
         // Write variable name
-        if (bindings[i].type != TknType.symbol) {
+        if (bindings[i].type != keyword(":symbol")) {
             throw new CompilerError("Loop: Variable name must be symbol: " ~ bindings[i].tknstr());
         }
         result ~= symbolToString(bindings[i]);

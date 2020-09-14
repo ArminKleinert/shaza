@@ -15,7 +15,7 @@ string importHostToString(AstNode ast) {
     // Handle some errors
     if (nodes.size == 0)
         throw new CompilerError("Too few arguments for import-host.");
-    if (nodes[0].type != TknType.symbol && nodes[0].type != TknType.litString) {
+    if (nodes[0].type != keyword(":symbol") && nodes[0].type != TknType.litString) {
         throw new CompilerError("import-host: Module name must be string or symbol.");
     }
 
@@ -65,7 +65,7 @@ string importShazaToString(AstNode ast) {
 
     if (node.type == TknType.litString) {
         fname = node.tkn.text[1 .. $ - 1];
-    } else if (node.type == TknType.symbol) {
+    } else if (node.type == keyword(":symbol")) {
         fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";
     } else {
         warning("Import: Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");
@@ -103,7 +103,7 @@ string includeToString(AstNode ast) {
 
     if (node.type == TknType.litString) {
         fname = node.tkn.text[1 .. $ - 1];
-    } else if (node.type == TknType.symbol) {
+    } else if (node.type == keyword(":symbol")) {
         fname = OutputContext.global.sourcedir ~ "/" ~ node.tkn.text ~ ".sz";
     } else {
         warning("Expecting string or symbol: " ~ ast.nodes[1].tknstr() ~ "; Ignoring...");

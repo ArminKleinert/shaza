@@ -32,7 +32,7 @@ string callToString(AstCtx ast) {
     }
 
     string callingName;
-    if (ast.nodes[0].type == TknType.symbol) {
+    if (ast.nodes[0].type == keyword(":symbol")) {
         if (FunctionDecl fn = OutputContext.global.findFn(ast.nodes[0].text))
             callingName = fn.exportName;
         else
@@ -67,7 +67,7 @@ string simpleSetvToString(string name, AstCtx newVal) {
 }
 
 string attrSetvToString(string name, AstCtx attr, AstCtx newVal) {
-    expectType(attr, TknType.symbol, TknType.litKeyword, TknType.litString);
+    expectType(attr, keyword(":symbol"), TknType.litKeyword, TknType.litString);
 
     string s;
     if (attr.type == TknType.litKeyword)
@@ -86,7 +86,7 @@ string setvToString(AstCtx ast) {
     }
 
     auto result = appender("");
-    expectType(ast.nodes[1], TknType.symbol);
+    expectType(ast.nodes[1], keyword(":symbol"));
     auto varname = createOutput(ast[1]); // Var name
 
     if (ast.nodes.size == 3) {
@@ -159,7 +159,7 @@ string functionPointerToString(AstCtx ast) {
     if (ast.size != 2) {
         throw new CompilerError("fp: Excepts exactly 1 argument. " ~ ast.nodes[0].tknstr());
     }
-    if (ast[1].type != TknType.symbol) {
+    if (ast[1].type != keyword(":symbol")) {
         throw new CompilerError("fp: Function name expected. " ~ ast[1].tknstr());
     }
 

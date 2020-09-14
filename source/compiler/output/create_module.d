@@ -16,7 +16,7 @@ string retrieveModuleName(AstNode modulecallAst) {
 string moduleToString(AstNode ast) {
     if (ast.nodes.size < 2)
         throw new CompilerError("module: Too few arguments. " ~ ast.nodes[0].tknstr());
-    if (ast.nodes[1].type != TknType.symbol)
+    if (ast.nodes[1].type != keyword(":symbol"))
         throw new CompilerError("module: Name has to be a symbol. " ~ ast.nodes[1].tknstr());
 
     string modulename = retrieveModuleName(ast);

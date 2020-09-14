@@ -28,7 +28,7 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
 
     AstNode typeNode = ast.nodes[1]; // Type name
 
-    if (typeNode.type != TknType.symbol) {
+    if (typeNode.type != keyword(":symbol")) {
         auto msg = defName ~ ": First argument must be a symbol. ";
         throw new CompilerError(msg ~ typeNode.tknstr);
     }
@@ -56,7 +56,7 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
     bool hasAliasThis = true;
     auto i = 0;
 
-    if (attrList.size > 0 && attrList[i].type == TknType.symbol && attrList[i].text == "_") {
+    if (attrList.size > 0 && attrList[i].type == keyword(":symbol") && attrList[i].text == "_") {
         hasAliasThis = false;
         i++;
     }

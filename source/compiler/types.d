@@ -21,7 +21,7 @@ class CompilerError : Error {
 
 enum TknType : Keyword {
     unknown = keyword(":unknown"),
-    root = keyword(":root"),
+//    root = keyword(":root"),
     litInt = keyword(":litInt"),
     litUInt = keyword(":litUInt"),
     litFlt = keyword(":litFlt"),
@@ -32,7 +32,7 @@ enum TknType : Keyword {
     litMap = keyword(":litMap"),
     litKeyword = keyword(":litKeyword"),
     litType = keyword(":litType"),
-    symbol = keyword(":symbol"),
+//    symbol = keyword(":symbol"),
     buildinFnCall = keyword(":buildinFnCall"),
     buildinMacroCall = keyword(":buildinMacroCall"),
     scopeOpen = keyword(":scopeOpen"),
@@ -145,16 +145,16 @@ class Context {
 
 bool isLiteral(Token tkn) {
     switch (tkn.type) {
-    case TknType.litInt:
-    case TknType.litUInt:
-    case TknType.litFlt:
-    case TknType.litBool:
-    case TknType.litString:
-    case TknType.litList:
-    case TknType.litMap:
-    case TknType.litKeyword:
-    case TknType.litType:
-    case TknType.litChar:
+    case keyword(":litInt"):
+    case keyword(":litUInt"):
+    case keyword(":litFlt"):
+    case keyword(":litBool"):
+    case keyword(":litString"):
+    case keyword(":litList"):
+    case keyword(":litMap"):
+    case keyword(":litKeyword"):
+    case keyword(":litType"):
+    case keyword(":litChar"):
         return true;
     default:
         return false;
@@ -166,9 +166,9 @@ bool allowImplicitReturn(string returnType, AstNode command) {
         return false;
     if (isAtom(command.tkn))
         return true;
-    if (command.type == TknType.closedList || command.type == TknType.closedTaggedList)
+    if (command.type == keyword(":closedList") || command.type == keyword(":closedTaggedList"))
         return true;
-    if (command.type != TknType.closedScope)
+    if (command.type != keyword(":closedScope"))
         return false;
 
     switch (command.nodes[0].text) {
@@ -189,14 +189,14 @@ bool allowImplicitReturn(string returnType, AstNode command) {
 }
 
 bool isAtom(Token tkn) {
-    return isLiteral(tkn) || tkn.type == TknType.symbol;
+    return isLiteral(tkn) || tkn.type == keyword(":symbol");
 }
 
 bool isOpener(Token tkn) {
     switch (tkn.type) {
-    case TknType.scopeOpen:
-    case TknType.lstOpen:
-    case TknType.lstTaggedOpen:
+    case keyword(":scopeOpen"):
+    case keyword(":lstOpen"):
+    case keyword(":lstTaggedOpen"):
         return true;
     default:
         return false;
@@ -205,8 +205,8 @@ bool isOpener(Token tkn) {
 
 bool isCloser(Token tkn) {
     switch (tkn.type) {
-    case TknType.scopeClose:
-    case TknType.lstClose:
+    case keyword(":scopeClose"):
+    case keyword(":lstClose"):
         return true;
     default:
         return false;
@@ -215,10 +215,10 @@ bool isCloser(Token tkn) {
 
 bool isSimpleLiteral(Token tkn) {
     switch (tkn.type) {
-    case TknType.litInt:
-    case TknType.litUInt:
-    case TknType.litFlt:
-    case TknType.litBool:
+    case keyword(":litInt"):
+    case keyword(":litUInt"):
+    case keyword(":litFlt"):
+    case keyword(":litBool"):
         return true;
     default:
         return false;
@@ -228,11 +228,11 @@ bool isSimpleLiteral(Token tkn) {
 // SUBSECT AST type helper
 
 bool opensScope(AstNode node) {
-    if (node.type != TknType.closedScope)
+    if (node.type != keyword(":closedScope"))
         return false;
     if (node.size == 0)
         return false;
-    if (node.type == TknType.root)
+    if (node.type == keyword(":root"))
         return true;
 
     switch (node.nodes[0].text) {
@@ -250,13 +250,13 @@ bool opensScope(AstNode node) {
 string atomToString(AstNode ast) {
     auto text = appender(ast.text);
 
-    if (ast.type == TknType.litBool) {
+    if (ast.type == keyword(":litBool")) {
         text = appender(ast.text == "#t" ? "true" : "false");
-    } else if (ast.type == TknType.litKeyword) {
+    } else if (ast.type == keyword(":litKeyword")) {
         text = appender("Keyword(\"");
         text ~= ast.text;
         text ~= "\")";
-    } else if (ast.type == TknType.litChar) {
+    } else if (ast.type == keyword(":litChar")) {
         if (ast.text == "\\space")
             return "' '";
         if (ast.text == "\\newline")
@@ -264,9 +264,9 @@ string atomToString(AstNode ast) {
         if (ast.text == "\\tab")
             return "'\\t'";
         return "'" ~ ast.text[1] ~ "'";
-    } else if (ast.type == TknType.symbol && ast.text == "nil") {
+    } else if (ast.type == keyword(":symbol") && ast.text == "nil") {
         return "null";
-    } else if (ast.type == TknType.symbol) {
+    } else if (ast.type == keyword(":symbol")) {
         return szNameToHostName(ast.text);
     }
 
@@ -311,21 +311,21 @@ string typeToString(string litType) {
     return litType;
 }
 
-void expectType(AstNode node, TknType type) {
+void expectType(AstNode node, Keyword type) {
     if (node.type != type) {
         string msg = "Expected " ~ type ~ " but got " ~ node.tknstr();
         throw new CompilerError(msg);
     }
 }
 
-void expectType(AstNode node, TknType t1, TknType t2) {
+void expectType(AstNode node, Keyword t1, Keyword t2) {
     if (node.type != t1 && node.type != t2) {
         string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " but got " ~ node.tknstr();
         throw new CompilerError(msg);
     }
 }
 
-void expectType(AstNode node, TknType t1, TknType t2, TknType t3) {
+void expectType(AstNode node, Keyword t1, Keyword t2, Keyword t3) {
     if (node.type != t1 && node.type != t2 && node.type != t3) {
         string msg = "Expected " ~ t1 ~ " or " ~ t2 ~ " or " ~ t3;
         throw new CompilerError(msg ~ " but got " ~ node.tknstr());

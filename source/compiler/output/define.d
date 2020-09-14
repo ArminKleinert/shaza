@@ -43,7 +43,7 @@ string[] getVarNamesFromLoopBindings(AstCtx[] bindings) {
     string[] names;
 
     for (int i = 0; i < bindings.size; i++) {
-        //if (bindings[i].type == TknType.symbol) {
+        //if (bindings[i].type == keyword(":symbol")) {
         //    names ~= szNameToHostName(symbolToString(bindings[i]));
         //}
         if (bindings[i].type == TknType.litType) {
@@ -52,7 +52,7 @@ string[] getVarNamesFromLoopBindings(AstCtx[] bindings) {
         if (i >= bindings.size) {
             throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
-        if (bindings[i].type == TknType.symbol) {
+        if (bindings[i].type == keyword(":symbol")) {
             names ~= szNameToHostName(symbolToString(bindings[i]));
             i++; // Skip value
         }
@@ -71,7 +71,7 @@ string[] getVarNamesFromBindings(AstNode[] bindings) {
         if (i >= bindings.size) {
             throw new CompilerError("Expected more bindings after " ~ bindings[$ - 1].tknstr());
         }
-        if (bindings[i].type == TknType.symbol) {
+        if (bindings[i].type == keyword(":symbol")) {
             names ~= szNameToHostName(symbolToString(bindings[i]));
         }
     }
@@ -172,7 +172,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     // SUBSECT Name
 
     AstNode nameNode = ast[nameIndex];
-    if (nameNode.type != TknType.symbol) {
+    if (nameNode.type != keyword(":symbol")) {
         string msg = "Token " ~ nameNode.tknstr();
         msg ~= " not allowed as a variable/function name. Token must be a symbol!";
         throw new CompilerError(msg);
@@ -264,12 +264,12 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
             // Write anonymous name
             sym = gensym();
             argNames ~= sym;
-            bindings2 ~= new AstNode(Token(TknType.symbol, sym));
+            bindings2 ~= new AstNode(Token(keyword(":symbol"), sym));
             usedAnonymousName = true;
 
             // Go on
             continue;
-        } else if (bindings[i].type == TknType.symbol) {
+        } else if (bindings[i].type == keyword(":symbol")) {
             // No type given
             auto sym = gensym();
             bindings2 ~= new AstNode(Token(TknType.litType, "::" ~ sym));
@@ -288,10 +288,10 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         // SUBSECT Handle parameter name
 
         auto b = bindings[i].text;
-        if (bindings[i].type == TknType.symbol) {
+        if (bindings[i].type == keyword(":symbol")) {
             if (b == "$") { // Anonymous
                 auto sym = gensym();
-                bindings2 ~= new AstNode(Token(TknType.symbol, sym));
+                bindings2 ~= new AstNode(Token(keyword(":symbol"), sym));
                 argNames ~= sym;
                 usedAnonymousName = true;
             } else {

@@ -54,16 +54,16 @@ bool is_char_literal_Q(string text) {
 }
 
 Keyword tkn_type_by_text(string text) {
-    return if2(to_ulong_valid_Q(text), Keyword(":litUInt"), if2(to_long_valid_Q(text),
-            Keyword(":litInt"), if2(to_double_valid_Q(text), Keyword(":litFlt"),
-            if2(is_bool_literal_Q(text), Keyword(":litBool"), if2(is_keyword_literal_Q(text),
-            Keyword(":litKeyword"), if2(is_type_literal_Q(text), Keyword(":litType"),
-            if2(is_char_literal_Q(text), Keyword(":litChar"), if2(is_valid_symbol_text_Q(text),
-            Keyword(":symbol"), if2(is_string_literal_Q(text), Keyword(":litString"),
-            if2(eql_Q(text, "["), Keyword(":lstOpen"), if2(eql_Q(text, "]"),
-            Keyword(":lstClose"), if2(eql_Q(text, "("), Keyword(":scopeOpen"),
-            if2(eql_Q(text, ")"), Keyword(":scopeClose"), if2(eql_Q(text, ";"),
-            Keyword(":lnComment"), Keyword(":unknown")))))))))))))));
+    return if2(to_ulong_valid_Q(text), keyword(":litUInt"), if2(to_long_valid_Q(text),
+            keyword(":litInt"), if2(to_double_valid_Q(text), keyword(":litFlt"),
+            if2(is_bool_literal_Q(text), keyword(":litBool"), if2(is_keyword_literal_Q(text),
+            keyword(":litKeyword"), if2(is_type_literal_Q(text), keyword(":litType"),
+            if2(is_char_literal_Q(text), keyword(":litChar"), if2(is_valid_symbol_text_Q(text),
+            keyword(":symbol"), if2(is_string_literal_Q(text), keyword(":litString"),
+            if2(eql_Q(text, "["), keyword(":lstOpen"), if2(eql_Q(text, "]"),
+            keyword(":lstClose"), if2(eql_Q(text, "("), keyword(":scopeOpen"),
+            if2(eql_Q(text, ")"), keyword(":scopeClose"), if2(eql_Q(text, ";"),
+            keyword(":lnComment"), keyword(":unknown")))))))))))))));
 }
 
 // SECTION Token-creation methods
@@ -75,7 +75,7 @@ Context close_token(Context ctx) {
     if (ctx.isInTypeLiteral) {
         if (!is_type_literal_Q(txt)) {
             auto tknTextForErrors = Token(ctx.currTknStartLine,
-                    ctx.currTknStartChar, TknType.litType, txt).as_readable();
+                    ctx.currTknStartChar, keyword(":litType"), txt).as_readable();
             throw new CompilerError("Illegal type literal: " ~ tknTextForErrors);
         } else if (last_char_must_separated_Q(txt)) {
             auto tkntxt = txt[0 .. $ - 1];

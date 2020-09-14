@@ -308,13 +308,13 @@ struct AstCtx {
 // SECTION Checked string converters
 
 string symbolToString(AstNode node) {
-    if (node.type != TknType.symbol)
+    if (node.type != keyword(":symbol"))
         throw new CompilerError("Expected symbol: " ~ node.tknstr);
     return szNameToHostName(node.text);
 }
 
 string typestring(AstNode node) {
-    if (node.type != TknType.symbol)
+    if (node.type != keyword(":symbol"))
         throw new CompilerError("Expected type: " ~ node.tknstr);
     return node.text;
 }
@@ -340,14 +340,14 @@ Appender!string insertSemicolon(Appender!string result, AstNode node) {
 // SUBSECT Do nested search for "recur" in nodes.
 
 bool nodeContainsRecur(AstCtx node) {
-    if (node.type == TknType.symbol && node.text == "recur") {
+    if (node.type == keyword(":symbol") && node.text == "recur") {
         return true;
     }
     return nodesContainRecur(node.nodes);
 }
 
 bool nodeContainsRecur(AstNode node) {
-    if (node.type == TknType.symbol && node.text == "recur") {
+    if (node.type == keyword(":symbol") && node.text == "recur") {
         return true;
     }
     return nodesContainRecur(node.nodes);

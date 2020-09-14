@@ -19,7 +19,7 @@ AstNode[] mergeTopElements(AstNode[] stack) {
 Context buildBasicAst(Context ctx) {
     import std.conv;
 
-    auto root = new AstNode(Token(0, 0, TknType.root, ""));
+    auto root = new AstNode(Token(0, 0, keyword(":root"), ""));
     auto stack = [root];
     auto comment_line = -1;
     auto tknIndex = 0;

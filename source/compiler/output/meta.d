@@ -75,7 +75,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
             //} else {
             expectType(attribs.nodes[i], TknType.litList, TknType.closedList);
             foreach (aliasNode; attribs.nodes[i].nodes) {
-                expectType(aliasNode, TknType.symbol);
+                expectType(aliasNode, keyword(":symbol"));
                 aliases ~= aliasNode.text;
             }
             //}
