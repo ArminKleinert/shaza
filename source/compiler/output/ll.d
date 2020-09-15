@@ -13,7 +13,7 @@ import std.array;
 
 void llToStringSub(Appender!string result, AstCtx ast) {
     if (ast.type == keyword(":closedList") || ast.type == keyword(":closedTaggedList")) {
-        result ~= ast.text; // Empty for closedList, list tag for closedTaggedList
+        result ~= tkn_text(ast); // Empty for closedList, list tag for closedTaggedList
         result ~= '[';
         foreach (child; ast.subs) {
             llToStringSub(result, child);
@@ -26,7 +26,7 @@ void llToStringSub(Appender!string result, AstCtx ast) {
         }
         result ~= ')';
     } else {
-        result ~= ast.text;
+        result ~= tkn_text(ast);
         foreach (child; ast.subs) {
             llToStringSub(result, child);
         }
@@ -50,12 +50,12 @@ string llToString(AstCtx ast) {
     auto result = appender("");
     foreach (child; ast.nodes[1 .. $]) {
         if (child.type == keyword(":litString")) {
-            result ~= llQuotedStringToString(child.text);
+            result ~= llQuotedStringToString(tkn_text(child));
         } else {
             llToStringSub(result, ast(child));
         }
     }
-    if (ast.nodes[0].text == "llr" && ast.requestReturn) {
+    if (tkn_text(ast.nodes[0]) == "llr" && ast.requestReturn) {
         return prependReturn(true, result.get());
     }
     return result.get();

@@ -1,7 +1,6 @@
 module compiler.types;
 
 import std.array;
-import std.conv;
 import std.stdio;
 
 import shaza.stdlib;
@@ -42,6 +41,7 @@ string as_readable(Token t) {
 
 // SUBSECT Abstract Syntax Tree (AST)
 
+/*
 class AstNode {
     Token tkn;
     private AstNode[] children;
@@ -91,6 +91,64 @@ class AstNode {
         return result[].join();
     }
 }
+*/
+class AstNode {
+    Token tkn;
+    AstNode[] children;
+    this(Token _tkn, AstNode[] _children) {
+        tkn = _tkn;
+        children = _children;
+    }
+
+    AstNode with_tkn(Token tkn) {
+        return new AstNode(tkn, children);
+    }
+
+    AstNode with_children(AstNode[] children) {
+        return new AstNode(tkn, children);
+    }
+
+    AstNode clone() {
+        return new AstNode(tkn, children);
+    }
+}
+
+auto ast_node(Token tkn, AstNode[] children) {
+    return new AstNode(tkn, children);
+}
+
+auto ast_node(Token tkn) {
+    return new AstNode(tkn, []);
+}
+
+auto type(AstNode ast) {
+    return ast.tkn.type;
+}
+
+auto nodes(AstNode ast) {
+    return ast.children;
+}
+
+auto ast_size(AstNode ast) {
+    return size(ast.children);
+}
+
+auto tkn_text(AstNode ast) {
+    return ast.tkn.text;
+}
+
+auto tknstr(AstNode ast) {
+    return str(ast.tkn);
+}
+
+string ast_string(AstNode ast) {
+    return join([
+            "\nAstNode { token=", (ast.tknstr), " children=[",
+            reduce(delegate string(AstNode node, string res) {
+                return append(res, ast_string(node));
+            }, nodes(ast), ""), "] }"
+            ]);
+}
 
 // SUBSECT Compiler-Context
 // Holds helperss for the tokenization phase and AST-Building
@@ -116,13 +174,12 @@ class Context {
 // SUBSECT Token type helpers
 
 bool isLiteral(Token tkn) {
-    Keyword[] listOfLiteralTypes = [
-        keyword(":litInt"), keyword(":litUInt"), keyword(":litFlt"),
-        keyword(":litBool"), keyword(":litString"), keyword(":litList"),
-        keyword(":litMap"), keyword(":litKeyword"), keyword(":litType"),
-        keyword(":litChar")
-    ];
-    return includes_Q(listOfLiteralTypes, tkn.type);
+    return includes_Q([
+            keyword(":litInt"), keyword(":litUInt"), keyword(":litFlt"),
+            keyword(":litBool"), keyword(":litString"), keyword(":litList"),
+            keyword(":litMap"), keyword(":litKeyword"), keyword(":litType"),
+            keyword(":litChar")
+            ], tkn.type);
 }
 
 bool allowImplicitReturn(string returnType, AstNode command) {
@@ -135,7 +192,7 @@ bool allowImplicitReturn(string returnType, AstNode command) {
     if (command.type != keyword(":closedScope"))
         return false;
 
-    switch (command.nodes[0].text) {
+    switch (tkn_text(command.nodes[0])) {
     case "return":
     case "let":
     case "define":
@@ -178,12 +235,12 @@ bool isSimpleLiteral(Token tkn) {
 bool opensScope(AstNode node) {
     if (node.type != keyword(":closedScope"))
         return false;
-    if (node.size == 0)
+    if (ast_size(node) == 0)
         return false;
     if (node.type == keyword(":root"))
         return true;
 
-    switch (node.nodes[0].text) {
+    switch (tkn_text(node.nodes[0])) {
     case "let":
     case "loop":
     case "define":
@@ -196,26 +253,26 @@ bool opensScope(AstNode node) {
 // SUBSECT String conversion helpers
 
 string atomToString(AstNode ast) {
-    auto text = appender(ast.text);
+    auto text = appender(ast.tkn_text);
 
     if (ast.type == keyword(":litBool")) {
-        text = appender(ast.text == "#t" ? "true" : "false");
+        text = appender(ast.tkn_text == "#t" ? "true" : "false");
     } else if (ast.type == keyword(":litKeyword")) {
         text = appender("Keyword(\"");
-        text ~= ast.text;
+        text ~= ast.tkn_text;
         text ~= "\")";
     } else if (ast.type == keyword(":litChar")) {
-        if (ast.text == "\\space")
+        if (ast.tkn_text == "\\space")
             return "' '";
-        if (ast.text == "\\newline")
+        if (ast.tkn_text == "\\newline")
             return "'\\n'";
-        if (ast.text == "\\tab")
+        if (ast.tkn_text == "\\tab")
             return "'\\t'";
-        return "'" ~ ast.text[1] ~ "'";
-    } else if (ast.type == keyword(":symbol") && ast.text == "nil") {
+        return "'" ~ ast.tkn_text[1] ~ "'";
+    } else if (ast.type == keyword(":symbol") && ast.tkn_text == "nil") {
         return "null";
     } else if (ast.type == keyword(":symbol")) {
-        return szNameToHostName(ast.text);
+        return szNameToHostName(ast.tkn_text);
     }
 
     return text.get();
@@ -238,7 +295,7 @@ string typeToString(AstNode ast) {
     import core.exception;
 
     try {
-        return typeToString(ast.text);
+        return typeToString(tkn_text(ast));
     } catch (RangeError re) {
         writeln(ast.toString());
         throw re;

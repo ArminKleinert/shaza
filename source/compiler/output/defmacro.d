@@ -8,7 +8,8 @@ import shaza.stdlib;
 import std.array : appender;
 
 string defmacroToString(AstCtx ast) {
-    if (ast.size < 3 || ast[1].type != keyword(":symbol") || ast[2].type != keyword(":closedScope")) {
+    if (ast_size(ast) < 3 || ast[1].type != keyword(":symbol")
+            || ast[2].type != keyword(":closedScope")) {
         throw new CompilerError(
                 "defmacro must have the following form: (defmacro <symbol> (<bindings>) &<body>)");
     }

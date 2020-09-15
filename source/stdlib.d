@@ -621,6 +621,11 @@ keys = keys_0;
 goto jumplbl2;}
 }
 }
+string join(T)(T[] c){
+return reduce(delegate string(T e, string s){
+return append(s, str(e));
+}, c);
+}
 private auto uniq_acc(T)(T[] c, T[] output){
 jumplbl1:
 if(empty_Q(c)) {

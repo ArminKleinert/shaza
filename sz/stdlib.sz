@@ -78,3 +78,4 @@ try { to!toType(e); return true;
 FIXME-List
 - Currently, only one function can be saved under the same name (it still works but might be a problem later)
 )
+

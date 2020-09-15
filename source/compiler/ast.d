@@ -10,15 +10,15 @@ import shaza.stdlib;
 
 AstNode[] mergeTopElements(AstNode[] stack) {
     auto last = stack[$ - 1];
-    stack[$ - 2] ~= stack[$ - 1];
+    stack[$ - 2].children ~= stack[$ - 1];
     stack = stack[0 .. $ - 1];
     return stack;
 }
 
 Context buildBasicAst(Context ctx) {
-    import std.conv;
+    import std.conv : to;
 
-    auto root = new AstNode(Token(0, 0, keyword(":root"), ""));
+    auto root = ast_node(Token(0, 0, keyword(":root"), ""));
     auto stack = [root];
     auto comment_line = -1;
     auto tknIndex = 0;
@@ -30,13 +30,11 @@ Context buildBasicAst(Context ctx) {
         }
 
         if (current.type == keyword(":scopeOpen")) {
-            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
-                    keyword(":closedScope"), ""));
+            stack ~= ast_node(Token(current.lineIdx, current.charIdx, keyword(":closedScope"), ""));
         } else if (current.type == keyword(":lstOpen")) {
-            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
-                    keyword(":closedList"), ""));
+            stack ~= ast_node(Token(current.lineIdx, current.charIdx, keyword(":closedList"), ""));
         } else if (current.type == keyword(":lstTaggedOpen")) {
-            stack ~= new AstNode(Token(current.lineIdx, current.charIdx,
+            stack ~= ast_node(Token(current.lineIdx, current.charIdx,
                     keyword(":closedTaggedList"), current.text[0 .. $ - 1]));
         } else if (current.type == keyword(":lnComment")) {
             comment_line = current.lineIdx;
@@ -60,7 +58,7 @@ Context buildBasicAst(Context ctx) {
                         current) ~ " isn't closing anything.");
             }
         } else {
-            stack ~= new AstNode(current);
+            stack ~= ast_node(current);
             stack = mergeTopElements(stack);
         }
 
@@ -68,7 +66,7 @@ Context buildBasicAst(Context ctx) {
     }
 
     for (auto i = 1; i < stack.size(); i++) {
-        root ~= stack[i];
+        root.children ~= stack[i];
         stderr.writeln("Unclosed token: " ~ stack[i].tknstr());
     }
 

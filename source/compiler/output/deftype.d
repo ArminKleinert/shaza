@@ -19,7 +19,7 @@ string defTypeToString(AstNode ast) {
 string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string defName) {
     // SUBSECT Error checking stuff
 
-    if (ast.size < 2) {
+    if (ast_size(ast) < 2) {
         auto msg = defName ~ ": Not enough parameters. ";
         throw new CompilerError(msg ~ ast.tknstr);
     }
@@ -56,12 +56,18 @@ string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string d
     bool hasAliasThis = true;
     auto i = 0;
 
-    if (attrList.size > 0 && attrList[i].type == keyword(":symbol") && attrList[i].text == "_") {
+    if (attrList.size > 0 && attrList[i].type == keyword(":symbol") && tkn_text(attrList[i]) == "_") {
         hasAliasThis = false;
         i++;
     }
 
     for (; i < attrList.size; i += 2) {
+        if (attrList[i].type != keyword(":litType")) {
+            throw new CompilerError("Expecting type: " ~ attrList[i].tknstr());
+        }
+        if (attrList[i + 1].type != keyword(":symbol")) {
+            throw new CompilerError("Expecting symbol: " ~ attrList[i + 1].tknstr());
+        }
         fieldTypes ~= typeToString(attrList[i]);
         if (i >= attrList.size) {
             auto msg = defName ~ ": fields must be a sequence of types and symbols.";
@@ -109,9 +115,9 @@ private string typeGenericsListToString(AstNode generics) {
     if (generics is null)
         return "";
     auto result = "(";
-    for (int i = 0; i < generics.size; i++) {
+    for (int i = 0; i < ast_size(generics); i++) {
         result ~= typeToString(generics.nodes[i]);
-        if (i < generics.size - 1)
+        if (i < ast_size(generics) - 1)
             result ~= ", ";
     }
     result ~= ")";

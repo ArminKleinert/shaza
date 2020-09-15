@@ -2,18 +2,35 @@
 
 (import-sz stdlib)
 
-(def-type Token
+(def-type Token _
   ::string text
   ::Keyword type
   ::size_t line
   ::size_t index)
 
-(def-type Node
+(comment
+(def-type Node _
   ::string text
   ::Keyword type
   ::size_t line
   ::size_t index
   ::Node[] children)
+)
+
+(def-type AstNode _ ::Token tkn ::AstNode[] children)
+(define ast-node (::Token tkn ::AstNode[] children) (new ::AstNode tkn children))
+(define ast-node (::Token tkn) (new ::AstNode tkn []))
+(define type (::AstNode ast) ast.tkn.type)
+(define nodes (::AstNode ast) ast.children)
+(define ast-size (::AstNode ast) (size ast.children))
+(define text (::AstNode ast) ast.tkn.text)
+(define tknstr (::AstNode ast) (str ast.tkn))
+(define ::string ast-string (::AstNode ast)
+  (join [
+  "\nAstNode { token=" (to ::string ast.tkn) " children=["
+  (reduce (lambda ::string (::AstNode node ::string res) (append res (ast-string node))) (nodes ast) "")
+  "] }"
+  ]))
 
 (def-type Context
   ::Token[] tokens

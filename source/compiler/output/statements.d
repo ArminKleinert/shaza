@@ -11,7 +11,7 @@ import std.conv : to;
 // SECTION alias-instruction
 
 string aliasToString(AstCtx ast) {
-    if (ast.size != 3)
+    if (ast_size(ast) != 3)
         throw new CompilerError("alias: Needs exactly 2 arguments. " ~ ast[0].tknstr());
 
     if (ast[1].type != keyword(":symbol"))
@@ -78,7 +78,7 @@ string letToString(AstCtx ast) {
 // SECTION if-else
 
 string ifToString(AstCtx ast) {
-    if (ast.size < 3 || ast.size > 4)
+    if (ast_size(ast) < 3 || ast_size(ast) > 4)
         throw new CompilerError(
                 "when: Too few or too many arguments. Expecting 3 or 4. " ~ ast.nodes[1].tknstr());
 
@@ -92,7 +92,7 @@ string ifToString(AstCtx ast) {
     insertSemicolon(result, branchThen);
     result ~= "\n}";
 
-    if (ast.size == 4) {
+    if (ast_size(ast) == 4) {
         auto branchElse = ast[3];
         result ~= " else {\n";
         result ~= createOutput(branchElse.needReturn(ast.requestReturn));
@@ -107,7 +107,7 @@ string ifToString(AstCtx ast) {
 string loopToString(AstCtx ast) {
     // SUBSECT Error checking
 
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("Loop: not enough arguments. " ~ ast.nodes[0].tknstr);
     }
     if (ast.nodes[1].type != keyword(":closedScope")) {

@@ -24,7 +24,7 @@ void replaceAnonymousNames(AstNode root, string[] anonymousParamNames) {
 
     size_t i;
 
-    if ((i = getParamIndex(root.text)) != -1) {
+    if ((i = getParamIndex(root.tkn_text)) != -1) {
         import compiler.tokenizer;
 
         root.tkn.text = anonymousParamNames[i];
@@ -163,7 +163,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
             if (node.type != keyword(":litType")) {
                 throw new CompilerError("Expected type: " ~ node.tknstr());
             }
-            generics ~= typeToString(node.text);
+            generics ~= typeToString(node.tkn_text);
         }
 
         nameIndex++;
@@ -177,7 +177,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         msg ~= " not allowed as a variable/function name. Token must be a symbol!";
         throw new CompilerError(msg);
     }
-    string name = nameNode.text;
+    string name = nameNode.tkn_text;
 
     // SUBSECT Check if this is a function declaration
 
@@ -247,24 +247,24 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
     for (auto i = 0; i < bindings.size; i++) {
         // SUBSECT Handle parameter types
 
-        if (bindings[i].text == "::") { // Anonymous type
+        if (bindings[i].tkn_text == "::") { // Anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
+            bindings2 ~= ast_node(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
             i++;
         } else if (bindings[i].type == keyword(":litType")) { // Normal case
             bindings2 ~= bindings[i];
             i++;
-        } else if (bindings[i].text == "_") { // Parameter type and name are anonymous; name can still be accessed as $n
+        } else if (bindings[i].tkn_text == "_") { // Parameter type and name are anonymous; name can still be accessed as $n
             // Write anonymous type
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
+            bindings2 ~= ast_node(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
 
             // Write anonymous name
             sym = gensym();
             argNames ~= sym;
-            bindings2 ~= new AstNode(Token(keyword(":symbol"), sym));
+            bindings2 ~= ast_node(Token(keyword(":symbol"), sym));
             usedAnonymousName = true;
 
             // Go on
@@ -272,7 +272,7 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
         } else if (bindings[i].type == keyword(":symbol")) {
             // No type given
             auto sym = gensym();
-            bindings2 ~= new AstNode(Token(keyword(":litType"), "::" ~ sym));
+            bindings2 ~= ast_node(Token(keyword(":litType"), "::" ~ sym));
             generics ~= sym;
 
             // Add generic, anonymous type
@@ -287,16 +287,16 @@ string generalDefineToString(AstCtx ast, bool forceFunctionDef, FnMeta meta) {
 
         // SUBSECT Handle parameter name
 
-        auto b = bindings[i].text;
+        auto b = bindings[i].tkn_text;
         if (bindings[i].type == keyword(":symbol")) {
             if (b == "$") { // Anonymous
                 auto sym = gensym();
-                bindings2 ~= new AstNode(Token(keyword(":symbol"), sym));
+                bindings2 ~= ast_node(Token(keyword(":symbol"), sym));
                 argNames ~= sym;
                 usedAnonymousName = true;
             } else {
                 bindings2 ~= bindings[i];
-                argNames ~= bindings[i].text;
+                argNames ~= bindings[i].tkn_text;
             }
         } else {
             throw new CompilerError("define: Expecting symbol. " ~ bindings[i].tknstr());

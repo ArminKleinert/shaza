@@ -292,6 +292,11 @@ The implementations given here are for arrays specifically.
     )
   )
 
+  ; SECTION join
+
+  (define ::string join (::T[] c)
+    (reduce (lambda ::string (::T e ::string s) (append s (str e))) c))
+
   ; SECTION Uniqueness
 
   (meta (:visibility :private)

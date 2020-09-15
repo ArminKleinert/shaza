@@ -176,7 +176,7 @@ class OutputContext {
     }
 
     public string[] listFunctions() {
-        import std.conv;
+        import std.conv : to;
 
         string[] fns;
         string current;
@@ -215,7 +215,7 @@ class OutputContext {
     }
 
     string newLabel(string[] varnames) {
-        import std.conv;
+        import std.conv : to;
 
         string name = "jumplbl" ~ to!string(jumpLabelStack.size + 1);
         Jumplabel lbl = new Jumplabel(name, varnames);
@@ -297,7 +297,7 @@ struct AstCtx {
 
     AstCtx[] subs() {
         AstCtx[] res = [];
-        foreach (n; nodes) {
+        foreach (n; ast.nodes) {
             // Do not want to inherit eg. requestReturn
             res ~= AstCtx(fullAst, n);
         }
@@ -310,29 +310,29 @@ struct AstCtx {
 string symbolToString(AstNode node) {
     if (node.type != keyword(":symbol"))
         throw new CompilerError("Expected symbol: " ~ node.tknstr);
-    return szNameToHostName(node.text);
+    return szNameToHostName(node.tkn_text);
 }
 
 string typestring(AstNode node) {
     if (node.type != keyword(":symbol"))
         throw new CompilerError("Expected type: " ~ node.tknstr);
-    return node.text;
+    return node.tkn_text;
 }
 
 string keywordToString(AstNode node) {
     if (node.type != keyword(":litKeyword"))
         throw new CompilerError("Expected symbol: " ~ node.tknstr);
-    return szNameToHostName(node.text[1 .. $]);
+    return szNameToHostName(node.tkn_text[1 .. $]);
 }
 
 // SECTION Minor helpers
 
 Appender!string insertSemicolon(Appender!string result, AstNode node) {
     bool allow = result[][$ - 1] != ';' && result[][$ - 1] != '{' && result[][$ - 1] != '}';
-    if (node.type == keyword(":closedScope") && node.size > 0) {
-        allow = allow && node.nodes[0].text != "ll" && node.nodes[0].text != "loop";
+    if (node.type == keyword(":closedScope") && node.ast_size > 0) {
+        allow = allow && node.nodes[0].tkn_text != "ll" && node.nodes[0].tkn_text != "loop";
     }
-    if (allow || (node.size > 0 && node.nodes[0].text == "lambda"))
+    if (allow || (node.ast_size > 0 && node.nodes[0].tkn_text == "lambda"))
         result ~= ';';
     return result;
 }
@@ -340,14 +340,14 @@ Appender!string insertSemicolon(Appender!string result, AstNode node) {
 // SUBSECT Do nested search for "recur" in nodes.
 
 bool nodeContainsRecur(AstCtx node) {
-    if (node.type == keyword(":symbol") && node.text == "recur") {
+    if (node.type == keyword(":symbol") && node.tkn_text == "recur") {
         return true;
     }
     return nodesContainRecur(node.nodes);
 }
 
 bool nodeContainsRecur(AstNode node) {
-    if (node.type == keyword(":symbol") && node.text == "recur") {
+    if (node.type == keyword(":symbol") && node.tkn_text == "recur") {
         return true;
     }
     return nodesContainRecur(node.nodes);
@@ -358,8 +358,8 @@ bool nodesContainRecur(AstNode[] astNodes) {
         return false;
 
     foreach (node; astNodes) {
-        if (node.type == keyword(":closedScope") && node.size > 0
-                && (node.nodes[0].text == "loop" || node.nodes[0].text == "define")) {
+        if (node.type == keyword(":closedScope") && node.ast_size > 0
+                && (node.nodes[0].tkn_text == "loop" || node.nodes[0].tkn_text == "define")) {
             return false;
         }
         if (nodeContainsRecur(node))

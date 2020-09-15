@@ -1,7 +1,7 @@
 module compiler.tokenizer;
 
 import std.stdio;
-import std.conv;
+import std.conv : to;
 import std.typecons;
 import std.string;
 import std.algorithm;

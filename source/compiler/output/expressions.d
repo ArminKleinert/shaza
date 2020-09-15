@@ -27,13 +27,13 @@ string listLiteralToString(AstCtx ast) {
 // SECTION Fucntion call to string
 
 string callToString(AstCtx ast) {
-    if (ast.size == 0) {
+    if (ast_size(ast) == 0) {
         throw new CompilerError("Unexpected empty scope. " ~ ast.tknstr());
     }
 
     string callingName;
     if (ast.nodes[0].type == keyword(":symbol")) {
-        if (FunctionDecl fn = OutputContext.global.findFn(ast.nodes[0].text))
+        if (FunctionDecl fn = OutputContext.global.findFn(ast.nodes[0].tkn_text))
             callingName = fn.exportName;
         else
             callingName = symbolToString(ast.nodes[0]);
@@ -73,7 +73,7 @@ string attrSetvToString(string name, AstCtx attr, AstCtx newVal) {
     if (attr.type == keyword(":litKeyword"))
         s = keywordToString(attr);
     else if (attr.type == keyword(":litString"))
-        s = attr.text[1 .. $ - 1];
+        s = attr.tkn_text[1 .. $ - 1];
     else
         s = symbolToString(attr);
 
@@ -117,7 +117,7 @@ string newToString(AstCtx ast) {
 // SECTION conversions -> cast and to
 
 string conversionToString(AstCtx ast) {
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("to: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     auto s = "to!" ~ typeToString(ast.nodes[1]);
@@ -125,7 +125,7 @@ string conversionToString(AstCtx ast) {
 }
 
 string castToString(AstCtx ast) {
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     auto s = "cast(" ~ typeToString(ast.nodes[1]) ~ ")";
@@ -133,7 +133,7 @@ string castToString(AstCtx ast) {
 }
 
 string toOrCastToString(AstCtx ast, string start) {
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("cast: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     expectType(ast.nodes[1], keyword(":litType"));
@@ -142,7 +142,7 @@ string toOrCastToString(AstCtx ast, string start) {
     result ~= "(";
     result ~= createOutput(ast[2]);
 
-    if (ast.size > 3) {
+    if (ast_size(ast) > 3) {
         foreach (arg; ast.subs[3 .. $]) {
             result ~= ", ";
             result ~= createOutput(arg);
@@ -156,19 +156,19 @@ string toOrCastToString(AstCtx ast, string start) {
 // SECTION Function pointer to string
 
 string functionPointerToString(AstCtx ast) {
-    if (ast.size != 2) {
+    if (ast_size(ast) != 2) {
         throw new CompilerError("fp: Excepts exactly 1 argument. " ~ ast.nodes[0].tknstr());
     }
     if (ast[1].type != keyword(":symbol")) {
         throw new CompilerError("fp: Function name expected. " ~ ast[1].tknstr());
     }
 
-    FunctionDecl fn = OutputContext.global.findFn(ast[1].text);
+    FunctionDecl fn = OutputContext.global.findFn(ast[1].tkn_text);
     string fnOutName = "";
 
     if (fn is null) {
         //        throw new CompilerError("fp: Unknown function. " ~ ast[1].tknstr());
-        fnOutName = szNameToHostName(ast[1].text);
+        fnOutName = szNameToHostName(ast[1].tkn_text);
     } else {
         fnOutName = fn.exportName;
     }

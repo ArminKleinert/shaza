@@ -13,7 +13,7 @@ void replaceTkAliases(AstNode root, string replacement, string orig) {
     if (isPredefinedName(orig)) {
         warning("meta, tk-aliases. Warning: overriding predefined name " ~ orig);
     }
-    if (root.text == orig) {
+    if (tkn_text(root) == orig) {
         import compiler.tokenizer;
 
         root.tkn.text = replacement;
@@ -29,7 +29,7 @@ string parseMetaGetString(AstCtx ast) {
 }
 
 string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("meta: Too few arguments. " ~ ast.nodes[0].tknstr());
     }
 
@@ -50,24 +50,24 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
     bool variadic = false;
 
     // Currently accepted options are :generics, :visibility, :aliases, :export-as
-    for (auto i = 0; i < attribs.size; i++) {
+    for (auto i = 0; i < ast_size(attribs); i++) {
         expectType(attribs.nodes[i], keyword(":litKeyword"));
-        if (attribs.nodes[i].text == ":generics") {
+        if (tkn_text(attribs.nodes[i]) == ":generics") {
             i++;
             expectType(attribs.nodes[i], keyword(":litList"), keyword(":closedList"));
             foreach (genNode; attribs.nodes[i].nodes) {
                 expectType(genNode, keyword(":litType"));
                 generics ~= typeToString(genNode);
             }
-        } else if (attribs.nodes[i].text == ":visibility") {
+        } else if (tkn_text(attribs.nodes[i]) == ":visibility") {
             i++;
             expectType(attribs.nodes[i], keyword(":litKeyword"));
             visibility = keywordToString(attribs.nodes[i]);
-        } else if (attribs.nodes[i].text == ":returns") {
+        } else if (tkn_text(attribs.nodes[i]) == ":returns") {
             i++;
             expectType(attribs.nodes[i], keyword(":litType"));
             returnType = typeToString(attribs.nodes[i]);
-        } else if (attribs.nodes[i].text == ":aliases") {
+        } else if (tkn_text(attribs.nodes[i]) == ":aliases") {
             i++;
             //if (wrapped.size > 1) {
             //    stderr.writeln(
@@ -76,24 +76,24 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
             expectType(attribs.nodes[i], keyword(":litList"), keyword(":closedList"));
             foreach (aliasNode; attribs.nodes[i].nodes) {
                 expectType(aliasNode, keyword(":symbol"));
-                aliases ~= aliasNode.text;
+                aliases ~= tkn_text(aliasNode);
             }
             //}
-        } else if (attribs.nodes[i].text == ":export-as") {
+        } else if (tkn_text(attribs.nodes[i]) == ":export-as") {
             i++;
             //if (wrapped.size > 1) {
             //    stderr.writeln(
             //            ":export-as only allowed for one function per meta-block. " ~ attribs.nodes[i].tknstr());
             //} else {
             expectType(attribs.nodes[i], keyword(":litString"));
-            exportName = attribs.nodes[i].text[1 .. $ - 1];
+            exportName = tkn_text(attribs.nodes[i])[1 .. $ - 1];
             //}
-        } else if (attribs.nodes[i].text == ":tk-aliases") {
+        } else if (tkn_text(attribs.nodes[i]) == ":tk-aliases") {
             i++;
             if (attribs.nodes[i].type != keyword(":closedList")) {
                 throw new CompilerError(
                         "meta: Expected list for attribute tk-aliases. " ~ attribs.nodes[i].tknstr);
-            } else if (attribs.nodes[i].size % 2 != 0) {
+            } else if (ast_size(attribs.nodes[i]) % 2 != 0) {
                 throw new CompilerError(
                         "meta: tk-aliases requires even number of arguments. "
                         ~ attribs.nodes[i].tknstr);
@@ -101,7 +101,7 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
 
             AstNode aliasedStuff = attribs.nodes[i];
             AstNode replacement, orig;
-            for (auto i2 = 0; i2 < aliasedStuff.size; i2 += 2) {
+            for (auto i2 = 0; i2 < ast_size(aliasedStuff); i2 += 2) {
                 orig = aliasedStuff.nodes[i2];
                 replacement = aliasedStuff.nodes[i2 + 1];
                 if (!isAtom(orig.tkn) || !isAtom(replacement.tkn)) {
@@ -111,17 +111,17 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
                 }
                 if (ast.nodes.size > 2) {
                     foreach (child; ast.nodes[2 .. $]) {
-                        replaceTkAliases(child, replacement.text, orig.text);
+                        replaceTkAliases(child, tkn_text(replacement), tkn_text(orig));
                     }
                 }
             }
-        } else if (attribs.nodes[i].text == ":variadic") {
+        } else if (tkn_text(attribs.nodes[i]) == ":variadic") {
             i++;
             if (attribs.nodes[i].type != keyword(":litBool")) {
                 warning(
                         "meta: The :variadic option required a boolean (#t/#f) " ~ attribs.nodes[i].tknstr());
             } else {
-                variadic = attribs.nodes[i].text == "#t";
+                variadic = tkn_text(attribs.nodes[i]) == "#t";
             }
         } else {
             warning("Unknown meta-option. " ~ attribs.nodes[i].tknstr());
@@ -138,14 +138,14 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
     auto result = appender("");
 
     foreach (c; wrapped) {
-        if (c.nodes[0].text == "meta") {
+        if (tkn_text(c.nodes[0]) == "meta") {
             result ~= parseMetaGetString(ast(c), meta);
-        } else if (c.nodes[0].text != "define" && c.nodes[0].text != "define-fn") {
+        } else if (tkn_text(c.nodes[0]) != "define" && tkn_text(c.nodes[0]) != "define-fn") {
             string msg = "meta can only be used on function definitions. Otherwise, it is ignored. ";
             warning(msg ~ ast.nodes[0].tknstr());
             result ~= createOutput(ast(c));
         } else {
-            auto forceIsFn = c.text == "define-fn";
+            auto forceIsFn = tkn_text(c) == "define-fn";
             result ~= generalDefineToString(ast(c), forceIsFn, meta);
         }
     }

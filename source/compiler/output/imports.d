@@ -22,7 +22,7 @@ string importHostToString(AstNode ast) {
     // Parse name of import
     string nameText;
     if (nodes[0].type == keyword(":litString")) {
-        nameText = nodes[0].text[1 .. $ - 1];
+        nameText = tkn_text(nodes[0])[1 .. $ - 1];
     } else {
         nameText = symbolToString(nodes[0]);
     }
@@ -57,7 +57,7 @@ string importHostToString(AstNode ast) {
 // SECTION import-sz
 
 string importShazaToString(AstNode ast) {
-    if (ast.size < 2)
+    if (ast_size(ast) < 2)
         warning("Import: No file to import: " ~ ast.nodes[0].tknstr() ~ "; Ignoring...");
 
     auto node = ast.nodes[1];
@@ -95,7 +95,7 @@ string importShazaToString(AstNode ast) {
 // SECTION Include
 
 string includeToString(AstNode ast) {
-    if (ast.size < 2)
+    if (ast_size(ast) < 2)
         warning("No file to import: " ~ ast.nodes[0].tknstr() ~ "; Ignoring...");
 
     auto node = ast.nodes[1];

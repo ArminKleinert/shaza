@@ -2,13 +2,12 @@ module compiler.ast_converter;
 
 import std.variant;
 import std.stdio;
-import std.conv;
+import std.conv : to;
 import std.typecons;
 import std.string;
 import std.algorithm;
 import std.array;
 
-import std.conv;
 import compiler.output.ll;
 import compiler.output.define;
 import compiler.output.lambda;
@@ -153,7 +152,7 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
 
     // Try to find module declaration
     if (ast.nodes[0].type == keyword(":closedScope")
-            && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].text == "module") {
+            && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].tkn_text == "module") {
         string temp = moduleToString(ast.nodes[0]);
 
         modulename = retrieveModuleName(ast.nodes[0]);

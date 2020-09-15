@@ -10,7 +10,7 @@ import std.array;
 // SECTION Lambdas
 
 string lambdaToString(AstCtx ast) {
-    if (ast.size < 3) {
+    if (ast_size(ast) < 3) {
         throw new CompilerError("lambda: Not enough arguments. " ~ ast.nodes[0].tknstr());
     }
     //if (ast.nodes[1].type != TknType.litType) {
