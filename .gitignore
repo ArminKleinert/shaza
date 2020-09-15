@@ -1,8 +1,6 @@
 .dub/build
 /classes
 
-shaza
-
 # Object files
 *.compiler
 *.ko
