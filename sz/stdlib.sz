@@ -22,6 +22,9 @@
 ; Import basic collection functions
 (include basic_collection)
 
+; Import basic math functions
+(include math)
+
 ; SECTION Type convertions
 
 (define ::string (::T) to_s (::T e) (llr "to!string(" e ")"))

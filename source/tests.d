@@ -630,6 +630,27 @@ auto coll = [3,4,6,3,2,1,8,9,10];
 auto coll_sorted = [1,2,3,3,4,6,8,9,10];
 return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), insertionsort(coll)));}
 }
+bool test_sum(){
+{
+int[] empty_coll = [];
+return and(eql_Q(sum([1,2,3]), 6), eql_Q(sum(empty_coll), 0), eql_Q(sum([0,0,0]), 0), eql_Q(sum([-1,-1,-1,-1]), -4));}
+}
+bool test_min(){
+{
+int[] empty_coll = [];
+return and(eql_Q(min(empty_coll), default_int), eql_Q(min([1]), 1), eql_Q(min([1,2,3,4,5,6]), 1), eql_Q(min([6,5,4,3,2,1]), 1));}
+}
+bool test_max(){
+{
+int[] empty_coll = [];
+return and(eql_Q(max(empty_coll), default_int), eql_Q(max([1]), 1), eql_Q(max([1,2,3,4,5,6]), 6), eql_Q(max([6,5,4,3,2,1]), 6));}
+}
+bool test_divisors(){
+return and(eql_Q(divisors(12), [6,4,3,2,1]), eql_Q(divisors(0), cleared([0L])));
+}
+bool test_sum_of_divisors(){
+return and(eql_Q(sum_of_divisors(0), 0), eql_Q(sum_of_divisors(12), 16));
+}
 
 void main1(){
 println_E(append("test-defaults      ", to_s(test_defaults())));
@@ -769,6 +790,13 @@ println_E(append("test-sort          ", to_s(test_sort())));
 println_E(append("test-sort-1        ", to_s(test_sort_1())));
 println_E(append("test-sort-2        ", to_s(test_sort_2())));
 println_E(append("test-sort-3        ", to_s(test_sort_3())));
+println_E("");
+println_E(append("test-sum           ", to_s(test_sum())));
+println_E(append("test-min           ", to_s(test_min())));
+println_E(append("test-max           ", to_s(test_max())));
+println_E(append("test-divisors      ", to_s(test_divisors())));
+println_E("test-sum-of-divisors");
+println_E(append("                   ", to_s(test_sum_of_divisors())));
 }
 
 

@@ -696,6 +696,248 @@ return isort_acc(coll, acc);}
 }
 
 
+
+
+import stdlib;
+T sum(T)(T[] seq){
+return reduce(delegate T(T l0, T l1){
+return plus(l0, l1);
+}, seq, 0);
+}
+T min(T)(T[] coll){
+if(eql_Q(size(coll), 0)) {
+return T.init;
+} else {
+if(eql_Q(size(coll), 1)) {
+return first(coll);
+} else {
+T[] c = rest(coll);
+T res = first(coll);
+jumplbl1:
+if(empty_Q(c)) {
+return res;
+} else {
+if(lt_Q(first(c), res)) {
+{
+auto c_0 = rest(c);
+auto res_1 = first(c);
+c = c_0;
+res = res_1;
+}
+goto jumplbl1;
+} else {
+{
+auto c_0 = rest(c);
+auto res_1 = res;
+c = c_0;
+res = res_1;
+}
+goto jumplbl1;
+}
+}
+}
+}
+}
+T max(T)(T[] coll){
+if(eql_Q(size(coll), 0)) {
+return T.init;
+} else {
+if(eql_Q(size(coll), 1)) {
+return first(coll);
+} else {
+T[] c = rest(coll);
+T res = first(coll);
+jumplbl1:
+if(empty_Q(c)) {
+return res;
+} else {
+if(gt_Q(first(c), res)) {
+{
+auto c_0 = rest(c);
+auto res_1 = first(c);
+c = c_0;
+res = res_1;
+}
+goto jumplbl1;
+} else {
+{
+auto c_0 = rest(c);
+auto res_1 = res;
+c = c_0;
+res = res_1;
+}
+goto jumplbl1;
+}
+}
+}
+}
+}
+T fib(T)(T _n){
+jumplbl1:
+auto n = _n;
+auto a = 1;
+auto b = 0;
+jumplbl2:
+if(eql_Q(n, 0)) {
+return b;
+} else {
+{
+auto n_0 = dec(n);
+auto a_1 = plus(a, b);
+auto b_2 = a;
+n = n_0;
+a = a_1;
+b = b_2;
+}
+goto jumplbl2;
+}
+}
+
+long[] divisors(long l){
+jumplbl1:
+long[] res = [];
+auto n = shift_right(l, 1L);
+jumplbl2:
+if(eql_Q(n, 0)) {
+return res;
+} else {
+if(eql_Q(mod(l, n), 0)) {
+{
+auto res_0 = append(res, n);
+auto n_1 = dec(n);
+res = res_0;
+n = n_1;
+}
+goto jumplbl2;
+} else {
+{
+auto res_0 = res;
+auto n_1 = dec(n);
+res = res_0;
+n = n_1;
+}
+goto jumplbl2;
+}
+}
+}
+
+long sum_of_divisors(long l){
+jumplbl1:
+long res = 0;
+auto n = div(l, 2);
+jumplbl2:
+if(eql_Q(n, 0)) {
+return res;
+} else {
+if(eql_Q(mod(l, n), 0)) {
+{
+auto res_0 = plus(res, n);
+auto n_1 = dec(n);
+res = res_0;
+n = n_1;
+}
+goto jumplbl2;
+} else {
+{
+auto res_0 = res;
+auto n_1 = dec(n);
+res = res_0;
+n = n_1;
+}
+goto jumplbl2;
+}
+}
+}
+
+long sum_of_divisors_1(long l){
+return sum(divisors(l));
+}
+
+double approx_euler(long l){
+return div(1.0, fib(l));
+}
+
+T limit(T)(T val, T max){
+return mod(val, max);
+}
+T limit(T)(T val, T min, T max){
+return sub(mod(val, plus(max, min)), min);
+}
+
+
+struct Random {
+ulong value;
+ulong seed;
+alias value this;
+this(ulong _value, ulong _seed){
+value = _value;
+seed = _seed;
+}
+Random with_value(ulong value){
+return Random(value, seed);
+}
+Random with_seed(ulong seed){
+return Random(value, seed);
+}
+Random clone(){
+return Random(value, seed);
+}
+}
+
+
+ulong default_seed = 8678280846964778612;
+
+Random rseed(ulong seed){
+return Random(inc(seed), seed);
+}
+
+Random random(ulong seed){
+{
+auto seed1 = bit_xor(seed, shift_right(seed, 12));
+auto seed2 = bit_xor(seed1, shift_left(seed1, 25));
+auto seed3 = bit_xor(seed2, shift_right(seed2, 27));
+return Random(bit_xor(seed, 0x2545F4914F6CDD1D), seed);}
+}
+
+Random random(Random r){
+{
+auto nr = random(r.seed);
+return nr.with_seed(r.value);}
+}
+
+Random random(Random r, ulong max){
+{
+auto r2 = random(r);
+return r2.with_value(limit(r2.value, max));}
+}
+
+Random random(Random r, ulong min, ulong max){
+{
+auto r2 = random(r);
+return r2.with_value(limit(r2.value, min, max));}
+}
+
+ulong ulong_value(Random r){
+return r.value;
+}
+
+long long_value(Random r){
+return cast(long)(r.value);
+}
+
+uint uint_value(Random r){
+return cast(uint)(r.value);
+}
+
+int int_value(Random r){
+return cast(int)(r.value);
+}
+
+double double_value(Random r){
+return cast(double)(r.value);
+}
+
+
 string to_s(T)(T e){
 return to!string(e);
 }

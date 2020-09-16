@@ -987,6 +987,47 @@
       (= (sort coll) coll-sorted)
       (= (sort coll) (sort coll)))))
 
+; SECTION Test sum
+
+(define test-sum ()
+  (let (::int[] empty-coll [])
+    (and
+      (= (sum [1 2 3]) 6)
+      (= (sum empty-coll) 0)
+      (= (sum [0 0 0]) 0)
+      (= (sum [-1 -1 -1 -1]) -4))))
+
+; SECTION Test min / max
+
+(define test-min ()
+  (let (::int[] empty-coll [])
+    (and
+      (= (min empty-coll) default-int)
+      (= (min [1]) 1)
+      (= (min [1 2 3 4 5 6]) 1)
+      (= (min [6 5 4 3 2 1]) 1))))
+
+(define test-max ()
+  (let (::int[] empty-coll [])
+    (and
+      (= (max empty-coll) default-int)
+      (= (max [1]) 1)
+      (= (max [1 2 3 4 5 6]) 6)
+      (= (max [6 5 4 3 2 1]) 6))))
+
+; SECTION Test divisors and sum-of-divisors
+
+(define test-divisors ()
+  (and
+    (= (divisors 12) [6 4 3 2 1])
+    (= (divisors 0) (cleared [0L]))))
+
+(define test-sum-of-divisors ()
+  (and
+    (= (sum-of-divisors 0) 0)
+    (= (sum-of-divisors 12) 16)))
+
+
 
 
 
@@ -1136,4 +1177,11 @@
     (println! (append "test-sort-1        " (to_s (test-sort-1))))
     (println! (append "test-sort-2        " (to_s (test-sort-2))))
     (println! (append "test-sort-3        " (to_s (test-sort-3))))
+    (println! "")
+    (println! (append "test-sum           " (to_s (test-sum))))
+    (println! (append "test-min           " (to_s (test-min))))
+    (println! (append "test-max           " (to_s (test-max))))
+    (println! (append "test-divisors      " (to_s (test-divisors))))
+    (println!         "test-sum-of-divisors")
+    (println! (append "                   " (to_s (test-sum-of-divisors))))
 )
