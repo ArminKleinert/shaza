@@ -414,10 +414,10 @@ goto jumplbl2;
 size_t key_of(T)(T[] c, T value){
 return key_of(c, value, size_t.init);
 }
-size_t index_of(T)(T[] c, T value){
+long index_of(T)(T[] c, T value){
 jumplbl1:
 auto r = values(c);
-size_t i = 0;
+long i = 0;
 jumplbl2:
 if(empty_Q(r)) {
 return -1;
@@ -637,7 +637,7 @@ goto jumplbl2;}
 string join(T)(T[] c){
 return reduce(delegate string(T e, string s){
 return append(s, str(e));
-}, c);
+}, c, "");
 }
 private auto uniq_acc(T)(T[] c, T[] output){
 jumplbl1:
@@ -645,11 +645,17 @@ if(empty_Q(c)) {
 return output;
 } else {
 if(gt_Q(index_of(output, first(c)), -1)) {
-return output;
+{
+auto c_0 = rest(c);
+auto output_1 = output;
+c = c_0;
+output = output_1;
+}
+goto jumplbl1;
 } else {
 {
 auto c_0 = rest(c);
-auto output_1 = append_E(output);
+auto output_1 = append_E(output, first(c));
 c = c_0;
 output = output_1;
 }

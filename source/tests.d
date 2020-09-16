@@ -577,6 +577,59 @@ return and(eql_Q(map_E(delegate int(int i){
 return inc(i);
 }, coll), [2,3,4,5,6,7]), eql_Q(coll, [2,3,4,5,6,7]));}
 }
+bool test_join(){
+{
+int[] empty_int_arr = [];
+return and(eql_Q(join(empty_int_arr), ""), eql_Q(join([1,2,3]), "123"), eql_Q(join([123]), "123"));}
+}
+bool test_uniq(){
+{
+int[] empty_int_arr = [];
+return and(eql_Q(uniq(empty_int_arr), empty_int_arr), eql_Q(uniq([1,1,1]), [1]), eql_Q(uniq([1,2,3,1,2,3]), [1,2,3]), eql_Q(uniq([1,2,3,2,1,0]), [1,2,3,0]));}
+}
+bool test_distinct(){
+{
+int[] empty_int_arr = [];
+return and(eql_Q(uniq(empty_int_arr), empty_int_arr), eql_Q(uniq([1,1,1]), [1]), eql_Q(uniq([1,2,3,1,2,3]), [1,2,3]), eql_Q(uniq([1,2,3,2,1,0]), [1,2,3,0]));}
+}
+bool test_uniq_Q(){
+{
+int[] empty_int_arr = [];
+return and(uniq_Q(empty_int_arr), uniq_Q([1,2,3,4]), uniq_Q([1]), not(uniq_Q([1,2,3,2])));}
+}
+bool test_is_distinct_Q(){
+{
+int[] empty_int_arr = [];
+return and(uniq_Q(empty_int_arr), uniq_Q([1,2,3,4]), uniq_Q([1]), not(uniq_Q([1,2,3,2])));}
+}
+bool test_is_unique_Q(){
+{
+int[] empty_int_arr = [];
+return and(uniq_Q(empty_int_arr), uniq_Q([1,2,3,4]), uniq_Q([1]), not(uniq_Q([1,2,3,2])));}
+}
+bool test_sort(){
+{
+int[] coll = [];
+return and(eql_Q(insertionsort(coll), []), eql_Q(insertionsort(coll), insertionsort(coll)));}
+}
+bool test_sort_1(){
+{
+auto coll = [1,2,3,4,5,6];
+auto coll_sorted = [1,2,3,4,5,6];
+return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), insertionsort(coll)));}
+}
+bool test_sort_2(){
+{
+auto coll = [6,5,4,3,2,1];
+auto coll_sorted = [1,2,3,4,5,6];
+return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), insertionsort(coll)));}
+}
+bool test_sort_3(){
+{
+auto coll = [3,4,6,3,2,1,8,9,10];
+auto coll_sorted = [1,2,3,3,4,6,8,9,10];
+return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), insertionsort(coll)));}
+}
 
 void main1(){
 println_E(append("test-defaults      ", to_s(test_defaults())));
@@ -703,6 +756,19 @@ println_E(append("test-map           ", to_s(test_map())));
 println_E(append("test-map-into      ", to_s(test_map_into())));
 println_E(append("test-map-into-1    ", to_s(test_map_into_1())));
 println_E(append("test-map!          ", to_s(test_map_E())));
+println_E("");
+println_E(append("test-join          ", to_s(test_join())));
+println_E("");
+println_E(append("test-uniq          ", to_s(test_uniq())));
+println_E(append("test-distinct      ", to_s(test_distinct())));
+println_E(append("test-uniq?         ", to_s(test_uniq_Q())));
+println_E(append("test-is-distinct?  ", to_s(test_is_distinct_Q())));
+println_E(append("test-is-unique?    ", to_s(test_is_unique_Q())));
+println_E("");
+println_E(append("test-sort          ", to_s(test_sort())));
+println_E(append("test-sort-1        ", to_s(test_sort_1())));
+println_E(append("test-sort-2        ", to_s(test_sort_2())));
+println_E(append("test-sort-3        ", to_s(test_sort_3())));
 }
 
 

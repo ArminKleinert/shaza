@@ -905,6 +905,90 @@
       (= (map! (lambda ::int (::int i) (++ i)) coll) [2 3 4 5 6 7])
       (= coll [2 3 4 5 6 7]))))
 
+; SECTION Test join
+
+(define test-join ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (= (join empty_int_arr) "")
+      (= (join [1 2 3]) "123")
+      (= (join [123]) "123"))))
+
+; SECTION Test uniq / distinct
+
+(define test-uniq ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (= (uniq empty_int_arr) empty_int_arr)
+      (= (uniq [1 1 1]) [1])
+      (= (uniq [1 2 3 1 2 3]) [1 2 3])
+      (= (uniq [1 2 3 2 1 0]) [1 2 3 0]))))
+
+(define test-distinct ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (= (distinct empty_int_arr) empty_int_arr)
+      (= (distinct [1 1 1]) [1])
+      (= (distinct [1 2 3 1 2 3]) [1 2 3])
+      (= (distinct [1 2 3 2 1 0]) [1 2 3 0]))))
+
+; SECTION Test uniq? / is-unique? / is-distinct?
+
+(define test-uniq? ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (uniq? empty_int_arr)
+      (uniq? [1 2 3 4])
+      (uniq? [1])
+      (! (uniq? [1 2 3 2])))))
+
+(define test-is-distinct? ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (is-distinct? empty_int_arr)
+      (is-distinct? [1 2 3 4])
+      (is-distinct? [1])
+      (! (is-distinct? [1 2 3 2])))))
+
+(define test-is-unique? ()
+  (let (::int[] empty_int_arr [])
+    (and
+      (is-unique? empty_int_arr)
+      (is-unique? [1 2 3 4])
+      (is-unique? [1])
+      (! (is-unique? [1 2 3 2])))))
+
+; SECTION Test sort
+
+(define test-sort ()
+  (let (::int[] coll [])
+    (and
+      (= (sort coll) [])
+      (= (sort coll) (sort coll)))))
+
+(define test-sort-1 ()
+  (let (coll        [1 2 3 4 5 6]
+        coll-sorted [1 2 3 4 5 6])
+    (and
+      (= (sort coll) coll-sorted)
+      (= (sort coll) (sort coll)))))
+
+(define test-sort-2 ()
+  (let (coll        [6 5 4 3 2 1]
+        coll-sorted [1 2 3 4 5 6])
+    (and
+      (= (sort coll) coll-sorted)
+      (= (sort coll) (sort coll)))))
+
+(define test-sort-3 ()
+  (let (coll        [3 4 6 3 2 1 8 9 10]
+        coll-sorted [1 2 3 3 4 6 8 9 10])
+    (and
+      (= (sort coll) coll-sorted)
+      (= (sort coll) (sort coll)))))
+
+
+
 
 
 
@@ -1039,4 +1123,17 @@
     (println! (append "test-map-into      " (to_s (test-map-into))))
     (println! (append "test-map-into-1    " (to_s (test-map-into-1))))
     (println! (append "test-map!          " (to_s (test-map!))))
+    (println! "")
+    (println! (append "test-join          " (to_s (test-join))))
+    (println! "")
+    (println! (append "test-uniq          " (to_s (test-uniq))))
+    (println! (append "test-distinct      " (to_s (test-distinct))))
+    (println! (append "test-uniq?         " (to_s (test-uniq?))))
+    (println! (append "test-is-distinct?  " (to_s (test-is-distinct?))))
+    (println! (append "test-is-unique?    " (to_s (test-is-unique?))))
+    (println! "")
+    (println! (append "test-sort          " (to_s (test-sort))))
+    (println! (append "test-sort-1        " (to_s (test-sort-1))))
+    (println! (append "test-sort-2        " (to_s (test-sort-2))))
+    (println! (append "test-sort-3        " (to_s (test-sort-3))))
 )

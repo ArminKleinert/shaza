@@ -148,8 +148,8 @@ The implementations given here are for arrays specifically.
 
   ; Index of value; For maps, this might rather search for the
   ; index of a key.
-  (define ::size_t index-of (::T[] c ::T value)
-    (loop (r (values c) ::size_t i 0)
+  (define ::long index-of (::T[] c ::T value)
+    (loop (r (values c) ::long i 0)
       (when (empty? r) -1
       (when (= (first r) value) i
       (recur (rest r) (++ i))))))
@@ -297,15 +297,16 @@ The implementations given here are for arrays specifically.
   ; SECTION join
 
   (define ::string join (::T[] c)
-    (reduce (lambda ::string (::T e ::string s) (append s (str e))) c))
+    (reduce (lambda ::string (::T e ::string s) (append s (str e))) c ""))
 
   ; SECTION Uniqueness
 
   (meta (:visibility :private)
     (define uniq-acc (::T[] c ::T[] output)
       (when (empty? c) output
-      (when (> (index-of output (first c)) -1) output
-      (recur (rest c) (append! output)))))
+      (when (> (index-of output (first c)) -1) 
+        (recur (rest c) output)
+      (recur (rest c) (append! output (first c))))))
   )
 
   (meta (:aliases [distinct])
