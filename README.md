@@ -218,7 +218,6 @@ A byte further in the future:
 
 - Enable type induction for lambdas:  
   ``delegate (i) {...}``  
-- Make the compiler accept arguments and create output and stuff...
 - Write documentation for `meta` and anonymous arguments.
 - Make Shaza self-hosting step-by-step.  
 - Implement tail-recursion and make compiler turn statements into expressions.  
@@ -227,7 +226,6 @@ A byte further in the future:
 - Make code more efficient (there is a lot of copying
   and testing with meta-data).  
 - Clean up code.  
-- Implement tests.  
 - Go down the "missing features" list.  
 - Clean up code.  
 - Implement tests.  

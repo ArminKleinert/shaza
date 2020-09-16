@@ -34,23 +34,23 @@
       b (recur (dec n) (+ a b) a))))
 )
 
-(define ::long[] divisors (::long l)
-  (loop (::long[] res []
+(define ::ulong[] divisors (::ulong l)
+  (loop (::ulong[] res []
          n (>> l (ll "1L")))
     (when (= n 0) res
     (when (= (% l n) 0)
         (recur (append res n) (dec n))
         (recur res (dec n))))))
 
-(define ::long sum-of-divisors (::long l)
-  (loop (::long res 0 n (/ l 2))
+(define ::ulong sum-of-divisors (::ulong l)
+  (loop (::ulong res 0 n (/ l 2))
     (when (= n 0) res
     (when (= (% l n) 0)
       (recur (+ res n) (dec n))
       (recur res (dec n))))))
 
-(define ::long sum-of-divisors-1 (::long l)
-  (sum (divisors l)))
+;(define ::long sum-of-divisors-1 (::long l)
+;  (sum (divisors l)))
 
 (define ::double approx-euler (::long l)
     (/ 1.0 (fib l)))
