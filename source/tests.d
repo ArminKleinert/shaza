@@ -547,6 +547,36 @@ return contains_Q(coll, i);
 return contains_Q(coll, i);
 }, [[0],append(coll, 1)]));}
 }
+bool test_map(){
+{
+auto coll = [1,2,3,4,5,6];
+return eql_Q(map(delegate int(int i){
+return inc(i);
+}, coll), [2,3,4,5,6,7]);}
+}
+bool test_map_into(){
+{
+auto coll = [1,2,3,4,5,6];
+int[] dest = [];
+return eql_Q(map_into(delegate int(int i){
+return inc(i);
+}, coll, dest), [2,3,4,5,6,7]);}
+}
+bool test_map_into_1(){
+{
+auto coll = [1,2,3,4,5,6];
+auto dest = [1,2,3];
+return eql_Q(map_into(delegate int(int i){
+return inc(i);
+}, coll, dest), [1,2,3,2,3,4,5,6,7]);}
+}
+bool test_map_E(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(eql_Q(map_E(delegate int(int i){
+return inc(i);
+}, coll), [2,3,4,5,6,7]), eql_Q(coll, [2,3,4,5,6,7]));}
+}
 
 void main1(){
 println_E(append("test-defaults      ", to_s(test_defaults())));
@@ -668,6 +698,11 @@ println_E(append("test-in-2?         ", to_s(test_includes_2_Q())));
 println_E(append("test-contains?     ", to_s(test_includes_Q())));
 println_E(append("test-contains-1?   ", to_s(test_includes_1_Q())));
 println_E(append("test-contains-2?   ", to_s(test_includes_2_Q())));
+println_E("");
+println_E(append("test-map           ", to_s(test_map())));
+println_E(append("test-map-into      ", to_s(test_map_into())));
+println_E(append("test-map-into-1    ", to_s(test_map_into_1())));
+println_E(append("test-map!          ", to_s(test_map_E())));
 }
 
 

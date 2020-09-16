@@ -885,6 +885,28 @@
       (all? (lambda ::bool (::int[] i) (contains? coll i)) [[1] [] coll (rest coll)])
       (none? (lambda ::bool (::int[] i) (contains? coll i)) [[0] (append coll 1)]))))
 
+; SECTION Test map
+
+(define test-map ()
+  (let (coll [1 2 3 4 5 6])
+    (= (map (lambda ::int (::int i) (++ i)) coll) [2 3 4 5 6 7])))
+
+(define test-map-into ()
+  (let (coll [1 2 3 4 5 6] ::int[] dest [])
+    (= (map-into (lambda ::int (::int i) (++ i)) coll dest) [2 3 4 5 6 7])))
+
+(define test-map-into-1 ()
+  (let (coll [1 2 3 4 5 6] dest [1 2 3])
+    (= (map-into (lambda ::int (::int i) (++ i)) coll dest) [1 2 3 2 3 4 5 6 7])))
+
+(define test-map! ()
+  (let (coll [1 2 3 4 5 6])
+    (and 
+      (= (map! (lambda ::int (::int i) (++ i)) coll) [2 3 4 5 6 7])
+      (= coll [2 3 4 5 6 7]))))
+
+
+
 
 
 ) ; Ends meta (returns bool)
@@ -1012,4 +1034,9 @@
     (println! (append "test-contains?     " (to_s (test-includes?))))
     (println! (append "test-contains-1?   " (to_s (test-includes-1?))))
     (println! (append "test-contains-2?   " (to_s (test-includes-2?))))
+    (println! "")
+    (println! (append "test-map           " (to_s (test-map))))
+    (println! (append "test-map-into      " (to_s (test-map-into))))
+    (println! (append "test-map-into-1    " (to_s (test-map-into-1))))
+    (println! (append "test-map!          " (to_s (test-map!))))
 )

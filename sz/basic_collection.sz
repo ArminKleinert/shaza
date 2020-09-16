@@ -258,7 +258,9 @@ The implementations given here are for arrays specifically.
 
   (meta (:tk-aliases [::F ::T:delegate(T)])
     (define map-into (::F func ::T[] c ::T[] output)
-      (append output (func (first c))))
+      (when (empty? c)
+        output
+        (recur func (rest c) (append output (func (first c))))))
 
     (define map (::F func ::T[] c)
       (map-into func c (cleared c)))

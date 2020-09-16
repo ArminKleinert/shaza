@@ -578,7 +578,20 @@ bool contains_Q(T)(T[] c, T[] other){
     return includes_Q(c, other);
 }
 auto map_into(T)(T delegate(T) func, T[] c, T[] output){
-    return append(output, func(first(c)));
+    jumplbl1:
+    if(empty_Q(c)) {
+        return output;
+    } else {
+        {
+            auto func_0 = func;
+            auto c_1 = rest(c);
+            auto output_2 = append(output, func(first(c)));
+            func = func_0;
+            c = c_1;
+            output = output_2;
+        }
+        goto jumplbl1;
+    }
 }
 auto map(T)(T delegate(T) func, T[] c){
     return map_into(func, c, cleared(c));
