@@ -731,9 +731,6 @@
          (= (key-of coll \6 7) 0)
          (= (key-of coll \9 7) 7))))
 
-
-)
-
 (define test-index-of ()
   (let (coll [15 16 17])
     (and (= (index-of coll 16) 1)
@@ -780,7 +777,7 @@
   (let (coll [1 2 3 4 5 6])
     (= (reduce (lambda (::int i ::int j) (- j i)) coll) -19)))
 
-(define test-reduce-3-sub (::int i ::int j) (- j i))
+(define ::int test-reduce-3-sub (::int i ::int j) (- j i))
 (define test-reduce-3 ()
   (let (coll [1 2 3 4 5 6])
     (= (reduce (fp test-reduce-3-sub) coll) -19)))
@@ -797,6 +794,101 @@
     (=
       (reduce (lambda ::int[][] (::int i ::int[][] res) (append res [i])) coll [])
       [[1] [2] [3] [4] [5] [6]])))
+
+; SECTION Test filter and reduce
+
+(define ::bool test-filter-odd-helper (::int i)
+  (== 1 (% i 2)))
+
+(define test-filter ()
+  (let (coll [1 2 3 4 5 6])
+    (and (= (filter (lambda ::bool (::int i) (!= 0 (& i 1))) coll) [1 3 5])
+         (= (filter (lambda ::bool (::int i) (< i 4)) coll) [1 2 3])
+         (= (filter (fp test-filter-odd-helper) coll) [1 3 5]))))
+
+(define test-remove ()
+  (let (coll [1 2 3 4 5 6])
+    (and (= (remove (lambda ::bool (::int i) (!= 0 (& i 1))) coll) [2 4 6])
+         (= (remove (lambda ::bool (::int i) (< i 4)) coll) [4 5 6])
+         (= (remove (fp test-filter-odd-helper) coll) [2 4 6]))))
+
+; SECTION Test any / all / none
+
+(define test-any? ()
+  (let (coll [1 2 3 4 5 6])
+    (and (any? (lambda ::bool (::int i) (> i 3)) coll) ; Partially true
+         (any? (lambda ::bool (::int i) (> i 0)) coll) ; All true
+         (! (any? (lambda ::bool (::int i) (> i 6)) coll)) ; None true -> #f
+         (! (any? (lambda ::bool (::int i) (> i 0)) []))))) ; Empty -> #f
+
+(define test-all? ()
+  (let (coll [1 2 3 4 5 6])
+    (and (! (all? (lambda ::bool (::int i) (> i 3)) coll)) ; Partially true -> #f
+         (all? (lambda ::bool (::int i) (> i 0)) coll) ; All true
+         (! (all? (lambda ::bool (::int i) (> i 6)) coll)) ; None true -> #f
+         (all? (lambda ::bool (::int i) (> i 0)) [])))) ; Empty -> #t
+
+(define test-none? ()
+  (let (coll [1 2 3 4 5 6])
+    (and (! (none? (lambda ::bool (::int i) (> i 3)) coll)) ; Partially true -> #f
+         (! (none? (lambda ::bool (::int i) (> i 0)) coll)) ; All true -> #f
+         (none? (lambda ::bool (::int i) (> i 6)) coll) ; None true
+         (none? (lambda ::bool (::int i) (> i 0)) [])))) ; Empty
+
+; SECTION Test includes? / in? / contains?
+
+(define test-includes? ()
+  (let (coll [1 2 3 4 5 6])
+    (and
+      (all? (lambda ::bool (::int i) (includes? coll i)) [1 2 3 4 5 6])
+      (none? (lambda ::bool (::int i) (includes? coll i)) [-1 0 7 10]))))
+
+(define test-includes-1? ()
+  (let (::int[] coll [])
+    (none? (lambda ::bool (::int i) (includes? coll i)) [-1 0 1 2 3 4 5 6 7 10])))
+
+(define test-includes-2? ()
+  (let (coll [1 2 3 4 5 6])
+    (and
+      (all? (lambda ::bool (::int[] i) (includes? coll i)) [[1] [] coll (rest coll)])
+      (none? (lambda ::bool (::int[] i) (includes? coll i)) [[0] (append coll 1)]))))
+
+(define test-in? ()
+  (let (coll [1 2 3 4 5 6])
+    (and
+      (all? (lambda ::bool (::int i) (in? coll i)) [1 2 3 4 5 6])
+      (none? (lambda ::bool (::int i) (in? coll i)) [-1 0 7 10]))))
+
+(define test-in-1? ()
+  (let (::int[] coll [])
+    (none? (lambda ::bool (::int i) (in? coll i)) [-1 0 1 2 3 4 5 6 7 10])))
+
+(define test-in-2? ()
+  (let (coll [1 2 3 4 5 6])
+    (and 
+      (all? (lambda ::bool (::int[] i) (in? coll i)) [[1] [] coll (rest coll)])
+      (none? (lambda ::bool (::int[] i) (in? coll i)) [[0] (append coll 1)]))))
+
+(define test-contains? ()
+  (let (coll [1 2 3 4 5 6])
+    (and
+      (all? (lambda ::bool (::int i) (contains? coll i)) [1 2 3 4 5 6])
+      (none? (lambda ::bool (::int i) (contains? coll i)) [-1 0 7 10]))))
+
+(define test-contains-1? ()
+  (let (::int[] coll [])
+    (none? (lambda ::bool (::int i) (contains? coll i)) [-1 0 1 2 3 4 5 6 7 10])))
+
+(define test-contains-2? ()
+  (let (coll [1 2 3 4 5 6])
+    (and
+      (all? (lambda ::bool (::int[] i) (contains? coll i)) [[1] [] coll (rest coll)])
+      (none? (lambda ::bool (::int[] i) (contains? coll i)) [[0] (append coll 1)]))))
+
+
+
+) ; Ends meta (returns bool)
+
 
 ; SECTION Run tests
 
@@ -904,4 +996,20 @@
     (println! (append "test-reduce-3      " (to_s (test-reduce-3))))
     (println! (append "test-reduce-4      " (to_s (test-reduce-4))))
     (println! (append "test-reduce-5      " (to_s (test-reduce-5))))
+    (println! "")
+    (println! (append "test-filter        " (to_s (test-filter))))
+    (println! (append "test-remove        " (to_s (test-remove))))
+    (println! (append "test-any           " (to_s (test-any?))))
+    (println! (append "test-all           " (to_s (test-all?))))
+    (println! (append "test-none          " (to_s (test-none?))))
+    (println! "")
+    (println! (append "test-includes?     " (to_s (test-includes?))))
+    (println! (append "test-includes-1?   " (to_s (test-includes-1?))))
+    (println! (append "test-includes-2?   " (to_s (test-includes-2?))))
+    (println! (append "test-in?           " (to_s (test-includes?))))
+    (println! (append "test-in-1?         " (to_s (test-includes-1?))))
+    (println! (append "test-in-2?         " (to_s (test-includes-2?))))
+    (println! (append "test-contains?     " (to_s (test-includes?))))
+    (println! (append "test-contains-1?   " (to_s (test-includes-1?))))
+    (println! (append "test-contains-2?   " (to_s (test-includes-2?))))
 )

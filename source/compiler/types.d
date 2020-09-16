@@ -1,6 +1,6 @@
 module compiler.types;
 
-import std.array;
+import std.array : Appender, replace, appender;
 import std.stdio;
 
 import shaza.stdlib;

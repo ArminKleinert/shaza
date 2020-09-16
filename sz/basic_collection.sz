@@ -196,7 +196,7 @@ The implementations given here are for arrays specifically.
       (llr "T.init"))))
   )
 
-  (meta (:tk-aliases [::F ::"T[] delegate(T)"])
+  (meta (:tk-aliases [::F ::"bool delegate(T)"])
     (define filter (::F func ::T[] c)
       (reduce
         (lambda ::T[] (::T e ::T[] res)
@@ -220,7 +220,7 @@ The implementations given here are for arrays specifically.
 
     (define all? (::pred pred ::T[] c)
       (when (empty? c) #t
-      (when (not (pred (first c))) #t
+      (when (not (pred (first c))) #f
       (recur pred (rest c)))))
 
     (define none? (::pred pred ::T[] c)

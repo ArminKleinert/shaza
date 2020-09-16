@@ -349,79 +349,203 @@ bool test_key_of1(){
 auto coll = "678";
 return and(eql_Q(key_of(coll, '6'), 0), eql_Q(key_of(coll, '6', 7), 0), eql_Q(key_of(coll, '9', 7), 7));}
 }
-
-auto test_index_of(){
+bool test_index_of(){
 {
 auto coll = [15,16,17];
 return and(eql_Q(index_of(coll, 16), 1), eql_Q(index_of(coll, 61), -1), eql_Q(index_of(coll, 16), 1), eql_Q(index_of(coll, 61), -1));}
 }
-
-auto test_index_of1(){
+bool test_index_of1(){
 {
 auto coll = "678";
 return and(eql_Q(index_of(coll, '6'), 0), eql_Q(index_of(coll, '9'), -1), eql_Q(index_of(coll, '6'), 0), eql_Q(index_of(coll, '9'), -1));}
 }
-
-auto test_starts_with(){
+bool test_starts_with(){
 {
 auto coll = [1,2,3,4];
 return and(starts_with_Q(coll, 1), starts_with_Q(rest(coll), 2), starts_with_Q(coll, [1,2]), not(starts_with_Q(coll, 2)), not(starts_with_Q(coll, [1,2,3,4,5])), starts_with_Q(coll, coll));}
 }
-
-auto test_ends_with(){
+bool test_ends_with(){
 {
 auto coll = [1,2,3,4];
 return and(ends_with_Q(coll, 4), ends_with_Q(slice(coll, 0, 1), 3), ends_with_Q(coll, coll), ends_with_Q(coll, [3,4]));}
 }
-
-auto test_reduce(){
+bool test_reduce(){
 {
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate (int i, int j){
 return plus(i, j);
 }, coll, 0), 21);}
 }
-
-auto test_reduce_1(){
+bool test_reduce_1(){
 {
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate int(int i, int j){
 return plus(i, j);
 }, coll), 21);}
 }
-
-auto test_reduce_2(){
+bool test_reduce_2(){
 {
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate (int i, int j){
 return sub(j, i);
 }, coll), -19);}
 }
-
-auto test_reduce_3_sub(int i, int j){
+int test_reduce_3_sub(int i, int j){
 return sub(j, i);
 }
-
-auto test_reduce_3(){
+bool test_reduce_3(){
 {
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce((std.functional.toDelegate(&test_reduce_3_sub)), coll), -19);}
 }
-
-auto test_reduce_4(){
+bool test_reduce_4(){
 {
 int[] coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate string(int i, string s){
 return append(s, to_s(i));
 }, coll, ""), "123456");}
 }
-
-auto test_reduce_5(){
+bool test_reduce_5(){
 {
 auto coll = [1,2,3,4,5,6];
 return eql_Q(reduce(delegate int[][](int i, int[][] res){
 return append(res, [i]);
 }, coll, []), [[1],[2],[3],[4],[5],[6]]);}
+}
+bool test_filter_odd_helper(int i){
+return eql_Q(1, mod(i, 2));
+}
+bool test_filter(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(eql_Q(filter(delegate bool(int i){
+return not_eql_Q(0, bit_and(i, 1));
+}, coll), [1,3,5]), eql_Q(filter(delegate bool(int i){
+return lt_Q(i, 4);
+}, coll), [1,2,3]), eql_Q(filter((std.functional.toDelegate(&test_filter_odd_helper)), coll), [1,3,5]));}
+}
+bool test_remove(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(eql_Q(remove(delegate bool(int i){
+return not_eql_Q(0, bit_and(i, 1));
+}, coll), [2,4,6]), eql_Q(remove(delegate bool(int i){
+return lt_Q(i, 4);
+}, coll), [4,5,6]), eql_Q(remove((std.functional.toDelegate(&test_filter_odd_helper)), coll), [2,4,6]));}
+}
+bool test_any_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(any_Q(delegate bool(int i){
+return gt_Q(i, 3);
+}, coll), any_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, coll), not(any_Q(delegate bool(int i){
+return gt_Q(i, 6);
+}, coll)), not(any_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, [])));}
+}
+bool test_all_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(not(all_Q(delegate bool(int i){
+return gt_Q(i, 3);
+}, coll)), all_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, coll), not(all_Q(delegate bool(int i){
+return gt_Q(i, 6);
+}, coll)), all_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, []));}
+}
+bool test_none_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(not(none_Q(delegate bool(int i){
+return gt_Q(i, 3);
+}, coll)), not(none_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, coll)), none_Q(delegate bool(int i){
+return gt_Q(i, 6);
+}, coll), none_Q(delegate bool(int i){
+return gt_Q(i, 0);
+}, []));}
+}
+bool test_includes_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int i){
+return includes_Q(coll, i);
+}, [1,2,3,4,5,6]), none_Q(delegate bool(int i){
+return includes_Q(coll, i);
+}, [-1,0,7,10]));}
+}
+bool test_includes_1_Q(){
+{
+int[] coll = [];
+return none_Q(delegate bool(int i){
+return includes_Q(coll, i);
+}, [-1,0,1,2,3,4,5,6,7,10]);}
+}
+bool test_includes_2_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int[] i){
+return includes_Q(coll, i);
+}, [[1],[],coll,rest(coll)]), none_Q(delegate bool(int[] i){
+return includes_Q(coll, i);
+}, [[0],append(coll, 1)]));}
+}
+bool test_in_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int i){
+return in_Q(coll, i);
+}, [1,2,3,4,5,6]), none_Q(delegate bool(int i){
+return in_Q(coll, i);
+}, [-1,0,7,10]));}
+}
+bool test_in_1_Q(){
+{
+int[] coll = [];
+return none_Q(delegate bool(int i){
+return in_Q(coll, i);
+}, [-1,0,1,2,3,4,5,6,7,10]);}
+}
+bool test_in_2_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int[] i){
+return in_Q(coll, i);
+}, [[1],[],coll,rest(coll)]), none_Q(delegate bool(int[] i){
+return in_Q(coll, i);
+}, [[0],append(coll, 1)]));}
+}
+bool test_contains_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int i){
+return contains_Q(coll, i);
+}, [1,2,3,4,5,6]), none_Q(delegate bool(int i){
+return contains_Q(coll, i);
+}, [-1,0,7,10]));}
+}
+bool test_contains_1_Q(){
+{
+int[] coll = [];
+return none_Q(delegate bool(int i){
+return contains_Q(coll, i);
+}, [-1,0,1,2,3,4,5,6,7,10]);}
+}
+bool test_contains_2_Q(){
+{
+auto coll = [1,2,3,4,5,6];
+return and(all_Q(delegate bool(int[] i){
+return contains_Q(coll, i);
+}, [[1],[],coll,rest(coll)]), none_Q(delegate bool(int[] i){
+return contains_Q(coll, i);
+}, [[0],append(coll, 1)]));}
 }
 
 void main1(){
@@ -528,6 +652,22 @@ println_E(append("test-reduce-2      ", to_s(test_reduce_2())));
 println_E(append("test-reduce-3      ", to_s(test_reduce_3())));
 println_E(append("test-reduce-4      ", to_s(test_reduce_4())));
 println_E(append("test-reduce-5      ", to_s(test_reduce_5())));
+println_E("");
+println_E(append("test-filter        ", to_s(test_filter())));
+println_E(append("test-remove        ", to_s(test_remove())));
+println_E(append("test-any           ", to_s(test_any_Q())));
+println_E(append("test-all           ", to_s(test_all_Q())));
+println_E(append("test-none          ", to_s(test_none_Q())));
+println_E("");
+println_E(append("test-includes?     ", to_s(test_includes_Q())));
+println_E(append("test-includes-1?   ", to_s(test_includes_1_Q())));
+println_E(append("test-includes-2?   ", to_s(test_includes_2_Q())));
+println_E(append("test-in?           ", to_s(test_includes_Q())));
+println_E(append("test-in-1?         ", to_s(test_includes_1_Q())));
+println_E(append("test-in-2?         ", to_s(test_includes_2_Q())));
+println_E(append("test-contains?     ", to_s(test_includes_Q())));
+println_E(append("test-contains-1?   ", to_s(test_includes_1_Q())));
+println_E(append("test-contains-2?   ", to_s(test_includes_2_Q())));
 }
 
 

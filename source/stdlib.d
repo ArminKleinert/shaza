@@ -493,12 +493,12 @@ goto jumplbl2;
 T reduce(T)(T delegate(T,T) func, T[] c){
 return if2(gt_Q(size(c), 1), reduce(func, rest(c), first(c)), if2(eql_Q(size(c), 1), first(c), T.init));
 }
-auto filter(T)(T[] delegate(T) func, T[] c){
+auto filter(T)(bool delegate(T) func, T[] c){
 return reduce(delegate T[](T e, T[] res){
 return if2(func(e), append_E(res, e), res);
 }, c, cleared(c));
 }
-auto remove(T)(T[] delegate(T) func, T[] c){
+auto remove(T)(bool delegate(T) func, T[] c){
 return reduce(delegate T[](T e, T[] res){
 return if2(func(e), res, append_E(res, e));
 }, c, cleared(c));
@@ -527,7 +527,7 @@ if(empty_Q(c)) {
 return true;
 } else {
 if(not(pred(first(c)))) {
-return true;
+return false;
 } else {
 {
 auto pred_0 = pred;
