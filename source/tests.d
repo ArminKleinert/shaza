@@ -645,11 +645,82 @@ bool test_max(){
 int[] empty_coll = [];
 return and(eql_Q(max(empty_coll), default_int), eql_Q(max([1]), 1), eql_Q(max([1,2,3,4,5,6]), 6), eql_Q(max([6,5,4,3,2,1]), 6));}
 }
+bool test_limit(){
+return and(eql_Q(limit(0, 0), 0), eql_Q(limit(0, 1), 0), eql_Q(limit(-1, 0), -1), eql_Q(limit(500, 5), 5), eql_Q(limit(500, 1000), 500));
+}
+bool test_limit_1(){
+return and(eql_Q(limit(0, 0, 0), 0), eql_Q(limit(0, 0, 1), 0), eql_Q(limit(-1, -1, 0), -1), eql_Q(limit(500, 0, 5), 5), eql_Q(limit(500, 0, 1000), 500), eql_Q(limit(500, 501, 1000), 501), eql_Q(limit(500, -1000, 1000), 500));
+}
 bool test_divisors(){
 return and(eql_Q(divisors(12), [6,4,3,2,1]), eql_Q(divisors(0), cleared([0L])));
 }
 bool test_sum_of_divisors(){
 return and(eql_Q(sum_of_divisors(0), 0), eql_Q(sum_of_divisors(12), 16));
+}
+bool test_rseed(){
+{
+auto rand = rseed(0);
+auto rand2 = rseed(1001);
+return and(eql_Q(rand.seed, 0), eql_Q(rand2.seed, 1001));}
+}
+bool test_random(){
+return and(not_eql_Q(long_value(random(0)), 0), eql_Q(long_value(random(1)), long_value(random(rseed(1)))), eql_Q(long_value(random(default_seed)), long_value(random(default_seed))));
+}
+bool test_random_1(){
+{
+auto rand = rseed(default_seed);
+return and(eql_Q(ulong_value(random(rand, 0)), 0), le_Q(ulong_value(random(rand, 1)), 1));}
+}
+bool test_random_2(){
+{
+auto rand = rseed(default_seed);
+return and(eql_Q(ulong_value(random(rand, 0, 0)), 0), le_Q(ulong_value(random(rand, 0, 1)), 1));}
+}
+bool test_random_3(){
+jumplbl1:
+auto rand = random(rseed(2048), 100);
+auto counter = 1000;
+jumplbl2:
+if(eql_Q(counter, 0)) {
+return true;
+} else {
+if(gt_Q(ulong_value(rand), 100)) {
+return false;
+} else {
+{
+auto rand_0 = random(rand, 100);
+auto counter_1 = dec(counter);
+rand = rand_0;
+counter = counter_1;
+}
+goto jumplbl2;
+}
+}
+}
+bool test_random_4(){
+jumplbl1:
+auto rand = random(rseed(2048), 50, 100);
+auto counter = 1000;
+jumplbl2:
+if(eql_Q(counter, 0)) {
+return true;
+} else {
+if(gt_Q(ulong_value(rand), 100)) {
+return false;
+} else {
+if(lt_Q(ulong_value(rand), 50)) {
+return false;
+} else {
+{
+auto rand_0 = random(rand, 50, 100);
+auto counter_1 = dec(counter);
+rand = rand_0;
+counter = counter_1;
+}
+goto jumplbl2;
+}
+}
+}
 }
 
 void main1(){
@@ -797,6 +868,16 @@ println_E(append("test-max           ", to_s(test_max())));
 println_E(append("test-divisors      ", to_s(test_divisors())));
 println_E("test-sum-of-divisors");
 println_E(append("                   ", to_s(test_sum_of_divisors())));
+println_E("");
+println_E(append("test-limit         ", to_s(test_limit())));
+println_E(append("test-limit-1       ", to_s(test_limit_1())));
+println_E("");
+println_E(append("test-rseed         ", to_s(test_rseed())));
+println_E(append("test-random        ", to_s(test_random())));
+println_E(append("test-random-1      ", to_s(test_random_1())));
+println_E(append("test-random-2      ", to_s(test_random_2())));
+println_E(append("test-random-3      ", to_s(test_random_3())));
+println_E(append("test-random-4      ", to_s(test_random_4())));
 }
 
 

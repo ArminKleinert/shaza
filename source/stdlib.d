@@ -858,10 +858,10 @@ return div(1.0, fib(l));
 }
 
 T limit(T)(T val, T max){
-return mod(val, max);
+return if2(gt_Q(val, max), max, val);
 }
 T limit(T)(T val, T min, T max){
-return sub(mod(val, plus(max, min)), min);
+return if2(gt_Q(val, max), max, if2(lt_Q(val, min), min, val));
 }
 
 

@@ -1015,6 +1015,26 @@
       (= (max [1 2 3 4 5 6]) 6)
       (= (max [6 5 4 3 2 1]) 6))))
 
+; SECTION Test limit
+
+(define test-limit ()
+  (and
+    (= (limit 0 0) 0)
+    (= (limit 0 1) 0)
+    (= (limit -1 0) -1)
+    (= (limit 500 5) 5)
+    (= (limit 500 1000) 500)))
+
+(define test-limit-1 ()
+  (and
+    (= (limit 0 0 0) 0)
+    (= (limit 0 0 1) 0)
+    (= (limit -1 -1 0) -1)
+    (= (limit 500 0 5) 5)
+    (= (limit 500 0 1000) 500)
+    (= (limit 500 501 1000) 501)
+    (= (limit 500 -1000 1000) 500)))
+
 ; SECTION Test divisors and sum-of-divisors
 
 (define test-divisors ()
@@ -1027,7 +1047,48 @@
     (= (sum-of-divisors 0) 0)
     (= (sum-of-divisors 12) 16)))
 
+; SECTION Test random
 
+(define test-rseed ()
+  (let (rand (rseed 0)
+        rand2 (rseed 1001))
+    (and (= rand.seed 0)
+         (= rand2.seed 1001))))
+
+(define test-random ()
+  (and
+    (!= (long-value (random 0)) 0)
+    (== (long-value (random 1))
+        (long-value (random (rseed 1))))
+    (== (long-value (random default-seed))
+        (long-value (random default-seed)))))
+
+(define test-random-1 ()
+  (let (rand (rseed default-seed))
+    (and
+      (== (ulong-value (random rand 0)) 0)
+      (<= (ulong-value (random rand 1)) 1))))
+
+(define test-random-2 ()
+  (let (rand (rseed default-seed))
+    (and
+      (== (ulong-value (random rand 0 0)) 0)
+      (<= (ulong-value (random rand 0 1)) 1))))
+
+(define test-random-3 ()
+  (loop (rand (random (rseed 2048) 100)
+         counter 1000)
+    (when (= counter 0) #t
+    (when (> (ulong-value rand) 100) #f
+    (recur (random rand 100) (-- counter))))))
+
+(define test-random-4 ()
+  (loop (rand (random (rseed 2048) 50 100)
+         counter 1000)
+    (when (= counter 0) #t
+    (when (> (ulong-value rand) 100) #f
+    (when (< (ulong-value rand) 50) #f
+    (recur (random rand 50 100) (-- counter)))))))
 
 
 
@@ -1184,4 +1245,15 @@
     (println! (append "test-divisors      " (to_s (test-divisors))))
     (println!         "test-sum-of-divisors")
     (println! (append "                   " (to_s (test-sum-of-divisors))))
+    (println! "")
+    (println! (append "test-limit         " (to_s (test-limit))))
+    (println! (append "test-limit-1       " (to_s (test-limit-1))))
+    (println! "")
+    (println! (append "test-rseed         " (to_s (test-rseed))))
+    (println! (append "test-random        " (to_s (test-random))))
+    (println! (append "test-random-1      " (to_s (test-random-1))))
+    (println! (append "test-random-2      " (to_s (test-random-2))))
+    (println! (append "test-random-3      " (to_s (test-random-3))))
+    (println! (append "test-random-4      " (to_s (test-random-4))))
 )
+

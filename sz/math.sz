@@ -57,9 +57,12 @@
 
 (meta (:generics [::T] :returns ::T)
   (define limit (::T val ::T max)
-    (% val max))
+    (if (> val max) max val))
   (define limit (::T val ::T min ::T max)
-    (- (% val (+ max min)) min)))
+    (if (> val max) max
+    (if (< val min) min
+    val)))
+)
 
 ; SECTION Pseudo-Randomness
 
