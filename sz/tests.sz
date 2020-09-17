@@ -1038,9 +1038,10 @@
 ; SECTION Test divisors and sum-of-divisors
 
 (define test-divisors ()
-  (and
-    (= (divisors 12) [6 4 3 2 1])
-    (= (divisors 0) (cleared [0L]))))
+  (let (::ulong[] temp [6 4 3 2 1])
+    (and
+      (= (divisors 12) temp)
+      (= (divisors 0) (cleared temp)))))
 
 (define test-sum-of-divisors ()
   (and
@@ -1090,7 +1091,29 @@
     (when (< (ulong-value rand) 50) #f
     (recur (random rand 50 100) (-- counter)))))))
 
+; Test Variant
 
+(import-sz variant)
+
+(define test-variant-0 ()
+  (let (::SzVariant!(int,string) v0 1
+        ::SzVariant!(int,string) v1 1)
+    (and
+      (= v0 v1)
+      (= v0 1)
+      (= v1 1))))
+
+(alias TestVariant1TestDelegate0 ::int:delegate() )
+(alias TestVariant1TestDelegate1 ::string:delegate() )
+(alias TestVariant1TestVariant   ::SzVariant!(TestVariant1TestDelegate0,TestVariant1TestDelegate1) )
+(define test-variant-1 ()
+  (let (::TestVariant1TestDelegate0 d0 (lambda ::int () 1)
+        ::TestVariant1TestVariant v0 d0
+        ::TestVariant1TestDelegate1 d1 (lambda ::string () "hi")
+        ::TestVariant1TestVariant v1 d1)
+    (and
+      (= (v0) 1)
+      (= (v1) "hi"))))
 
 
 
@@ -1255,5 +1278,8 @@
     (println! (append "test-random-2      " (to_s (test-random-2))))
     (println! (append "test-random-3      " (to_s (test-random-3))))
     (println! (append "test-random-4      " (to_s (test-random-4))))
+    (println! "")
+    (println! (append "test-variant-0     " (to_s (test-variant-0))))
+    (println! (append "test-variant-1     " (to_s (test-variant-1))))
 )
 

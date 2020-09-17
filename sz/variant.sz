@@ -1,0 +1,6 @@
+(module variant)
+
+(import-host std.variant)
+
+(alias SzVariant Algebraic)
+

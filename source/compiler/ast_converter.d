@@ -1,13 +1,5 @@
 module compiler.ast_converter;
 
-import std.variant;
-import std.stdio;
-import std.conv : to;
-import std.typecons;
-import std.string;
-import std.algorithm;
-import std.array;
-
 import compiler.output.ll;
 import compiler.output.define;
 import compiler.output.lambda;
@@ -48,17 +40,17 @@ string createOutput(AstCtx ast) {
         return prependReturn(ast.requestReturn, atomToString(ast));
     }
 
-    if (ast.type == keyword(":closedTaggedList") || ast.type == keyword(":closedList")) {
+    if (or(eql_Q(ast.type , keyword(":closedTaggedList")) , eql_Q(ast.type , keyword(":closedList")))) {
         return prependReturn(ast.requestReturn, listLiteralToString(ast));
     }
 
-    if (ast.type == keyword(":closedScope")) {
+    if (eql_Q(ast.type, keyword(":closedScope"))) {
         Token firstTkn = ast.nodes[0].tkn;
-        if (firstTkn.type == keyword(":symbol")) {
+        if (eql_Q(firstTkn.type, keyword(":symbol"))) {
             switch (firstTkn.text) {
             case "module":
                 // Only 1 module declaration per file is allowed and it must be the very first token!
-                stderr.writeln("Ignoring unexpected module declaration: " ~ ast.nodes[0].tknstr());
+                errorln_E(append("Ignoring unexpected module declaration: " , ast.nodes[0].tknstr()));
                 break;
             case "define":
                 return generalDefineToString(ast, false, null);
@@ -129,7 +121,7 @@ string createOutput(AstCtx ast) {
         return callToString(ast);
     }
 
-    if (ast.type == keyword(":root")) {
+    if (eql_Q(ast.type , keyword(":root"))) {
         auto modulename = parseRootNodeIntoContextAndReturnModulename(ast);
         return OutputContext.global.fullModuleTexts[modulename];
     }
@@ -142,17 +134,17 @@ string parseRootNodeIntoContextAndReturnModulename(AstNode ast) {
 }
 
 string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
-    auto rootTexts = appender!(string[])();
+    string[] rootTexts = [];
     auto modulename = "";
     auto parsingstart = 0;
 
     // Cornercase: Empty source file
-    if (ast.nodes.size == 0)
+    if (eql_Q(ast.nodes.size, 0))
         return "";
 
     // Try to find module declaration
-    if (ast.nodes[0].type == keyword(":closedScope")
-            && ast.nodes[0].nodes.size > 0 && ast.nodes[0].nodes[0].tkn_text == "module") {
+    if (eql_Q(ast.nodes[0].type , keyword(":closedScope"))
+            && gt_Q(ast.nodes[0].nodes.size , 0) && eql_Q(ast.nodes[0].nodes[0].tkn_text , "module")) {
         string temp = moduleToString(ast.nodes[0]);
 
         modulename = retrieveModuleName(ast.nodes[0]);
@@ -160,21 +152,21 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
             return modulename; // The module was already imported!
         }
 
-        rootTexts ~= temp;
+        append_E(rootTexts, temp);
         parsingstart++;
     } else {
         warning("File is missing a module declaration. This is fine for scripts, "
                 ~ "but can lead to problems when importing the same file multiple times.");
     }
 
-    foreach (AstNode child; ast.nodes[parsingstart .. $]) {
-        rootTexts ~= createOutput(ast(child));
+    foreach (AstNode child; slice(ast.nodes,parsingstart)) {
+       append_E(rootTexts, createOutput(ast(child)));
     }
     rootTexts ~= OutputContext.global().globals;
-    auto result = appender("");
-    foreach (txt; rootTexts[]) {
-        result ~= txt ~ "\n";
+    auto result = "";
+    foreach (txt; rootTexts) {
+        append_E(result, append(txt, "\n"));
     }
-    OutputContext.global.appendToModuleText(modulename, result.get());
+    OutputContext.global.appendToModuleText(modulename, result);
     return modulename;
 }

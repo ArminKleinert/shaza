@@ -652,7 +652,9 @@ bool test_limit_1(){
 return and(eql_Q(limit(0, 0, 0), 0), eql_Q(limit(0, 0, 1), 0), eql_Q(limit(-1, -1, 0), -1), eql_Q(limit(500, 0, 5), 5), eql_Q(limit(500, 0, 1000), 500), eql_Q(limit(500, 501, 1000), 501), eql_Q(limit(500, -1000, 1000), 500));
 }
 bool test_divisors(){
-return and(eql_Q(divisors(12), [6,4,3,2,1]), eql_Q(divisors(0), cleared([0L])));
+{
+ulong[] temp = [6,4,3,2,1];
+return and(eql_Q(divisors(12), temp), eql_Q(divisors(0), cleared(temp)));}
 }
 bool test_sum_of_divisors(){
 return and(eql_Q(sum_of_divisors(0), 0), eql_Q(sum_of_divisors(12), 16));
@@ -721,6 +723,24 @@ goto jumplbl2;
 }
 }
 }
+}
+import variant;bool test_variant_0(){
+{
+SzVariant!(int,string) v0 = 1;
+SzVariant!(int,string) v1 = 1;
+return and(eql_Q(v0, v1), eql_Q(v0, 1), eql_Q(v1, 1));}
+}
+alias TestVariant1TestDelegate0 = int delegate();alias TestVariant1TestDelegate1 = string delegate();alias TestVariant1TestVariant = SzVariant!(TestVariant1TestDelegate0,TestVariant1TestDelegate1);bool test_variant_1(){
+{
+TestVariant1TestDelegate0 d0 = delegate int(){
+return 1;
+};
+TestVariant1TestVariant v0 = d0;
+TestVariant1TestDelegate1 d1 = delegate string(){
+return "hi";
+};
+TestVariant1TestVariant v1 = d1;
+return and(eql_Q(v0(), 1), eql_Q(v1(), "hi"));}
 }
 
 void main1(){
@@ -878,6 +898,9 @@ println_E(append("test-random-1      ", to_s(test_random_1())));
 println_E(append("test-random-2      ", to_s(test_random_2())));
 println_E(append("test-random-3      ", to_s(test_random_3())));
 println_E(append("test-random-4      ", to_s(test_random_4())));
+println_E("");
+println_E(append("test-variant-0     ", to_s(test_variant_0())));
+println_E(append("test-variant-1     ", to_s(test_variant_1())));
 }
 
 

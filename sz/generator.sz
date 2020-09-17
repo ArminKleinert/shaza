@@ -1,0 +1,56 @@
+(module generator)
+
+;(def-type Generator (T,T1) _ ::T next ::T current ::T1 internal)
+;
+;(define ::bool (T) next? (::Generator!(T,T1) g) (g.next? g))
+;(define ::T (T) next (::Generator!T g) (g.next g))
+;(define ::T (T) val (::Generator!T g) g.current)
+
+(def-type Range ::long:delegate() next ::long current ::long max)
+
+(define ::Range range () (new ::Range 0 -1))
+(define ::Range range (::long max) (new ::Range 0 max))
+(define ::Range range (::long value ::long max) (new ::Range value max))
+
+(define ::bool next? (::Range r) (!= r.value r.max))
+(define ::long next (::Range r)
+  (if (next? r) (setv! r value (++ r.value)) r.max))
+
+;---
+
+(def-type LazySeq (T) ::T:delegate() gen)
+
+(meta (:generics [::T])
+  (define ::LazySeq(T) (T) seq (::T:delegate() gen) (new ::LazySeq(T) gen))
+  (define ::bool (T) next? (LazySeq!T l) #t)
+  (define ::T (T) next (LazySeq!T l) (l.gen))
+)
+
+;---
+
+(def-type Map (K,V) ::MapEntry!(K,V)[] entries)
+(def-struct MapEntry (K,V) ::K key ::V val)
+
+(meta (:generics [::K ::V] :tk-aliases [::EntryKV ::MapEntry!(K,V) ::EntryKV[] ::MapEntry!(K,V)[] ])
+  (define map-of (::V[K] native-map )
+    (let (::K[] ks native-map.keys
+          ::EntryKV[] es [])
+      (new ::Map!(K,V)
+        (reduce (lambda ::EntryKV[] (::K k ::EntryKV[] vs) (append! vs (::EntryKV k (llr native-map[k])))) ks es))))
+  
+  (define ::K[] keys (::Map(K,V) m)
+    (let (::K[] ks [])
+      (reduce
+        (lambda ::K[] (::EntryKV e ::K[] ks) (append! ks e.key))
+        m.entries ks)))
+
+  (define ::V[] values (::Map(K,V) m)
+    (let (::V[] vs [])
+      (reduce
+        (lambda ::V[] (::EntryKV e ::V[] vs) (append! vs e.val))
+        m.entries vs)))
+
+(define ::Map(K,V) coll-clone (::Map(K,V) m)
+    (new ::Map(K,V) (coll-clone m.entries)))
+)
+

@@ -145,30 +145,31 @@ auto bit_negate(Int)(Int i0){
 return ~i0;
 }
 
-bool eql_Q(T)(T e0, T e1){
+bool eql_Q(T, T1)(T e0, T1 e1){
 return e0==e1;
 }
-bool not_eql_Q(T)(T e0, T e1){
+bool not_eql_Q(T, T1)(T e0, T1 e1){
 return e0!=e1;
 }
-bool lt_Q(T)(T e0, T e1){
+bool lt_Q(T, T1)(T e0, T1 e1){
 return e0<e1;
 }
-bool le_Q(T)(T e0, T e1){
+bool le_Q(T, T1)(T e0, T1 e1){
 return e0<=e1;
 }
-bool gt_Q(T)(T e0, T e1){
+bool gt_Q(T, T1)(T e0, T1 e1){
 return e0>e1;
 }
-bool ge_Q(T)(T e0, T e1){
+bool ge_Q(T, T1)(T e0, T1 e1){
 return e0>=e1;
 }
-bool nil_Q(T)(T e){
+bool nil_Q(T, T1)(T e){
 return e is null;
 }
-int compare(T)(T e0, T e1){
+int compare(T, T1)(T e0, T1 e1){
 return if2(eql_Q(e0, e1), 0, if2(lt_Q(e0, e1), -1, 1));
 }
+
 bool pos_Q(T)(T e0){
 return ge_Q(e0, 0);
 }
@@ -793,9 +794,9 @@ goto jumplbl2;
 }
 }
 
-long[] divisors(long l){
+ulong[] divisors(ulong l){
 jumplbl1:
-long[] res = [];
+ulong[] res = [];
 auto n = shift_right(l, 1L);
 jumplbl2:
 if(eql_Q(n, 0)) {
@@ -821,9 +822,9 @@ goto jumplbl2;
 }
 }
 
-long sum_of_divisors(long l){
+ulong sum_of_divisors(ulong l){
 jumplbl1:
-long res = 0;
+ulong res = 0;
 auto n = div(l, 2);
 jumplbl2:
 if(eql_Q(n, 0)) {
@@ -847,10 +848,6 @@ n = n_1;
 goto jumplbl2;
 }
 }
-}
-
-long sum_of_divisors_1(long l){
-return sum(divisors(l));
 }
 
 double approx_euler(long l){
