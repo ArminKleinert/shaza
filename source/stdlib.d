@@ -700,11 +700,49 @@ auto insertionsort(T)(T[] coll){
 T[] acc = [];
 return isort_acc(coll, acc);}
 }
+private auto shuffle_sub(T)(T[] coll, T[] target, Random rand){
+jumplbl1:
+if(empty_Q(coll)) {
+return target;
+} else {
+{
+auto v = first(coll);
+auto j = limit(ulong_value(rand), size(target));
+if(eql_Q(j, size(target))) {
+{
+auto coll_0 = rest(coll);
+auto target_1 = append(target, v);
+auto rand_2 = random(rand);
+coll = coll_0;
+target = target_1;
+rand = rand_2;
+}
+goto jumplbl1;
+} else {
+{
+auto coll_0 = rest(coll);
+auto target_1 = assoc(append(target, get(target, inc(j))), inc(j), v);
+auto rand_2 = random(rand);
+coll = coll_0;
+target = target_1;
+rand = rand_2;
+}
+goto jumplbl1;
+}}
+}
+}
+auto shuffle(T)(T[] coll, Random rand){
+{
+T[] target = [];
+return shuffle_sub(coll, target, rand);}
+}
+auto shuffle(T)(T[] coll){
+return shuffle(coll, random(default_seed));
+}
 
 
 
 
-import stdlib;
 T sum(T)(T[] seq){
 return reduce(delegate T(T l0, T l1){
 return plus(l0, l1);

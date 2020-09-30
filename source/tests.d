@@ -649,6 +649,13 @@ auto coll = [3,4,6,3,2,1,8,9,10];
 auto coll_sorted = [1,2,3,3,4,6,8,9,10];
 return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), insertionsort(coll)));}
 }
+bool test_shuffle(){
+{
+auto coll = [3,4,6,3,2,1,8,9,10];
+auto rand = random(0);
+println_E(shuffle(coll, rand));
+return and(eql_Q(shuffle(cleared(coll), rand), cleared(coll)), eql_Q(shuffle([first(coll)], rand), [first(coll)]), eql_Q(shuffle(coll, rand), coll), eql_Q(shuffle(coll, rand), shuffle(coll, rand)));}
+}
 bool test_sum(){
 {
 int[] empty_coll = [];
@@ -956,6 +963,7 @@ println_E(append("test-map-get       ", to_s(test_map_get())));
 println_E(append("test-map-has-key?  ", to_s(test_map_has_key_Q())));
 println_E("test-map-has-key-2?");
 println_E(append("                   ", to_s(test_map_has_key_2_Q())));
+println_E(append("test-shuffle       ", to_s(test_shuffle())));
 }
 
 

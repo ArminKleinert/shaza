@@ -1,6 +1,6 @@
 (module math)
 
-(import-sz stdlib)
+;(import-sz stdlib)
 
 (meta (:generics [::T])
 (define ::T sum (::T[] seq)
@@ -77,7 +77,7 @@
 (define ::Random rseed (::ulong seed)
   (Random (inc seed) seed))
 
-(define ::Random random(::ulong seed)
+(define ::Random random (::ulong seed)
   (let (seed1 (bit-xor seed (>> seed 12))
         seed2 (bit-xor seed1 (<< seed1 25))
         seed3 (bit-xor seed2 (>> seed2 27)))

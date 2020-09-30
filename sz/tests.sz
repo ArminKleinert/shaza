@@ -1023,6 +1023,19 @@
       (= (sort coll) coll-sorted)
       (= (sort coll) (sort coll)))))
 
+; SECTION Test shuffle
+
+(define test-shuffle ()
+  (let (coll [3 4 6 3 2 1 8 9 10]
+        rand (random 0)
+        shuffled [3, 9, 4, 6, 2, 1, 3, 8, 10])
+    (and 
+      (= (shuffle (cleared coll) rand) (cleared coll)) ; 0 element
+      (= (shuffle [(first coll)] rand) [(first coll)]) ; 1 element
+      (= (shuffle coll rand) shuffled) ; Shuffled is != Original
+      (= (shuffle coll rand) (shuffle coll rand)) ; is deterministic
+    )))
+
 ; SECTION Test sum
 
 (define test-sum ()
@@ -1357,5 +1370,6 @@
     (println! (append "test-map-has-key?  " (to_s (test-map-has-key?))))
     (println!         "test-map-has-key-2?")
     (println! (append "                   " (to_s (test-map-has-key-2?))))
+    (println! (append "test-shuffle       " (to_s (test-shuffle))))
 )
 

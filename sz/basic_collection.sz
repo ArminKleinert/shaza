@@ -343,6 +343,35 @@ The implementations given here are for arrays specifically.
       (let (::T[] acc [])
         (isort-acc coll acc)))
   )
+  
+  ; SECTION Shuffeling
+  
+  ; Inside-out Fisher-Yates Shuffle
+
+  (meta (:visibility :private)
+    (define shuffle-sub (::T[] coll ::T[] target ::Random rand)
+      (when (empty? coll)
+        target
+        (let (v (first coll)
+              j (limit (ulong-value rand) (size target)))
+          ; //println_E(join([str(coll), " ", str(j), " ", str(target)]))
+          (when (== j (size target))
+            (recur
+              (rest coll)
+              (append target v)
+              (random rand))
+            (recur
+              (rest coll)
+              (assoc (append target (get target (++ j))) (++ j) v)
+              (random rand))))))
+  )
+  
+  (define shuffle (::T[] coll ::Random rand)
+    (let (::T[] target [])
+      (shuffle-sub coll target rand)))
+  
+  (define shuffle (::T[] coll)
+    (shuffle coll (random default-seed)))
 )
 
 
