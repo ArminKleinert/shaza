@@ -55,20 +55,25 @@ T if2(T)(lazy bool cond, lazy T branchThen) {
     return (cond ? branchThen : (T.init));
 }
 
-private N variadic_helper(N)(N delegate(N, N) accumulator_fn, N n, N[] nums...) {
+private N variadic_helper(N)(N delegate(N, N) accumulator_fn, N n0, N n1, N n2, N[] nums) {
 jumplbl1:
-    if (nums.length == 0) {
-        return n;
+    auto acc = accumulator_fn(accumulator_fn(n0, n1), n2);
+    auto _rest = nums;
+jumplbl2:
+    if (_rest.length < 1) {
+        return acc;
     } else {
-        {
-            auto accumulator_fn_0 = accumulator_fn;
-            auto n_1 = accumulator_fn(n, nums[0]);
-            auto nums_2 = nums[1 .. $];
-            accumulator_fn = accumulator_fn_0;
-            n = n_1;
-            nums = nums_2;
+        if (_rest.length == 1) {
+            return accumulator_fn(acc, _rest[0]);
+        } else {
+            {
+                auto acc_0 = accumulator_fn(acc, _rest[0]);
+                auto _rest_1 = _rest[1 .. $];
+                acc = acc_0;
+                _rest = _rest_1;
+            }
+            goto jumplbl2;
         }
-        goto jumplbl1;
     }
 }
 
@@ -80,8 +85,8 @@ auto plus(N, N1)(N i0, N1 i1) {
     return i0 + i1;
 }
 
-auto plus(N)(N[] nums...) {
-    return variadic_helper(delegate N(N n, N m) { return plus(n, m); }, nums);
+auto plus(N)(N i0, N i1, N i2, N[] nums...) {
+    return variadic_helper(delegate N(N n, N m) { return n + m; }, i0, i1, i2, nums);
 }
 
 auto sub(N, N1)(N i0) {
@@ -92,32 +97,32 @@ auto sub(N, N1)(N i0, N1 i1) {
     return i0 - i1;
 }
 
-auto sub(N)(N[] nums...) {
-    return variadic_helper(delegate N(N n, N m) { return plus(n, m); }, nums);
+auto sub(N)(N i0, N i1, N i2, N[] nums...) {
+    return variadic_helper(delegate N(N n, N m) { return n - m; }, i0, i1, i2, nums);
 }
 
 auto mul(N, N1)(N i0, N1 i1) {
     return i0 * i1;
 }
 
-auto mul(N)(N[] nums...) {
-    return variadic_helper(delegate N(N n, N m) { return plus(n, m); }, nums);
+auto mul(N)(N i0, N i1, N i2, N[] nums...) {
+    return variadic_helper(delegate N(N n, N m) { return n * m; }, i0, i1, i2, nums);
 }
 
 auto div(N, N1)(N i0, N1 i1) {
     return i0 / i1;
 }
 
-auto div(N)(N[] nums...) {
-    return variadic_helper(delegate N(N n, N m) { return plus(n, m); }, nums);
+auto div(N)(N i0, N i1, N i2, N[] nums...) {
+    return variadic_helper(delegate N(N n, N m) { return n / m; }, i0, i1, i2, nums);
 }
 
 auto mod(N, N1)(N i0, N1 i1) {
     return i0 % i1;
 }
 
-auto mod(N)(N[] nums...) {
-    return variadic_helper(delegate N(N n, N m) { return plus(n, m); }, nums);
+auto mod(N)(N i0, N i1, N i2, N[] nums...) {
+    return variadic_helper(delegate N(N n, N m) { return n % m; }, i0, i1, i2, nums);
 }
 
 auto inc(N)(N n) {
@@ -152,35 +157,35 @@ auto bit_negate(Int)(Int i0) {
     return ~i0;
 }
 
-bool eql_Q(T)(T e0, T e1) {
+bool eql_Q(T, T1)(T e0, T1 e1) {
     return e0 == e1;
 }
 
-bool not_eql_Q(T)(T e0, T e1) {
+bool not_eql_Q(T, T1)(T e0, T1 e1) {
     return e0 != e1;
 }
 
-bool lt_Q(T)(T e0, T e1) {
+bool lt_Q(T, T1)(T e0, T1 e1) {
     return e0 < e1;
 }
 
-bool le_Q(T)(T e0, T e1) {
+bool le_Q(T, T1)(T e0, T1 e1) {
     return e0 <= e1;
 }
 
-bool gt_Q(T)(T e0, T e1) {
+bool gt_Q(T, T1)(T e0, T1 e1) {
     return e0 > e1;
 }
 
-bool ge_Q(T)(T e0, T e1) {
+bool ge_Q(T, T1)(T e0, T1 e1) {
     return e0 >= e1;
 }
 
-bool nil_Q(T)(T e) {
+bool nil_Q(T, T1)(T e) {
     return e is null;
 }
 
-int compare(T)(T e0, T e1) {
+int compare(T, T1)(T e0, T1 e1) {
     return if2(eql_Q(e0, e1), 0, if2(lt_Q(e0, e1), -1, 1));
 }
 
@@ -874,9 +879,9 @@ jumplbl2:
     }
 }
 
-long[] divisors(long l) {
+ulong[] divisors(ulong l) {
 jumplbl1:
-    long[] res = [];
+    ulong[] res = [];
     auto n = shift_right(l, 1L);
 jumplbl2:
     if (eql_Q(n, 0)) {
@@ -902,9 +907,9 @@ jumplbl2:
     }
 }
 
-long sum_of_divisors(long l) {
+ulong sum_of_divisors(ulong l) {
 jumplbl1:
-    long res = 0;
+    ulong res = 0;
     auto n = div(l, 2);
 jumplbl2:
     if (eql_Q(n, 0)) {
@@ -928,10 +933,6 @@ jumplbl2:
             goto jumplbl2;
         }
     }
-}
-
-long sum_of_divisors_1(long l) {
-    return sum(divisors(l));
 }
 
 double approx_euler(long l) {

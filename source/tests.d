@@ -1,6 +1,7 @@
 module tests;
 
 import stdlib;
+import associative;
 import std.functional;
 private string typestr(int i){
 return "int";
@@ -760,6 +761,30 @@ return "hi";
 TestVariant1TestVariant v1 = d1;
 return and(eql_Q(v0(), 1), eql_Q(v1(), "hi"));}
 }
+bool test_map_empty_Q(){
+{
+auto m = create_map([1,2], ["","abc"]);
+int[] empty_ints = [];
+return and(not(map_empty_Q(m)), map_empty_Q(create_map(empty_ints, empty_ints)));}
+}
+bool test_map_get(){
+{
+auto k1 = 1;
+auto k2 = 2;
+auto m1 = create_map([k1,k2], ["","abc"]);
+auto m2 = create_map(["","abc"], [k1,k2]);
+return and(eql_Q(map_get(m1, k1), ""), eql_Q(map_get(m1, k2), "abc"), eql_Q(map_get(m2, ""), k1), eql_Q(map_get(m2, "abc"), k2));}
+}
+bool test_map_has_key_Q(){
+{
+auto m1 = create_map([1,2], ["","abc"]);
+return and(has_key_Q(m1, 1), has_key_Q(m1, 2), not(has_key_Q(m1, 3)), not(has_key_Q(m1, 100)));}
+}
+bool test_map_has_key_2_Q(){
+{
+auto m1 = create_map([1,2], ["","abc"]);
+return and(and(has_key_Q(m1, 1), includes_Q(m1, 1), contains_Q(m1, 1)), nand(has_key_Q(m1, 3), includes_Q(m1, 3), contains_Q(m1, 3)));}
+}
 
 void main1(){
 println_E(append("test-defaults      ", to_s(test_defaults())));
@@ -925,6 +950,12 @@ println_E(append("test-random-4      ", to_s(test_random_4())));
 println_E("");
 println_E(append("test-variant-0     ", to_s(test_variant_0())));
 println_E(append("test-variant-1     ", to_s(test_variant_1())));
+println_E("");
+println_E(append("test-map-empty?    ", to_s(test_map_empty_Q())));
+println_E(append("test-map-get       ", to_s(test_map_get())));
+println_E(append("test-map-has-key?  ", to_s(test_map_has_key_Q())));
+println_E("test-map-has-key-2?");
+println_E(append("                   ", to_s(test_map_has_key_2_Q())));
 }
 
 

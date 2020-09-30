@@ -109,7 +109,7 @@ string newToString(AstCtx ast) {
         throw new CompilerError("new: First parameter must be type literal. " ~ ast.nodes[1].tknstr);
     }
 
-    auto result = "new " ~ typeToString(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]) ~ ";";
+    auto result = "new " ~ typeToString(ast[1]) ~ callArgsToString(ast, ast.nodes[2 .. $]);
     result = prependReturn(ast.requestReturn, result);
     return result;
 }

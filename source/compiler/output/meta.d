@@ -141,7 +141,8 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
         if (tkn_text(c.nodes[0]) == "meta") {
             result ~= parseMetaGetString(ast(c), meta);
         } else if (tkn_text(c.nodes[0]) == "alias"
-                || tkn_text(c.nodes[0]) == "import-sz" || tkn_text(c.nodes[0]) == "import-host") {
+                || tkn_text(c.nodes[0]) == "import-sz" || tkn_text(c.nodes[0]) == "import-host"
+                || tkn_text(c.nodes[0]) == "def-type" || tkn_text(c.nodes[0]) == "def-struct") {
             result ~= createOutput(ast(c));
         } else if (tkn_text(c.nodes[0]) != "define" && tkn_text(c.nodes[0]) != "define-fn") {
             string msg = "meta can only be used on function definitions. Otherwise, it is ignored. ";

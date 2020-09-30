@@ -1,6 +1,7 @@
 (module tests)
 
 (import-sz stdlib)
+(import-sz associative)
 (import-host std.functional)
 
 ; Helper to find type of basic numbers or strings
@@ -1150,7 +1151,35 @@
       (= (v0) 1)
       (= (v1) "hi"))))
 
+; Test associate module
 
+(define test-map-empty? ()
+  (let (m (create-map [1 2] ["" "abc"])
+        ::int[] empty-ints [])
+    (and (! (map-empty? m))
+         (map-empty? (create-map empty-ints empty-ints)))))
+
+(define test-map-get ()
+  (let (k1 1 k2 2
+        m1 (create-map [k1 k2] ["" "abc"])
+        m2 (create-map ["" "abc"] [k1 k2]))
+    (and (= (map-get m1 k1) "")
+         (= (map-get m1 k2) "abc")
+         (= (map-get m2 "") k1)
+         (= (map-get m2 "abc") k2))))
+
+(define test-map-has-key? ()
+  (let (m1 (create-map [1 2] ["" "abc"]))
+    (and (has-key? m1 1)
+         (has-key? m1 2)
+         (! (has-key? m1 3))
+         (! (has-key? m1 100)))))
+
+(define test-map-has-key-2? ()
+  (let (m1 (create-map [1 2] ["" "abc"]))
+    (and
+      (and (has-key? m1 1) (includes? m1 1) (contains? m1 1))
+      (nand (has-key? m1 3) (includes? m1 3) (contains? m1 3)))))
 
 
 ) ; Ends meta (returns bool)
@@ -1322,5 +1351,11 @@
     (println! "")
     (println! (append "test-variant-0     " (to_s (test-variant-0))))
     (println! (append "test-variant-1     " (to_s (test-variant-1))))
+    (println! "")
+    (println! (append "test-map-empty?    " (to_s (test-map-empty?))))
+    (println! (append "test-map-get       " (to_s (test-map-get))))
+    (println! (append "test-map-has-key?  " (to_s (test-map-has-key?))))
+    (println!         "test-map-has-key-2?")
+    (println! (append "                   " (to_s (test-map-has-key-2?))))
 )
 
