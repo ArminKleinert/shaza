@@ -69,6 +69,12 @@
 (define test-addition-4 ()
   (= (+ 1000 111) (+ 111 1000)))
 
+(define test-addition-5 ()
+  (and
+    (= (+ 15 15 15 15) 60)
+    (= (+ 15 15 15 -15) 30)
+    (= (+ 15 15 15 -15 -15) 15)))
+
 (define test-addition-types ()
   (and
     (= (typestr (+ default-int 0)) "int")
@@ -99,6 +105,12 @@
 ; Test alias
 (define test-subtraction-3 ()
   (= (sub 1000 111) (- 1000 111)))
+
+(define test-subtraction-4 ()
+  (and
+    (= (- 15 15 15 15) -30)
+    (= (- 15 15 15 -15) 0)
+    (= (- 15 15 15 -15 -15) 15)))
 
 (define test-subtraction-types ()
   (and
@@ -136,6 +148,12 @@
 (define test-multiplication-4 ()
   (= (* 1000 111) (* 111 1000)))
 
+(define test-multiplication-5 ()
+  (and
+    (= (* 2 2 2 2) 16)
+    (= (* 2 2 2 -2) -16)
+    (= (* 2 2 2 -2 -2) 32)))
+
 (define test-multiplication-types ()
   (and
     (= (typestr (* default-int 0)) "int")
@@ -168,6 +186,17 @@
 ; Test alias
 (define test-division-3 ()
   (= (div 1000 111) (/ 1000 111)))
+
+(define test-division-4 ()
+  (and
+    (= (/ 2 2) 1)
+    (= (/ 15 15) 1)))
+
+(define test-division-5 ()
+  (and
+    (= (/ 2 2 2 2) 0)
+    (= (/ 32 2 2 2) 4)
+    (= (/ 32 2 2 2 2) 2)))
 
 (define test-division-types ()
   (and
@@ -211,14 +240,20 @@
 (define test-modulo-4 ()
   (= (mod 1000 111) (% 1000 111)))
 
+(define test-modulo-5 ()
+  (and
+    (= (% 40 30 7) 3)
+    (= (% 32 2 2 2) 0)
+    (= (% 40 30 7 4 2) 1)))
+
 (define test-modulo-types ()
   (and
-    (= (typestr (/ default-int 1)) "int")
-    (= (typestr (/ default-uint 1)) "uint")
-    (= (typestr (/ default-long 1)) "long")
-    (= (typestr (/ default-ulong 1)) "ulong")
-    (= (typestr (/ default-float 1)) "float")
-    (= (typestr (/ default-double 1)) "double")))
+    (= (typestr (% default-int 1)) "int")
+    (= (typestr (% default-uint 1)) "uint")
+    (= (typestr (% default-long 1)) "long")
+    (= (typestr (% default-ulong 1)) "ulong")
+    (= (typestr (% default-float 1)) "float")
+    (= (typestr (% default-double 1)) "double")))
 
 ; SUBSECT Test increment
 
@@ -1131,24 +1166,30 @@
     (println! (append "test-add-2         " (to_s (test-addition-2))))
     (println! (append "test-add-3         " (to_s (test-addition-3))))
     (println! (append "test-add-4         " (to_s (test-addition-4))))
+    (println! (append "test-add-5         " (to_s (test-addition-5))))
     (println! (append "test-add-types     " (to_s (test-addition-types))))
     (println! (append "test-sub           " (to_s (test-subtraction))))
     (println! (append "test-sub-2         " (to_s (test-subtraction-2))))
     (println! (append "test-sub-3         " (to_s (test-subtraction-3))))
+    (println! (append "test-sub-4         " (to_s (test-subtraction-4))))
     (println! (append "test-sub-types     " (to_s (test-subtraction-types))))
     (println! (append "test-mul           " (to_s (test-multiplication))))
     (println! (append "test-mul-2         " (to_s (test-multiplication-2))))
     (println! (append "test-mul-3         " (to_s (test-multiplication-3))))
     (println! (append "test-mul-4         " (to_s (test-multiplication-4))))
+    (println! (append "test-mul-5         " (to_s (test-multiplication-5))))
     (println! (append "test-mul-types     " (to_s (test-multiplication-types))))
     (println! (append "test-div           " (to_s (test-division))))
     (println! (append "test-div-2         " (to_s (test-division-2))))
     (println! (append "test-div-3         " (to_s (test-division-3))))
+    (println! (append "test-div-4         " (to_s (test-division-4))))
+    (println! (append "test-div-5         " (to_s (test-division-5))))
     (println! (append "test-div-types     " (to_s (test-division-types))))
     (println! (append "test-mod           " (to_s (test-modulo))))
     (println! (append "test-mod-2         " (to_s (test-modulo-2))))
     (println! (append "test-mod-3         " (to_s (test-modulo-3))))
     (println! (append "test-mod-4         " (to_s (test-modulo-4))))
+    (println! (append "test-mod-5         " (to_s (test-modulo-5))))
     (println! (append "test-mod-types     " (to_s (test-modulo-types))))
     (println! "")
     (println! (append "test-inc           " (to_s (test-inc))))

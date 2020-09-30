@@ -55,20 +55,25 @@ T if2(T)(lazy bool cond, lazy T branchThen){
 return (cond?branchThen:(T.init));
 }
 
-private N variadic_helper(N)(N delegate(N,N) accumulator_fn, N n, N[] nums...){
+private N variadic_helper(N)(N delegate(N,N) accumulator_fn, N n0, N n1, N n2, N[] nums){
 jumplbl1:
-if(nums.length==0) {
-return n;
+auto acc = accumulator_fn(accumulator_fn(n0, n1), n2);
+auto _rest = nums;
+jumplbl2:
+if(_rest.length<1) {
+return acc;
+} else {
+if(_rest.length==1) {
+return accumulator_fn(acc, _rest[0]);
 } else {
 {
-auto accumulator_fn_0 = accumulator_fn;
-auto n_1 = accumulator_fn(n, nums[0]);
-auto nums_2 = nums[1..$];
-accumulator_fn = accumulator_fn_0;
-n = n_1;
-nums = nums_2;
+auto acc_0 = accumulator_fn(acc, _rest[0]);
+auto _rest_1 = _rest[1..$];
+acc = acc_0;
+_rest = _rest_1;
 }
-goto jumplbl1;
+goto jumplbl2;
+}
 }
 }
 auto plus(N, N1)(N i0){
@@ -77,10 +82,10 @@ return i0;
 auto plus(N, N1)(N i0, N1 i1){
 return i0+i1;
 }
-auto plus(N)(N[] nums...){
+auto plus(N)(N i0, N i1, N i2, N[] nums...){
 return variadic_helper(delegate N(N n, N m){
-return plus(n, m);
-}, nums);
+return n+m;
+}, i0, i1, i2, nums);
 }
 auto sub(N, N1)(N i0){
 return -i0;
@@ -88,34 +93,34 @@ return -i0;
 auto sub(N, N1)(N i0, N1 i1){
 return i0-i1;
 }
-auto sub(N)(N[] nums...){
+auto sub(N)(N i0, N i1, N i2, N[] nums...){
 return variadic_helper(delegate N(N n, N m){
-return plus(n, m);
-}, nums);
+return n-m;
+}, i0, i1, i2, nums);
 }
 auto mul(N, N1)(N i0, N1 i1){
 return i0*i1;
 }
-auto mul(N)(N[] nums...){
+auto mul(N)(N i0, N i1, N i2, N[] nums...){
 return variadic_helper(delegate N(N n, N m){
-return plus(n, m);
-}, nums);
+return n*m;
+}, i0, i1, i2, nums);
 }
 auto div(N, N1)(N i0, N1 i1){
 return i0/i1;
 }
-auto div(N)(N[] nums...){
+auto div(N)(N i0, N i1, N i2, N[] nums...){
 return variadic_helper(delegate N(N n, N m){
-return plus(n, m);
-}, nums);
+return n/m;
+}, i0, i1, i2, nums);
 }
 auto mod(N, N1)(N i0, N1 i1){
 return i0%i1;
 }
-auto mod(N)(N[] nums...){
+auto mod(N)(N i0, N i1, N i2, N[] nums...){
 return variadic_helper(delegate N(N n, N m){
-return plus(n, m);
-}, nums);
+return n%m;
+}, i0, i1, i2, nums);
 }
 
 auto inc(N)(N n){

@@ -40,7 +40,7 @@ string createOutput(AstCtx ast) {
         return prependReturn(ast.requestReturn, atomToString(ast));
     }
 
-    if (or(eql_Q(ast.type , keyword(":closedTaggedList")) , eql_Q(ast.type , keyword(":closedList")))) {
+    if (or(eql_Q(ast.type, keyword(":closedTaggedList")), eql_Q(ast.type, keyword(":closedList")))) {
         return prependReturn(ast.requestReturn, listLiteralToString(ast));
     }
 
@@ -50,7 +50,7 @@ string createOutput(AstCtx ast) {
             switch (firstTkn.text) {
             case "module":
                 // Only 1 module declaration per file is allowed and it must be the very first token!
-                errorln_E(append("Ignoring unexpected module declaration: " , ast.nodes[0].tknstr()));
+                errorln_E(append("Ignoring unexpected module declaration: ", ast.nodes[0].tknstr()));
                 break;
             case "define":
                 return generalDefineToString(ast, false, null);
@@ -121,7 +121,7 @@ string createOutput(AstCtx ast) {
         return callToString(ast);
     }
 
-    if (eql_Q(ast.type , keyword(":root"))) {
+    if (eql_Q(ast.type, keyword(":root"))) {
         auto modulename = parseRootNodeIntoContextAndReturnModulename(ast);
         return OutputContext.global.fullModuleTexts[modulename];
     }
@@ -143,8 +143,8 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
         return "";
 
     // Try to find module declaration
-    if (eql_Q(ast.nodes[0].type , keyword(":closedScope"))
-            && gt_Q(ast.nodes[0].nodes.size , 0) && eql_Q(ast.nodes[0].nodes[0].tkn_text , "module")) {
+    if (eql_Q(ast.nodes[0].type, keyword(":closedScope"))
+            && gt_Q(ast.nodes[0].nodes.size, 0) && eql_Q(ast.nodes[0].nodes[0].tkn_text, "module")) {
         string temp = moduleToString(ast.nodes[0]);
 
         modulename = retrieveModuleName(ast.nodes[0]);
@@ -159,8 +159,8 @@ string parseRootNodeIntoContextAndReturnModulename(AstCtx ast) {
                 ~ "but can lead to problems when importing the same file multiple times.");
     }
 
-    foreach (AstNode child; slice(ast.nodes,parsingstart)) {
-       append_E(rootTexts, createOutput(ast(child)));
+    foreach (AstNode child; slice(ast.nodes, parsingstart)) {
+        append_E(rootTexts, createOutput(ast(child)));
     }
     rootTexts ~= OutputContext.global().globals;
     auto result = "";

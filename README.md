@@ -18,7 +18,7 @@ constant change right now. You have been warned.
 - Open the command line, cd to the directory you cloned Shaza to
 - Write some Shaza source code
 - Put the files of the standard library into the same directory
-- Run ``dub run <path to your shaza file>``
+- Run ``dub build --force && ./shaza <shaza-file> <output-directory>``
 - If everything works, the compiler should have created a bunch of new `.d` files.
 - Put these files into a new or existing D-project and run it.
 - Get angry like me when it doesn't work.

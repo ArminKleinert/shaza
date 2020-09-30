@@ -45,6 +45,9 @@ return eql_Q(plus(1000, 111), plus(1000, 111));
 bool test_addition_4(){
 return eql_Q(plus(1000, 111), plus(111, 1000));
 }
+bool test_addition_5(){
+return and(eql_Q(plus(15, 15, 15, 15), 60), eql_Q(plus(15, 15, 15, -15), 30), eql_Q(plus(15, 15, 15, -15, -15), 15));
+}
 bool test_addition_types(){
 return and(eql_Q(typestr(plus(default_int, 0)), "int"), eql_Q(typestr(plus(default_uint, 0)), "uint"), eql_Q(typestr(plus(default_long, 0)), "long"), eql_Q(typestr(plus(default_ulong, 0)), "ulong"), eql_Q(typestr(plus(default_float, 0)), "float"), eql_Q(typestr(plus(default_double, 0)), "double"));
 }
@@ -56,6 +59,9 @@ return and(eql_Q(sub(default_int, 0), 0), eql_Q(sub(default_uint, 0), 0), eql_Q(
 }
 bool test_subtraction_3(){
 return eql_Q(sub(1000, 111), sub(1000, 111));
+}
+bool test_subtraction_4(){
+return and(eql_Q(sub(15, 15, 15, 15), -30), eql_Q(sub(15, 15, 15, -15), 0), eql_Q(sub(15, 15, 15, -15, -15), 15));
 }
 bool test_subtraction_types(){
 return and(eql_Q(typestr(sub(default_int, 0)), "int"), eql_Q(typestr(sub(default_uint, 0)), "uint"), eql_Q(typestr(sub(default_long, 0)), "long"), eql_Q(typestr(sub(default_ulong, 0)), "ulong"), eql_Q(typestr(sub(default_float, 0)), "float"), eql_Q(typestr(sub(default_double, 0)), "double"));
@@ -72,6 +78,9 @@ return eql_Q(mul(1000, 111), mul(1000, 111));
 bool test_multiplication_4(){
 return eql_Q(mul(1000, 111), mul(111, 1000));
 }
+bool test_multiplication_5(){
+return and(eql_Q(mul(2, 2, 2, 2), 16), eql_Q(mul(2, 2, 2, -2), -16), eql_Q(mul(2, 2, 2, -2, -2), 32));
+}
 bool test_multiplication_types(){
 return and(eql_Q(typestr(mul(default_int, 0)), "int"), eql_Q(typestr(mul(default_uint, 0)), "uint"), eql_Q(typestr(mul(default_long, 0)), "long"), eql_Q(typestr(mul(default_ulong, 0)), "ulong"), eql_Q(typestr(mul(default_float, 0)), "float"), eql_Q(typestr(mul(default_double, 0)), "double"));
 }
@@ -83,6 +92,12 @@ return and(eql_Q(div(plus(10, default_int), 2), 5), eql_Q(div(plus(10, default_u
 }
 bool test_division_3(){
 return eql_Q(div(1000, 111), div(1000, 111));
+}
+bool test_division_4(){
+return and(eql_Q(div(2, 2), 1), eql_Q(div(15, 15), 1));
+}
+bool test_division_5(){
+return and(eql_Q(div(2, 2, 2, 2), 0), eql_Q(div(32, 2, 2, 2), 4), eql_Q(div(32, 2, 2, 2, 2), 2));
 }
 bool test_division_types(){
 return and(eql_Q(typestr(div(default_int, 1)), "int"), eql_Q(typestr(div(default_uint, 1)), "uint"), eql_Q(typestr(div(default_long, 1)), "long"), eql_Q(typestr(div(default_ulong, 1)), "ulong"), eql_Q(typestr(div(default_float, 1)), "float"), eql_Q(typestr(div(default_double, 1)), "double"));
@@ -99,8 +114,11 @@ return and(eql_Q(mod(plus(10, default_int), 3), 1), eql_Q(mod(plus(10, default_u
 bool test_modulo_4(){
 return eql_Q(mod(1000, 111), mod(1000, 111));
 }
+bool test_modulo_5(){
+return and(eql_Q(mod(40, 30, 7), 3), eql_Q(mod(32, 2, 2, 2), 0), eql_Q(mod(40, 30, 7, 4, 2), 1));
+}
 bool test_modulo_types(){
-return and(eql_Q(typestr(div(default_int, 1)), "int"), eql_Q(typestr(div(default_uint, 1)), "uint"), eql_Q(typestr(div(default_long, 1)), "long"), eql_Q(typestr(div(default_ulong, 1)), "ulong"), eql_Q(typestr(div(default_float, 1)), "float"), eql_Q(typestr(div(default_double, 1)), "double"));
+return and(eql_Q(typestr(mod(default_int, 1)), "int"), eql_Q(typestr(mod(default_uint, 1)), "uint"), eql_Q(typestr(mod(default_long, 1)), "long"), eql_Q(typestr(mod(default_ulong, 1)), "ulong"), eql_Q(typestr(mod(default_float, 1)), "float"), eql_Q(typestr(mod(default_double, 1)), "double"));
 }
 bool test_inc(){
 return and(eql_Q(inc(default_int), 1), eql_Q(inc(default_uint), 1), eql_Q(inc(default_long), 1), eql_Q(inc(default_ulong), 1), eql_Q(inc(default_float), 1), eql_Q(inc(default_double), 1));
@@ -751,24 +769,30 @@ println_E(append("test-add           ", to_s(test_addition())));
 println_E(append("test-add-2         ", to_s(test_addition_2())));
 println_E(append("test-add-3         ", to_s(test_addition_3())));
 println_E(append("test-add-4         ", to_s(test_addition_4())));
+println_E(append("test-add-5         ", to_s(test_addition_5())));
 println_E(append("test-add-types     ", to_s(test_addition_types())));
 println_E(append("test-sub           ", to_s(test_subtraction())));
 println_E(append("test-sub-2         ", to_s(test_subtraction_2())));
 println_E(append("test-sub-3         ", to_s(test_subtraction_3())));
+println_E(append("test-sub-4         ", to_s(test_subtraction_4())));
 println_E(append("test-sub-types     ", to_s(test_subtraction_types())));
 println_E(append("test-mul           ", to_s(test_multiplication())));
 println_E(append("test-mul-2         ", to_s(test_multiplication_2())));
 println_E(append("test-mul-3         ", to_s(test_multiplication_3())));
 println_E(append("test-mul-4         ", to_s(test_multiplication_4())));
+println_E(append("test-mul-5         ", to_s(test_multiplication_5())));
 println_E(append("test-mul-types     ", to_s(test_multiplication_types())));
 println_E(append("test-div           ", to_s(test_division())));
 println_E(append("test-div-2         ", to_s(test_division_2())));
 println_E(append("test-div-3         ", to_s(test_division_3())));
+println_E(append("test-div-4         ", to_s(test_division_4())));
+println_E(append("test-div-5         ", to_s(test_division_5())));
 println_E(append("test-div-types     ", to_s(test_division_types())));
 println_E(append("test-mod           ", to_s(test_modulo())));
 println_E(append("test-mod-2         ", to_s(test_modulo_2())));
 println_E(append("test-mod-3         ", to_s(test_modulo_3())));
 println_E(append("test-mod-4         ", to_s(test_modulo_4())));
+println_E(append("test-mod-5         ", to_s(test_modulo_5())));
 println_E(append("test-mod-types     ", to_s(test_modulo_types())));
 println_E("");
 println_E(append("test-inc           ", to_s(test_inc())));

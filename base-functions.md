@@ -3,7 +3,7 @@ File   <native>
 Module <native>
 Name(s)                    | Export-name                | Input                  | Output          | Generics      | Description
 ---------------------------+----------------------------+------------------------+-----------------+---------------+-------------
-module                     |                            | <Symbol>               | 
+module                     |                            | <Symbol>               |                 |               | 
 when                       |                            | <bool>, <Expr>, <Expr> |                 |               | Compiles to an if-expression
 fp                         |                            | <Function>             | Pointer         |               | 
 let                        |                            | <Bindings>, <Body>     |                 |               | 
@@ -13,26 +13,26 @@ define                     |                            | <Attr?>, <Name>,      
                            |                            | <Args>, <Body>         |                 |               | 
 lambda                     |                            | <Attr?>, <Args>,       |                 |               | 
                            |                            | <Body>                 |                 |               | 
-setv!                      |                            | <Symbol>, <Val>        | 
-return                     |                            | <Expr>                 | 
-ll                         |                            | <Token...>             | 
-llr                        |                            | <Token...>             | ?
-new                        |
-to                         |
-cast                       |
-struct                     |
-def-struct                 |
-def-type                   |
-comment                    |
-import-sz                  |
-import-host                |
-rt-import-sz               |
-rt-import-host             |
-quote                      | 
-pseudo-quote
-unquote 
-meta   
-alias
+setv!                      |                            | <Symbol>, <Val>        |                 |               | 
+return                     |                            | <Expr>                 |                 |               | 
+ll                         |                            | <Token...>             |                 |               | 
+llr                        |                            | <Token...>             |                 |               | 
+new                        |                            |                        |                 |               | 
+to                         |                            |                        |                 |               | 
+cast                       |                            |                        |                 |               | 
+struct                     |                            |                        |                 |               | 
+def-struct                 |                            |                        |                 |               | 
+def-type                   |                            |                        |                 |               | 
+comment                    |                            |                        |                 |               | 
+import-sz                  |                            |                        |                 |               | 
+import-host                |                            |                        |                 |               | 
+rt-import-sz               |                            |                        |                 |               | 
+rt-import-host             |                            |                        |                 |               | 
+quote                      |                            |                        |                 |               | 
+pseudo-quote               |                            |                        |                 |               | 
+unquote                    |                            |                        |                 |               | 
+meta                       |                            |                        |                 |               | 
+alias                      |                            |                        |                 |               | 
 
 
 File   stdlib.sz
