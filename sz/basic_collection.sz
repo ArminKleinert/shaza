@@ -354,7 +354,6 @@ The implementations given here are for arrays specifically.
         target
         (let (v (first coll)
               j (limit (ulong-value rand) (size target)))
-          ; //println_E(join([str(coll), " ", str(j), " ", str(target)]))
           (when (== j (size target))
             (recur
               (rest coll)

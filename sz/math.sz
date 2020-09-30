@@ -81,7 +81,7 @@
   (let (seed1 (bit-xor seed (>> seed 12))
         seed2 (bit-xor seed1 (<< seed1 25))
         seed3 (bit-xor seed2 (>> seed2 27)))
-    (Random (bit-xor seed 0x2545F4914F6CDD1D) seed)))
+    (Random (bit-xor seed3 0x2545F4914F6CDD1D) seed)))
 
 (define ::Random random (::Random r)
   (let (nr (random r.seed))
