@@ -652,9 +652,8 @@ return and(eql_Q(insertionsort(coll), coll_sorted), eql_Q(insertionsort(coll), i
 bool test_shuffle(){
 {
 auto coll = [3,4,6,3,2,1,8,9,10];
-auto rand = random(0);
-println_E(shuffle(coll, rand));
-return and(eql_Q(shuffle(cleared(coll), rand), cleared(coll)), eql_Q(shuffle([first(coll)], rand), [first(coll)]), eql_Q(shuffle(coll, rand), coll), eql_Q(shuffle(coll, rand), shuffle(coll, rand)));}
+auto rand = random(default_seed);
+return and(eql_Q(shuffle(cleared(coll), rand), cleared(coll)), eql_Q(shuffle([first(coll)], rand), [first(coll)]), not_eql_Q(shuffle(coll, rand), coll), eql_Q(shuffle(coll, rand), shuffle(coll, rand)));}
 }
 bool test_sum(){
 {
@@ -685,6 +684,68 @@ return and(eql_Q(divisors(12), temp), eql_Q(divisors(0), cleared(temp)));}
 bool test_sum_of_divisors(){
 return and(eql_Q(sum_of_divisors(0), 0), eql_Q(sum_of_divisors(12), 16));
 }
+bool test_bits_of(){
+return and(eql_Q(bits_of(0), bits_of(0)), eql_Q(size(bits_of(0)), 0), eql_Q(size(bits_of(255)), 8));
+}
+bool test_bits_of_1(){
+{
+byte[] bs = [0];
+auto bitarr = bits_of(bs, 8);
+flip_all_E(bitarr);
+return and(eql_Q(first(bs), 255), eql_Q(bitarr, bits_of(255)));}
+}
+bool test_bit_array_copy(){
+{
+byte[] bs = [0];
+auto bitarr = bit_array_copy(bits_of(bs, 8));
+flip_all_E(bitarr);
+return and(eql_Q(first(bs), 0), eql_Q(bitarr, bits_of(255)));}
+}
+bool test_flip_bit_E(){
+return false;
+}
+bool test_flip_all_E(){
+return false;
+}
+bool test_reverse_bits_E(){
+return false;
+}
+bool test_set_bit_E(){
+return false;
+}
+bool test_unset_bit_E(){
+return false;
+}
+bool test_flip_bit(){
+return false;
+}
+bool test_flip_all(){
+return false;
+}
+bool test_reverse_bits(){
+return false;
+}
+bool test_set_bit(){
+return false;
+}
+bool test_unset_bit(){
+return false;
+}
+bool test_bit_Q(){
+return false;
+}
+bool test_rotate_l(){
+return false;
+}
+bool test_rotate_r(){
+return false;
+}
+bool test_popcount(){
+return false;
+}
+bool test_popcount_1(){
+return false;
+}
 bool test_rseed(){
 {
 auto rand = rseed(0);
@@ -712,7 +773,7 @@ jumplbl2:
 if(eql_Q(counter, 0)) {
 return true;
 } else {
-if(gt_Q(ulong_value(rand), 100)) {
+if(ge_Q(ulong_value(rand), 100)) {
 return false;
 } else {
 {
@@ -733,7 +794,7 @@ jumplbl2:
 if(eql_Q(counter, 0)) {
 return true;
 } else {
-if(gt_Q(ulong_value(rand), 100)) {
+if(ge_Q(ulong_value(rand), 100)) {
 return false;
 } else {
 if(lt_Q(ulong_value(rand), 50)) {
@@ -947,6 +1008,28 @@ println_E(append("                   ", to_s(test_sum_of_divisors())));
 println_E("");
 println_E(append("test-limit         ", to_s(test_limit())));
 println_E(append("test-limit-1       ", to_s(test_limit_1())));
+println_E("");
+println_E(append("test-bits-of       ", to_s(test_bits_of())));
+println_E(append("test-bits-of-1     ", to_s(test_bits_of_1())));
+println_E("test-bit-array-copy");
+println_E(append("                   ", to_s(test_bit_array_copy())));
+println_E("");
+println_E(append("test-flip-bit!     ", to_s(test_flip_bit_E())));
+println_E(append("test-flip-all!     ", to_s(test_flip_all_E())));
+println_E(append("test-reverse-bits! ", to_s(test_reverse_bits_E())));
+println_E(append("test-set-bit!      ", to_s(test_set_bit_E())));
+println_E(append("test-unset-bit!    ", to_s(test_unset_bit_E())));
+println_E(append("test-flip-bit      ", to_s(test_flip_bit())));
+println_E(append("test-flip-all      ", to_s(test_flip_all())));
+println_E(append("test-reverse-bits  ", to_s(test_reverse_bits())));
+println_E(append("test-set-bit       ", to_s(test_set_bit())));
+println_E(append("test-unset-bit     ", to_s(test_unset_bit())));
+println_E(append("test-bit?          ", to_s(test_bit_Q())));
+println_E("");
+println_E(append("test-rotate-l      ", to_s(test_rotate_l())));
+println_E(append("test-rotate-r      ", to_s(test_rotate_r())));
+println_E(append("test-popcount      ", to_s(test_popcount())));
+println_E(append("test-popcount-1    ", to_s(test_popcount_1())));
 println_E("");
 println_E(append("test-rseed         ", to_s(test_rseed())));
 println_E(append("test-random        ", to_s(test_random())));

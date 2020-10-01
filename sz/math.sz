@@ -64,6 +64,82 @@
     val)))
 )
 
+; SECTION Bit magic
+
+(import-host std.bitmanip)
+(import-host core.bitop)
+
+(meta (:generics [::T])
+(define ::BitArray bits-of (::T v)
+  (let (::void[] vs [v])
+    (BitArray vs v.sizeof)))
+)
+
+; Attention! The BitArray uses the input data directly,
+; so it can change the bits in anything! Use with caution!
+; You have been warned...
+(define ::BitArray bits-of (::void[] vs ::size_t bitnum)
+  (BitArray vs bitnum))
+
+(define ::size_t word-count (::BitArray ba)
+  (ba.dim))
+
+(define ::size_t size (::BitArray ba) (ba.length))
+(define ::bool get (::BitArray ba ::size_t i) (llr "ba[i]"))
+
+; TODO Implement assoc, ...
+
+(meta (:returns ::BitArray)
+  (define bit-array-copy (::BitArray bits)
+    (bits.dup))
+  
+  (define flip-bit! (::BitArray bits ::size_t idx)
+    (bits.flip idx)
+    bits)
+
+  (define flip-all! (::BitArray bits)
+    (bits.flip)
+    bits)
+
+  (define reverse-bits! (::BitArray bits)
+    (bits.reverse)
+    bits)
+
+  (define set-bit! (::BitArray bits ::size_t idx)
+    (ll "bits[idx] = true;")
+    bits)
+
+  (define unset-bit! (::BitArray bits ::size_t idx)
+    (ll "bits[idx] = false;")
+    bits)
+
+  (define flip-bit (::BitArray bits ::size_t idx)
+    (flip-bit! bits.dup idx))
+
+  (define flip-all (::BitArray bits)
+    (flip-all! bits.dup))
+
+  (define reverse-bits (::BitArray bits)
+    (reverse-bits! bits.dup))
+
+  (define set-bit (::BitArray bits ::size_t idx)
+    (set-bit! bits.dup idx))
+
+  (define unset-bit (::BitArray bits ::size_t idx)
+    (unset-bit! bits.dup idx))
+)
+
+(define ::bool bit? (::BitArray bits ::size_t idx)
+  (get bits idx))
+
+(meta (:returns ::T :generics [::T])
+  (define rotate-l (::T v ::uint count) (rol v count))
+  (define rotate-r (::T v ::uint count) (ror v count))
+)
+
+(define ::int popcount (::uint i) (popcnt i))
+(define ::int popcount (::ulong i) (popcnt i))
+
 ; SECTION Pseudo-Randomness
 
 (comment
@@ -71,29 +147,32 @@
   "Random", which is returned by all the below functions.
   )
 
-(def-struct Random ::ulong value ::ulong seed)
+(def-struct Random ::ulong value ::ulong seed ::ulong internal_val)
 (define ::ulong default-seed 8678280846964778612)
 
 (define ::Random rseed (::ulong seed)
-  (Random (inc seed) seed))
+  (Random (inc seed) seed (inc seed)))
 
 (define ::Random random (::ulong seed)
   (let (seed1 (bit-xor seed (>> seed 12))
         seed2 (bit-xor seed1 (<< seed1 25))
-        seed3 (bit-xor seed2 (>> seed2 27)))
-    (Random (bit-xor seed3 0x2545F4914F6CDD1D) seed)))
+        seed3 (bit-xor seed2 (>> seed2 27))
+        res (bit-xor seed3 0x2545F4914F6CDD1D))
+    (Random res seed res)))
 
 (define ::Random random (::Random r)
   (let (nr (random r.seed))
-    (nr.with_seed  r.value)))
+    (nr.with_seed r.internal_val)))
 
 (define ::Random random (::Random r ::ulong max)
   (let (r2 (random r))
-    (r2.with_value (limit r2.value max))))
+    (if (== max 0)
+      (r2.with_value 0)
+      (r2.with_value (mod r2.value max)))))
 
 (define ::Random random (::Random r ::ulong min ::ulong max)
-  (let (r2 (random r))
-     (r2.with_value (limit r2.value min max))))
+  (let (r2 (random r (- max min)))
+    (r2.with_value (+ r2.value min))))
 
 (define ::ulong ulong-value (::Random r) r.value)
 (define ::long long-value (::Random r) (cast ::long r.value))

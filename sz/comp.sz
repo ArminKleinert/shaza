@@ -45,30 +45,30 @@
   ::bool is-in-type-literal)
 
 (comment TokenTypes:
-    :unknown
-    :root
-    :lit-int
-    :lit-uint
-    :lit-flt
-    :lit-bool
-    :lit-string
-    :lit-char
-    :lit-list
-    :lit-map
-    :lit-keyword
-    :lit-type
-    :symbol
-    :buildin-fn-call
-    :buildin-macro-call
-    :scope-open
-    :scope-close
-    :lst-open
-    :lst-tagged-open
-    :lst-close
-    :closed-scope
-    :closed-tagged-list
-    :closed-list
-    :ln-comment
+  :unknown
+  :root
+  :lit-int
+  :lit-uint
+  :lit-flt
+  :lit-bool
+  :lit-string
+  :lit-char
+  :lit-list
+  :lit-map
+  :lit-keyword
+  :lit-type
+  :symbol
+  :buildin-fn-call
+  :buildin-macro-call
+  :scope-open
+  :scope-close
+  :lst-open
+  :lst-tagged-open
+  :lst-close
+  :closed-scope
+  :closed-tagged-list
+  :closed-list
+  :ln-comment
 )
 
 (define ::char quot-mark (first "\""))
@@ -162,6 +162,8 @@
     ctx
     ctx
     ))))))
+
+
 
 (define ::Context next-char (::Context ctx ::char c)
   (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char))

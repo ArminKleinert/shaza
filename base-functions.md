@@ -22,6 +22,7 @@ to                         |                            |                       
 cast                       |                            |                        |                 |               | 
 struct                     |                            |                        |                 |               | 
 def-struct                 |                            |                        |                 |               | 
+def-union                  |                            |                        |                 |               | 
 def-type                   |                            |                        |                 |               | 
 comment                    |                            |                        |                 |               | 
 import-sz                  |                            |                        |                 |               | 

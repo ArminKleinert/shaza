@@ -353,15 +353,15 @@ The implementations given here are for arrays specifically.
       (when (empty? coll)
         target
         (let (v (first coll)
-              j (limit (ulong-value rand) (size target)))
-          (when (== j (size target))
+              j (% (ulong-value rand) (++ (size target))))
+          (when (>= j (size target))
             (recur
               (rest coll)
-              (append target v)
+              (append! target v)
               (random rand))
             (recur
               (rest coll)
-              (assoc (append target (get target (++ j))) (++ j) v)
+              (assoc! (append! target (get target j)) j v)
               (random rand))))))
   )
   

@@ -1027,12 +1027,11 @@
 
 (define test-shuffle ()
   (let (coll [3 4 6 3 2 1 8 9 10]
-        rand (random 0)
-        shuffled [3, 9, 4, 6, 2, 1, 3, 8, 10])
+        rand (random default-seed))
     (and 
       (= (shuffle (cleared coll) rand) (cleared coll)) ; 0 element
       (= (shuffle [(first coll)] rand) [(first coll)]) ; 1 element
-      (= (shuffle coll rand) shuffled) ; Shuffled is != Original
+      (!= (shuffle coll rand) coll) ; Shuffled is != Original
       (= (shuffle coll rand) (shuffle coll rand)) ; is deterministic
     )))
 
@@ -1097,6 +1096,89 @@
     (= (sum-of-divisors 0) 0)
     (= (sum-of-divisors 12) 16)))
 
+; SECTION Test BitArrays
+
+(define test-bits-of ()
+  (and (= (bits-of 0) (bits-of 0))
+       (= (size (bits-of 0)) 0)
+       (= (size (bits-of 255)) 8)))
+
+(define test-bits-of-1 ()
+  (let (::byte[] bs [0]
+        bitarr (bits-of bs 8))
+    (flip-all! bitarr)
+    (and (= (first bs) 255)
+         (= bitarr (bits-of 255)))))
+
+(define test-bit-array-copy ()
+  (let (::byte[] bs [0]
+        bitarr (bit-array-copy (bits-of bs 8)))
+    (flip-all! bitarr)
+    (and (= (first bs) 0)
+         (= bitarr (bits-of 255)))))
+
+; TODO
+(define test-flip-bit! ()
+  #f)
+
+; TODO
+(define test-flip-all! ()
+  #f)
+
+; TODO
+(define test-reverse-bits! ()
+  #f)
+
+; TODO
+(define test-set-bit! ()
+  #f)
+
+; TODO
+(define test-unset-bit! ()
+  #f)
+
+; TODO  
+(define test-flip-bit ()
+  #f)
+
+; TODO
+(define test-flip-all ()
+  #f)
+
+; TODO
+(define test-reverse-bits ()
+  #f)
+
+; TODO
+(define test-set-bit ()
+  #f)
+
+; TODO
+(define test-unset-bit ()
+  #f)
+
+; TODO
+(define test-bit? ()
+  #f)
+
+; SECTION Other bit-magic
+
+; TODO
+(define test-rotate-l ()
+  #f)
+
+; TODO
+(define test-rotate-r ()
+  #f)
+
+; TODO
+(define test-popcount ()
+  #f)
+
+; TODO
+(define test-popcount-1 ()
+  #f)
+
 ; SECTION Test random
 
 (define test-rseed ()
@@ -1129,14 +1211,14 @@
   (loop (rand (random (rseed 2048) 100)
          counter 1000)
     (when (= counter 0) #t
-    (when (> (ulong-value rand) 100) #f
+    (when (>= (ulong-value rand) 100) #f
     (recur (random rand 100) (-- counter))))))
 
 (define test-random-4 ()
   (loop (rand (random (rseed 2048) 50 100)
          counter 1000)
     (when (= counter 0) #t
-    (when (> (ulong-value rand) 100) #f
+    (when (>= (ulong-value rand) 100)#f
     (when (< (ulong-value rand) 50) #f
     (recur (random rand 50 100) (-- counter)))))))
 
@@ -1196,7 +1278,6 @@
 
 
 ) ; Ends meta (returns bool)
-
 
 ; SECTION Run tests
 
@@ -1355,6 +1436,28 @@
     (println! (append "test-limit         " (to_s (test-limit))))
     (println! (append "test-limit-1       " (to_s (test-limit-1))))
     (println! "")
+    (println! (append "test-bits-of       " (to_s (test-bits-of))))
+    (println! (append "test-bits-of-1     " (to_s (test-bits-of-1))))
+    (println!         "test-bit-array-copy")
+    (println! (append "                   " (to_s (test-bit-array-copy))))
+    (println! "")
+    (println! (append "test-flip-bit!     " (to_s (test-flip-bit!))))
+    (println! (append "test-flip-all!     " (to_s (test-flip-all!))))
+    (println! (append "test-reverse-bits! " (to_s (test-reverse-bits!))))
+    (println! (append "test-set-bit!      " (to_s (test-set-bit!))))
+    (println! (append "test-unset-bit!    " (to_s (test-unset-bit!))))
+    (println! (append "test-flip-bit      " (to_s (test-flip-bit))))
+    (println! (append "test-flip-all      " (to_s (test-flip-all))))
+    (println! (append "test-reverse-bits  " (to_s (test-reverse-bits))))
+    (println! (append "test-set-bit       " (to_s (test-set-bit))))
+    (println! (append "test-unset-bit     " (to_s (test-unset-bit))))
+    (println! (append "test-bit?          " (to_s (test-bit?))))
+    (println! "")
+    (println! (append "test-rotate-l      " (to_s (test-rotate-l))))
+    (println! (append "test-rotate-r      " (to_s (test-rotate-r))))
+    (println! (append "test-popcount      " (to_s (test-popcount))))
+    (println! (append "test-popcount-1    " (to_s (test-popcount-1))))
+    (println! "")
     (println! (append "test-rseed         " (to_s (test-rseed))))
     (println! (append "test-random        " (to_s (test-random))))
     (println! (append "test-random-1      " (to_s (test-random-1))))
@@ -1372,4 +1475,3 @@
     (println! (append "                   " (to_s (test-map-has-key-2?))))
     (println! (append "test-shuffle       " (to_s (test-shuffle))))
 )
-

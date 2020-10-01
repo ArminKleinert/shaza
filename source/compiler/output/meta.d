@@ -138,6 +138,10 @@ string parseMetaGetString(AstCtx ast, FnMeta parentMeta) {
     auto result = appender("");
 
     foreach (c; wrapped) {
+        if (c.nodes.empty_Q()) {
+            println_E("Empty scope in meta block: " ~ c.tknstr());
+            continue;
+        }
         if (tkn_text(c.nodes[0]) == "meta") {
             result ~= parseMetaGetString(ast(c), meta);
         } else if (tkn_text(c.nodes[0]) == "alias"

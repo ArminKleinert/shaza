@@ -49,6 +49,8 @@ Shaza does not yet have first class functions. This is a workaround. ``(fp +)``
 creates a pointer to the global + function. This is not necessary for lambdas.  
 ``(def-struct <name> <bindings>)`` 
 Create a new value type. (struct)  
+``(def-union <name> <bindings>)``
+Create a union type. (union)
 ``(def-type <name> <bindings>)`` 
 Create a new class type. (class)    
 ``(struct <bindings>`` 
@@ -183,9 +185,15 @@ functions in that block.
 if `:pure` is `#t`, in which case the compiler might otherwise try to memoize.  
 - ``:doc <string>`` Sets documentation.
 
+## Known issues
+
+- Comments nested in `meta`-blocks, which start with a `;` and are not followed by
+  a space character, make the compiler throw errors.
+
 ## Missing features
 
 Near future:  
+- Implement `def-union`
 - Make a check for `:export-as` to verify that the name is valid.  
 - Make `import-sz` safer.  
 - Make compiler check all function names and meta before the actual 
@@ -216,11 +224,13 @@ A byte further in the future:
 
 ## TODO List
 
+- Make `(random rand min max)` work with negative values.
+- Implement and fix functions for bit-manipulations (in `math.sz`)
 - Enable type induction for lambdas:  
   ``delegate (i) {...}``  
 - Write documentation for `meta` and anonymous arguments.
 - Make Shaza self-hosting step-by-step.  
-- Implement tail-recursion and make compiler turn statements into expressions.  
+- Implement tail-recursion and make compiler turn statements into expressions for real.  
 - Test corner-cases of :alias and :export-as meta.
   (What if we use D names?)  
 - Make code more efficient (there is a lot of copying
