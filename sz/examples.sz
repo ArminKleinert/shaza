@@ -294,3 +294,7 @@
     (when (empty? _rest)
       _res
       (recur (rest _rest) (func (first _rest) _res)))))
+
+; Test def-union
+
+(def-union AnyNum ::int i ::float f ::long l ::double d)

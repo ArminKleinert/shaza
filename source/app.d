@@ -26,14 +26,21 @@ void main(string[] args) {
     import std.file;
     import std.path;
 
+    string scriptfile;
+    string sourcedir;
+
     if (args.size != 3) {
+        /*
         auto msg = "At the moment, The compiler takes exactly ";
         msg ~= "two arguments (The source file and output directory)";
         writeln(stderr, msg);
+        */
+        scriptfile = "./sz/tests.sz";
+        sourcedir = "./shaza";
+    } else {
+        scriptfile = args[1];
+        sourcedir = dirName(scriptfile);
     }
-
-    string scriptfile = args[1];
-    string sourcedir = dirName(scriptfile);
 
     string txt = readText(scriptfile);
     foreach (k, v; parseFully(txt, sourcedir)) {

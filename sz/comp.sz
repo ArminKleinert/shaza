@@ -98,6 +98,7 @@
     (and (ends-with? text ")") (! (in? text "(")))
     (and (ends-with? text "]") (! (in? text "[")))
     (and (ends-with? text "}") (! (in? text "{")))))
+)
 
 (define ::Keyword tknTypeByText (::string text)
   (if (to-ulong-valid? text) :litUInt
@@ -115,6 +116,19 @@
   (if (== text ")") :scopeClose
   (if (== text ";") :lnComment
   :unknown)))))))))))))))
+
+(define ::Context append-tkn-text! (::Context ctx ::string c)
+    (setv! ctx.curr-tkn-text (append ctx.curr-tkn-text c))
+    ctx)
+
+(define ::Context inc-curr-tkn-line! (::Context ctx)
+  (setv! ctx curr-tkn-line (inc ctx.curr_tkn_line))
+  ctx)
+
+(define ::Context inc-curr-tkn-char (::Context ctx)
+  (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char)
+  ctx)
+)
 
 ; TODO
 (define ::Token[] create-tokens (::Context ctx ::string s)
@@ -143,12 +157,12 @@
       (when (! ctx.is-in-type-literal)
         (setv! ctx (close-token ctx)))
       (setv! ctx.is-in-string #t)
-      (setv! ctx.curr-tkn-text (append ctx.curr-tkn-text c))
+      (append-tkn-text! ctx c)
       ctx)
   (when (and (= c ":") (= ctx.curr-tkn-text ":"))
     (let ()
       (setv! ctx.is-in-type-literal #t)
-      (setv! ctx.curr-tkn-text (append ctx.curr-tkn-text c))
+      (append-tkn-text! ctx c)
       ctx)
   (when (or (or (= c " ") (= c "\t")) (= c "\n"))
     (close-token ctx c)
@@ -163,25 +177,24 @@
     ctx
     ))))))
 
-
+(define ::Context linebreak (::Context ctx)
+  (inc-curr-tkn-line! ctx)
+  (setv! ctx.curr-tkn-char 0)
+  ctx)
 
 (define ::Context next-char (::Context ctx ::char c)
-  (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char))
-  (when (= c \newline)
-    (setv! ctx curr-tkn-line (inc ctx.curr_tkn_line))
-    (setv! ctx curr-tkn-char (inc ctx.curr_tkn_char)))
-  (when ctx.is_in_string
-    (tokenize-sub-next-char-in-string ctx (append "" c))
-    (tokenize-sub-next-char ctx (append "" c))))
+  (let (ctx1 (inc-curr-tkn-char! ctx)
+        ctx2 (if (= c \newline) (linebreak ctx1) ctx1))
+    (if ctx.is_in_string
+      (tokenize-sub-next-char-in-string ctx2 (str c))
+      (tokenize-sub-next-char ctx2 (str c)))))
 
-(comment
 (define ::Context tokenize (::Context ctx ::string source)
   (close-token
     (reduce
-      (lambda ::Context (::char c ::Context ctx1) (next-char ctx1 c))
+      (lambda ::Context (::char c ::Context ctx1)
+        (next-char ctx1 c))
       source ctx)))
-)
-
 
 
 

@@ -19,7 +19,7 @@ string defTypeToString(AstNode ast) {
 string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string defName) {
     // SUBSECT Error checking stuff
 
-    if (ast_size(ast) < 2) {
+    if (ast_size(ast) < 3) {
         auto msg = defName ~ ": Not enough parameters. ";
         throw new CompilerError(msg ~ ast.tknstr);
     }
@@ -218,4 +218,59 @@ private string structCopyMethodToString(string typename, string[] fieldTypes, st
 
     result ~= ");\n}\n";
     return result.get();
+}
+
+// SECTION def-union
+
+string defUnionToString(AstNode ast) {
+    // SUBSECT Error checking stuff
+
+    if (ast_size(ast) < 2) {
+        auto msg = "def-union: Not enough parameters. ";
+        throw new CompilerError(msg ~ ast.tknstr);
+    }
+
+    // SUBSECT Get type name
+
+    AstNode typeNode = ast.nodes[1]; // Type name
+
+    if (typeNode.type != keyword(":symbol")) {
+        auto msg = "def-union: First argument must be a symbol. ";
+        throw new CompilerError(msg ~ typeNode.tknstr());
+    }
+
+    string typename = typeNode.tkn_text;
+
+    // SUBSECT get attributes
+
+    string[] attrs = [];
+    Keyword lastType = keyword(":litType");
+
+    // If the type is not empty
+    if (ast.nodes.size > 2) {
+        foreach (AstNode node; rest(rest(ast.nodes))) {
+            if (lastType == keyword(":symbol")) {
+                if (node.type != keyword(":litType")) {
+                    auto msg = "def-union: Type expected. ";
+                    throw new CompilerError(msg ~ node.tknstr());
+                } else {
+                    attrs ~= typeToString(node);
+                    lastType = keyword(":litType");
+                }
+            } else if (lastType == keyword(":litType")) {
+                if (node.type != keyword(":symbol")) {
+                    auto msg = "def-union: symbol expected. ";
+                    throw new CompilerError(msg ~ node.tknstr());
+                } else {
+                    attrs ~= symbolToString(node) ~ "; ";
+                    lastType = keyword(":symbol");
+                }
+            } else {
+                auto msg = "def-union: symbol or type expected. ";
+                throw new CompilerError(msg ~ node.tknstr());
+            }
+        }
+    }
+
+    return "struct " ~ typename ~ "{" ~ join(attrs) ~ "}";
 }

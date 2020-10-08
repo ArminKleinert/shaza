@@ -90,6 +90,8 @@ string createOutput(AstCtx ast) {
                 return defStructToString(ast);
             case "def-type":
                 return defTypeToString(ast);
+            case "def-union":
+                return defUnionToString(ast);
             case "struct":
                 break; // TODO
             case "import-sz":
