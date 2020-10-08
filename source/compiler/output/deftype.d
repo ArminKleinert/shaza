@@ -19,7 +19,7 @@ string defTypeToString(AstNode ast) {
 string defTypeOrStructToString(AstNode ast, bool isValueTypeDefinition, string defName) {
     // SUBSECT Error checking stuff
 
-    if (ast_size(ast) < 3) {
+    if (ast_size(ast) < 2) {
         auto msg = defName ~ ": Not enough parameters. ";
         throw new CompilerError(msg ~ ast.tknstr);
     }
@@ -244,7 +244,7 @@ string defUnionToString(AstNode ast) {
     // SUBSECT get attributes
 
     string[] attrs = [];
-    Keyword lastType = keyword(":litType");
+    Keyword lastType = keyword(":symbol");
 
     // If the type is not empty
     if (ast.nodes.size > 2) {
@@ -254,7 +254,7 @@ string defUnionToString(AstNode ast) {
                     auto msg = "def-union: Type expected. ";
                     throw new CompilerError(msg ~ node.tknstr());
                 } else {
-                    attrs ~= typeToString(node);
+                    attrs ~= typeToString(node) ~ " ";
                     lastType = keyword(":litType");
                 }
             } else if (lastType == keyword(":litType")) {
@@ -272,5 +272,5 @@ string defUnionToString(AstNode ast) {
         }
     }
 
-    return "struct " ~ typename ~ "{" ~ join(attrs) ~ "}";
+    return "union " ~ typename ~ " { " ~ shaza.stdlib.join(attrs) ~ "}";
 }

@@ -47,12 +47,13 @@ Define an anonymous function. (Type is currently mandatory).
 ``(fp <function>)``
 Shaza does not yet have first class functions. This is a workaround. ``(fp +)`` 
 creates a pointer to the global + function. This is not necessary for lambdas.  
-``(def-struct <name> <bindings>)`` 
-Create a new value type. (struct)  
+``(def-struct <name> <generics?> <_>? <bindings>)``  
+Create a new value type (struct). If the 3rd argument `_` is not there, the first
+binding will be treated as an alias (an explanation will be added eventually).
 ``(def-union <name> <bindings>)``
 Create a union type. (union)
-``(def-type <name> <bindings>)`` 
-Create a new class type. (class)    
+``(def-type <name> <generics?> <_>? <bindings>)`` 
+Same as `def-struct`, but generates a reference type instead. (class)    
 ``(struct <bindings>`` 
 Create an anonymous struct type. (Not implemented yet)  
 ``(cast <type> <val>)`` 
@@ -193,7 +194,6 @@ if `:pure` is `#t`, in which case the compiler might otherwise try to memoize.
 ## Missing features
 
 Near future:  
-- Implement `def-union`
 - Make a check for `:export-as` to verify that the name is valid.  
 - Make `import-sz` safer.  
 - Make compiler check all function names and meta before the actual 

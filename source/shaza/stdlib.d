@@ -782,7 +782,49 @@ auto insertionsort(T)(T[] coll) {
     }
 }
 
-import stdlib;
+private auto shuffle_sub(T)(T[] coll, T[] target, Random rand) {
+jumplbl1:
+    if (empty_Q(coll)) {
+        return target;
+    } else {
+        {
+            auto v = first(coll);
+            auto j = mod(ulong_value(rand), inc(size(target)));
+            if (ge_Q(j, size(target))) {
+                {
+                    auto coll_0 = rest(coll);
+                    auto target_1 = append_E(target, v);
+                    auto rand_2 = random(rand);
+                    coll = coll_0;
+                    target = target_1;
+                    rand = rand_2;
+                }
+                goto jumplbl1;
+            } else {
+                {
+                    auto coll_0 = rest(coll);
+                    auto target_1 = assoc_E(append_E(target, get(target, j)), j, v);
+                    auto rand_2 = random(rand);
+                    coll = coll_0;
+                    target = target_1;
+                    rand = rand_2;
+                }
+                goto jumplbl1;
+            }
+        }
+    }
+}
+
+auto shuffle(T)(T[] coll, Random rand) {
+    {
+        T[] target = [];
+        return shuffle_sub(coll, target, rand);
+    }
+}
+
+auto shuffle(T)(T[] coll) {
+    return shuffle(coll, random(default_seed));
+}
 
 T sum(T)(T[] seq) {
     return reduce(delegate T(T l0, T l1) { return plus(l0, l1); }, seq, 0);
@@ -947,32 +989,133 @@ T limit(T)(T val, T min, T max) {
     return if2(gt_Q(val, max), max, if2(lt_Q(val, min), min, val));
 }
 
+import std.bitmanip;
+import core.bitop;
+
+BitArray bits_of(T)(T v) {
+    {
+        void[] vs = [v];
+        return BitArray(vs, v.sizeof);
+    }
+}
+
+BitArray bits_of(void[] vs, size_t bitnum) {
+    return BitArray(vs, bitnum);
+}
+
+size_t word_count(BitArray ba) {
+    return ba.dim();
+}
+
+size_t size(BitArray ba) {
+    return ba.length();
+}
+
+bool get(BitArray ba, size_t i) {
+    return ba[i];
+}
+
+BitArray bit_array_copy(BitArray bits) {
+    return bits.dup();
+}
+
+BitArray flip_bit_E(BitArray bits, size_t idx) {
+    bits.flip(idx);
+    return bits;
+}
+
+BitArray flip_all_E(BitArray bits) {
+    bits.flip();
+    return bits;
+}
+
+BitArray reverse_bits_E(BitArray bits) {
+    bits.reverse();
+    return bits;
+}
+
+BitArray set_bit_E(BitArray bits, size_t idx) {
+    bits[idx] = true;
+    return bits;
+}
+
+BitArray unset_bit_E(BitArray bits, size_t idx) {
+    bits[idx] = false;
+    return bits;
+}
+
+BitArray flip_bit(BitArray bits, size_t idx) {
+    return flip_bit_E(bits.dup, idx);
+}
+
+BitArray flip_all(BitArray bits) {
+    return flip_all_E(bits.dup);
+}
+
+BitArray reverse_bits(BitArray bits) {
+    return reverse_bits_E(bits.dup);
+}
+
+BitArray set_bit(BitArray bits, size_t idx) {
+    return set_bit_E(bits.dup, idx);
+}
+
+BitArray unset_bit(BitArray bits, size_t idx) {
+    return unset_bit_E(bits.dup, idx);
+}
+
+bool bit_Q(BitArray bits, size_t idx) {
+    return get(bits, idx);
+}
+
+T rotate_l(T)(T v, uint count) {
+    return rol(v, count);
+}
+
+T rotate_r(T)(T v, uint count) {
+    return ror(v, count);
+}
+
+int popcount(uint i) {
+    return popcnt(i);
+}
+
+int popcount(ulong i) {
+    return popcnt(i);
+}
+
 struct Random {
     ulong value;
     ulong seed;
+    ulong internal_val;
     alias value this;
-    this(ulong _value, ulong _seed) {
+    this(ulong _value, ulong _seed, ulong _internal_val) {
         value = _value;
         seed = _seed;
+        internal_val = _internal_val;
     }
 
     Random with_value(ulong value) {
-        return Random(value, seed);
+        return Random(value, seed, internal_val);
     }
 
     Random with_seed(ulong seed) {
-        return Random(value, seed);
+        return Random(value, seed, internal_val);
+    }
+
+    Random with_internal_val(ulong internal_val) {
+        return Random(value, seed, internal_val);
     }
 
     Random clone() {
-        return Random(value, seed);
+        return Random(value, seed, internal_val);
     }
 }
 
 ulong default_seed = 8678280846964778612;
 
 Random rseed(ulong seed) {
-    return Random(inc(seed), seed);
+    return Random(inc(seed), seed, inc(seed));
 }
 
 Random random(ulong seed) {
@@ -980,28 +1123,29 @@ Random random(ulong seed) {
         auto seed1 = bit_xor(seed, shift_right(seed, 12));
         auto seed2 = bit_xor(seed1, shift_left(seed1, 25));
         auto seed3 = bit_xor(seed2, shift_right(seed2, 27));
-        return Random(bit_xor(seed, 0x2545F4914F6CDD1D), seed);
+        auto res = bit_xor(seed3, 0x2545F4914F6CDD1D);
+        return Random(res, seed, res);
     }
 }
 
 Random random(Random r) {
     {
         auto nr = random(r.seed);
-        return nr.with_seed(r.value);
+        return nr.with_seed(r.internal_val);
     }
 }
 
 Random random(Random r, ulong max) {
     {
         auto r2 = random(r);
-        return r2.with_value(limit(r2.value, max));
+        return if2(eql_Q(max, 0), r2.with_value(0), r2.with_value(mod(r2.value, max)));
     }
 }
 
 Random random(Random r, ulong min, ulong max) {
     {
-        auto r2 = random(r);
-        return r2.with_value(limit(r2.value, min, max));
+        auto r2 = random(r, sub(max, min));
+        return r2.with_value(plus(r2.value, min));
     }
 }
 
