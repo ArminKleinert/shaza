@@ -87,7 +87,7 @@ The implementations given here are for arrays specifically.
       cc))
   
   (define flatten (::T[][] lst)
-    (reduce (fp concat) [] lst))
+    (reduce (fp concat) (cleared lst) lst))
 )
 
 ; ::T[] - Generic type for your collection (::T[] for arrays)
