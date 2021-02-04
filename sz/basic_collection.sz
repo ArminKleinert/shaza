@@ -35,6 +35,13 @@ The implementations given here are for arrays specifically.
 
   (define prepend (::T value ::T[] coll)
     (llr "[value]" ~ coll))
+    
+  ; Append two arrays (when append can be ambigious)
+  (define concat (::T[] coll0 ::T[] coll1)
+    (append coll0 coll1))
+  
+  (define concat! (::T[] coll0 ::T[] coll1)
+    (append! coll0 coll1))
 
   ; Immutable collections can return themselves.
   (define coll-clone (::T[] coll)
@@ -78,6 +85,9 @@ The implementations given here are for arrays specifically.
     (let (cc (coll-clone coll))
       (ll "cc.length = newsize;")
       cc))
+  
+  (define flatten (::T[][] lst)
+    (reduce (fp concat) [] lst))
 )
 
 ; ::T[] - Generic type for your collection (::T[] for arrays)
@@ -180,7 +190,7 @@ The implementations given here are for arrays specifically.
 
   ; If you need a reduce / foldl function for maps,
   ; you should re-implement this.
-  (meta (:tk-aliases [::F ::T1:delegate(T,T1)])
+  (meta (:tk-aliases [::F ::T1:delegate(T,T1)] :aliases [foldl])
     ; Loop 
     (define ::T1 (::T ::T1) reduce (::F func ::T[] c ::T1 res)
       (loop (_res res _rest c)
@@ -189,11 +199,19 @@ The implementations given here are for arrays specifically.
           (recur (func (first _rest) _res) (rest _rest)))))
   )
 
-  (meta (:tk-aliases [::F ::T:delegate(T,T)])
+  (meta (:tk-aliases [::F ::T:delegate(T,T)] :aliases [foldl1])
     (define ::T (::T) reduce (::F func ::T[] c)
       (if (> (size c) 1) (reduce func (rest c) (first c))
       (if (= (size c) 1) (first c)
       (llr "T.init"))))
+  )
+
+  (meta (:tk-aliases [::F ::T1:delegate(T,T1)])
+    ; Loop 
+    (define ::T1 (::T ::T1) foldr (::F func ::T[] c ::T1 res)
+      (if (empty? c)
+        res
+        (func res (foldr func (rest c) res c))))
   )
 
   (meta (:tk-aliases [::F ::"bool delegate(T)"])
@@ -304,7 +322,7 @@ The implementations given here are for arrays specifically.
   (meta (:visibility :private)
     (define uniq-acc (::T[] c ::T[] output)
       (when (empty? c) output
-      (when (> (index-of output (first c)) -1) 
+      (when (> (index-of output (first c)) -1)
         (recur (rest c) output)
       (recur (rest c) (append! output (first c))))))
   )
@@ -372,7 +390,4 @@ The implementations given here are for arrays specifically.
   (define shuffle (::T[] coll)
     (shuffle coll (random default-seed)))
 )
-
-
-
 

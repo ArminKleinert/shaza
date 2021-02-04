@@ -150,7 +150,7 @@ Basic operations that will be needed in probably EVERY SINGLE shaza file.
       (! (&& b0 b1)))
     (meta (:variadic #t)
       (define !&& (::lazy:bool b0 ::lazy:bool b1 ::lazy:bool b2 ::lazy:bool bs)
-        (! (&& b0 b1 b2))))
+        (! (&& b0 b1 b2)))) ; Not checking bs???
   )
   (meta (:export-as "or")
     (define || (::lazy:bool b0 ::lazy:bool b1)
